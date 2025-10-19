@@ -1,0 +1,162 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime? @map("email_verified")
+  image         String?
+  password      String?
+  wishlistId    String[]  @map("wishlist_id")
+  isAdmin       Boolean   @default(false)
+  isAgent       Boolean   @default(false)
+  isActive      Boolean   @default(true)
+  lastLoginAt   DateTime? @map("last_login_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  accounts Account[]
+  sessions Session[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String   @id @default(uuid())
+  userId            String   @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String   @map("provider_account_id")
+  refresh_token     String?  @db.Text
+  access_token      String?  @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?  @db.Text
+  session_state     String?
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verificationtokens")
+}
+
+model Listing {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  imageSrc    String   @map("image_src")
+  createdAt   DateTime @default(now()) @map("created_at")
+  category    String
+  price       Int
+  location    String
+  days        Int
+  nights      Int
+  rating      Float
+  discount    Int
+  itinary     String[]
+
+  @@map("listings")
+}
+
+model Blog {
+  id        String   @id @default(uuid())
+  title     String
+  excerpt   String
+  content   String   @db.Text
+  image     String?
+  category  String
+  author    String
+  date      DateTime @default(now())
+  readTime  String
+  featured  Boolean  @default(false)
+  published Boolean  @default(false)
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("blogs")
+}
+
+model Contact {
+  id          String   @id @default(uuid())
+  name        String
+  email       String
+  phone       String
+  subject     String
+  message     String
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at")
+  
+  @@map("contacts")
+}
+
+model Quote {
+  id          String   @id @default(uuid())
+  destination String
+  date        String
+  days        Int
+  name        String
+  email       String
+  phone       String
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at")
+  
+  @@map("quotes")
+}
+
+model Itinerary {
+  id                   String   @id @default(uuid())
+  travelId             String   @unique @map("travel_id") // Unique identifier
+  clientName           String   @map("client_name")
+  packageTitle         String   @map("package_title")
+  numberOfDays         Int      @map("number_of_days")
+  numberOfNights       Int      @map("number_of_nights")
+  numberOfHotels       Int      @map("number_of_hotels")
+  tripAdvisorName      String   @map("trip_advisor_name")
+  tripAdvisorNumber    String   @map("trip_advisor_number")
+  cabs                 String
+  flights              String
+  quotePrice           Int      @map("quote_price")
+  pricePerPerson       Int      @map("price_per_person")
+  days                 Json     // Array of day objects
+  hotels               Json     // Array of hotel objects
+  inclusions           Json     // Array of inclusion strings
+  exclusions           Json     // Array of exclusion strings
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  @@map("itineraries")
+}
+
