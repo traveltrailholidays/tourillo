@@ -15,7 +15,7 @@ import {
 import DATA from '@/lib/data';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { ChevronRight, LogOut } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { signOut } from 'next-auth/react';
@@ -36,6 +36,7 @@ interface MenuItem {
   url?: string;
   icon: React.ComponentType<{ size?: number }>;
   children?: SubMenuItem[];
+  adminOnly?: boolean;
 }
 
 const LoadingSpinner = () => (
@@ -57,7 +58,16 @@ export function AppSidebar() {
   const [isLoggingOut, setIsLoggingOut] = useState<boolean>(false);
   const [unreadContactCount, setUnreadContactCount] = useState<number>(0);
   const [unreadQuoteCount, setUnreadQuoteCount] = useState<number>(0);
-  const { clearUser } = useAuthStore();
+  const [isMounted, setIsMounted] = useState(false); // Add mounted state
+  const { user, clearUser } = useAuthStore();
+
+  // Check if component is mounted to prevent hydration mismatch
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Check if user is admin
+  const isAdmin = user?.isAdmin || false;
 
   // Fetch unread counts
   useEffect(() => {
@@ -77,6 +87,21 @@ export function AppSidebar() {
     const interval = setInterval(fetchUnreadCounts, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  // Filter sidebar items based on admin status
+  const filteredSidebarItems = useMemo(() => {
+    // Don't filter during SSR to prevent hydration mismatch
+    if (!isMounted) {
+      return DATA.sidebar;
+    }
+
+    return DATA.sidebar.filter((item: MenuItem) => {
+      if (item.adminOnly) {
+        return isAdmin;
+      }
+      return true;
+    });
+  }, [isAdmin, isMounted]);
 
   const toggleMenu = (title: string): void => {
     const newOpenMenus = new Set(openMenus);
@@ -101,15 +126,8 @@ export function AppSidebar() {
   const handleLogoutConfirm = useCallback(async () => {
     setIsLoggingOut(true);
     try {
-      // Clear client-side auth state
       clearUser();
-
-      // Sign out from NextAuth
-      await signOut({
-        redirect: false,
-      });
-
-      // Redirect to login
+      await signOut({ redirect: false });
       router.push('/login');
     } catch (error) {
       console.error('Logout failed:', error);
@@ -132,8 +150,7 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {DATA.sidebar.map((item: MenuItem) => {
-                // Simple menu item (no children)
+              {filteredSidebarItems.map((item: MenuItem) => {
                 if (!item.children) {
                   const isActive = pathname === item.url;
                   const isContactPage = item.url === '/admin/contact';
@@ -163,7 +180,6 @@ export function AppSidebar() {
                   );
                 }
 
-                // Parent menu item (with children)
                 const isOpen = isMenuOpen(item.title);
                 const hasActiveSubItem = hasActiveChild(item.children);
 
@@ -222,16 +238,12 @@ export function AppSidebar() {
         </button>
       </footer>
 
-      {/* Logout Confirmation Modal */}
       {showLogoutConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/50 dark:bg-white/10 backdrop-blur-[1px]"
             onClick={handleLogoutCancel}
           />
-
-          {/* Modal */}
           <div className="relative bg-foreground rounded-xs shadow-xl p-5 w-full max-w-xl">
             <h3 className="text-lg md:text-xl font-semibold text-theme-text mb-2">Confirm Logout</h3>
             <p className="text-sm text-theme-text/80 mb-8">Are you sure you want to logout of your account?</p>

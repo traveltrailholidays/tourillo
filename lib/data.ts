@@ -12,6 +12,7 @@ const DATA = {
     {
       title: 'Users Management',
       icon: Icon.Users,
+      adminOnly: true, // Only visible to admins
       children: [
         {
           title: 'Users',
@@ -89,6 +90,7 @@ const DATA = {
       icon: Icon.Mail,
     },
   ],
+
   uNav: {
     message: 'Flat 10% off on every package',
   },

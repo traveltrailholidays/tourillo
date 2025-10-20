@@ -167,7 +167,7 @@ export const UserList: React.FC<UserListProps> = ({ users, userType }) => {
                 <TableCell className="text-sm">{formatDate(user.lastLoginAt)}</TableCell>
                 <TableCell className="text-sm">{formatDate(user.createdAt)}</TableCell>
                 <TableCell className="flex gap-2">
-                  <Link href={`/admin/${userType}s-list/edit/${user.id}`}>
+                  <Link href={`/admin/users/${userType}s-list/edit/${user.id}`}>
                     <Button size="icon" variant="ghost" title="Edit">
                       <Pencil className="h-4 w-4 text-purple-600" />
                     </Button>
