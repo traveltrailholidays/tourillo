@@ -13,6 +13,9 @@
 # testing
 /coverage
 
+# Uploads folder (don't commit uploaded files)
+/uploads
+
 # next.js
 /.next/
 /out/

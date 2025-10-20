@@ -24,14 +24,19 @@ type ImageUploadResult = {
   error?: string;
 };
 
+// Upload directory configuration
+const UPLOAD_BASE = process.env.NODE_ENV === 'production' 
+  ? '/var/www/app/uploads'
+  : path.join(process.cwd(), 'uploads');
+
 // Helper function to format Zod errors
 function formatZodError(error: z.ZodError): string {
-  return error.issues.map(issue => issue.message).join(', '); // FIXED: 'issues' not 'errors'
+  return error.issues.map(issue => issue.message).join(', ');
 }
 
 // Ensure upload directory exists
-async function ensureUploadDir() {
-  const uploadDir = path.join(process.cwd(), 'public', 'blogs');
+async function ensureUploadDir(folder: string = 'listings') {
+  const uploadDir = path.join(UPLOAD_BASE, folder);
   try {
     await fs.access(uploadDir);
   } catch {
@@ -41,7 +46,10 @@ async function ensureUploadDir() {
 }
 
 // Upload and compress image
-export async function uploadBlogImage(formData: FormData): Promise<ImageUploadResult> {
+export async function uploadBlogImage(
+  formData: FormData,
+  folder: string = 'listings'
+): Promise<ImageUploadResult> {
   try {
     const file = formData.get('file') as File;
     
@@ -52,20 +60,20 @@ export async function uploadBlogImage(formData: FormData): Promise<ImageUploadRe
       };
     }
     
-    // Validate file - FIXED: Use 'issues' instead of 'errors'
+    // Validate file
     const validation = imageSchema.safeParse({ file });
     if (!validation.success) {
       return {
         success: false,
-        error: formatZodError(validation.error), // FIXED: Use helper function
+        error: formatZodError(validation.error),
       };
     }
 
     // Ensure upload directory exists
-    const uploadDir = await ensureUploadDir();
+    const uploadDir = await ensureUploadDir(folder);
     
     // Generate unique filename
-    const fileName = `${uuid()}.jpg`; // Always save as .jpg after compression
+    const fileName = `${uuid()}.webp`;
     const filePath = path.join(uploadDir, fileName);
     
     // Convert file to buffer
@@ -74,23 +82,21 @@ export async function uploadBlogImage(formData: FormData): Promise<ImageUploadRe
     
     // Process and compress image with Sharp
     const compressedBuffer = await sharp(buffer)
-      .normalize() // Normalize pixel values
       .resize(1200, 800, { 
         fit: 'inside', 
         withoutEnlargement: true 
-      }) // Resize to max 1200x800, maintain aspect ratio
-      .jpeg({ 
-        quality: 85, // 85% quality for good compression
-        progressive: true,
-        mozjpeg: true 
+      })
+      .webp({ 
+        quality: 85,
+        effort: 6 
       })
       .toBuffer();
     
     // Save compressed image
     await fs.writeFile(filePath, compressedBuffer);
     
-    // Return path relative to public folder
-    const relativePath = `/blogs/${fileName}`;
+    // Return URL path
+    const relativePath = `/uploads/${folder}/${fileName}`;
     
     return {
       success: true,
@@ -109,11 +115,22 @@ export async function uploadBlogImage(formData: FormData): Promise<ImageUploadRe
 // Delete image file
 export async function deleteBlogImage(imagePath: string): Promise<boolean> {
   try {
-    if (!imagePath.startsWith('/blogs/')) {
+    // Support both old /blogs/ and new /uploads/ paths
+    if (!imagePath.startsWith('/blogs/') && !imagePath.startsWith('/uploads/')) {
       return false;
     }
     
-    const fullPath = path.join(process.cwd(), 'public', imagePath);
+    // Handle old path format
+    let fullPath: string;
+    if (imagePath.startsWith('/blogs/')) {
+      // Old format: /blogs/filename.jpg
+      fullPath = path.join(process.cwd(), 'public', imagePath);
+    } else {
+      // New format: /uploads/listings/filename.webp
+      const relativePath = imagePath.replace('/uploads/', '');
+      fullPath = path.join(UPLOAD_BASE, relativePath);
+    }
+    
     await fs.unlink(fullPath);
     return true;
   } catch (error) {
@@ -125,9 +142,10 @@ export async function deleteBlogImage(imagePath: string): Promise<boolean> {
 // Generate multiple sizes for responsive images
 export async function generateResponsiveImages(
   originalBuffer: Buffer,
-  fileName: string
+  fileName: string,
+  folder: string = 'listings'
 ): Promise<string[]> {
-  const uploadDir = await ensureUploadDir();
+  const uploadDir = await ensureUploadDir(folder);
   const baseName = path.parse(fileName).name;
   const generatedPaths: string[] = [];
   
@@ -139,7 +157,7 @@ export async function generateResponsiveImages(
   
   try {
     for (const size of sizes) {
-      const sizedFileName = `${baseName}-${size.suffix}.jpg`;
+      const sizedFileName = `${baseName}-${size.suffix}.webp`;
       const sizedFilePath = path.join(uploadDir, sizedFileName);
       
       const processedBuffer = await sharp(originalBuffer)
@@ -147,119 +165,17 @@ export async function generateResponsiveImages(
           fit: 'inside', 
           withoutEnlargement: true 
         })
-        .jpeg({ quality: 85, progressive: true })
+        .webp({ quality: 85 })
         .toBuffer();
         
       await fs.writeFile(sizedFilePath, processedBuffer);
-      generatedPaths.push(`/blogs/${sizedFileName}`);
+      generatedPaths.push(`/uploads/${folder}/${sizedFileName}`);
     }
   } catch (error) {
     console.error('Error generating responsive images:', error);
   }
   
   return generatedPaths;
-}
-
-// Advanced image processing with watermark
-export async function uploadBlogImageWithWatermark(
-  formData: FormData,
-  watermarkPath?: string
-): Promise<ImageUploadResult> {
-  try {
-    const file = formData.get('file') as File;
-    
-    if (!file || file.size === 0) {
-      return {
-        success: false,
-        error: 'No file provided',
-      };
-    }
-    
-    // Validate file - FIXED: Use helper function
-    const validation = imageSchema.safeParse({ file });
-    if (!validation.success) {
-      return {
-        success: false,
-        error: formatZodError(validation.error), // FIXED: Use helper function
-      };
-    }
-
-    // Ensure upload directory exists
-    const uploadDir = await ensureUploadDir();
-    
-    // Generate unique filename
-    const fileName = `${uuid()}.jpg`;
-    const filePath = path.join(uploadDir, fileName);
-    
-    // Convert file to buffer
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    
-    let sharpInstance = sharp(buffer)
-      .normalize()
-      .resize(1200, 800, { 
-        fit: 'inside', 
-        withoutEnlargement: true 
-      });
-
-    // Add watermark if provided
-    if (watermarkPath && await fs.access(watermarkPath).then(() => true).catch(() => false)) {
-      const watermark = await sharp(watermarkPath)
-        .resize(200, 200, { fit: 'inside' })
-        .png()
-        .toBuffer();
-
-      sharpInstance = sharpInstance.composite([{
-        input: watermark,
-        gravity: 'southeast',
-        blend: 'overlay'
-      }]);
-    }
-    
-    const compressedBuffer = await sharpInstance
-      .jpeg({ 
-        quality: 85,
-        progressive: true,
-        mozjpeg: true 
-      })
-      .toBuffer();
-    
-    // Save compressed image
-    await fs.writeFile(filePath, compressedBuffer);
-    
-    // Return path relative to public folder
-    const relativePath = `/blogs/${fileName}`;
-    
-    return {
-      success: true,
-      imagePath: relativePath,
-    };
-    
-  } catch (error) {
-    console.error('Image upload with watermark error:', error);
-    return {
-      success: false,
-      error: 'Failed to upload and process image with watermark',
-    };
-  }
-}
-
-// Batch image upload function
-export async function uploadMultipleBlogImages(
-  formData: FormData
-): Promise<ImageUploadResult[]> {
-  const results: ImageUploadResult[] = [];
-  const files = formData.getAll('files') as File[];
-
-  for (const file of files) {
-    const singleFileFormData = new FormData();
-    singleFileFormData.append('file', file);
-    
-    const result = await uploadBlogImage(singleFileFormData);
-    results.push(result);
-  }
-
-  return results;
 }
 
 // Image validation only (without upload)
@@ -269,9 +185,28 @@ export async function validateImageFile(file: File): Promise<{ valid: boolean; e
   if (!validation.success) {
     return {
       valid: false,
-      error: formatZodError(validation.error), // FIXED: Use helper function
+      error: formatZodError(validation.error),
     };
   }
 
   return { valid: true };
+}
+
+// Batch image upload function
+export async function uploadMultipleBlogImages(
+  formData: FormData,
+  folder: string = 'listings'
+): Promise<ImageUploadResult[]> {
+  const results: ImageUploadResult[] = [];
+  const files = formData.getAll('files') as File[];
+
+  for (const file of files) {
+    const singleFileFormData = new FormData();
+    singleFileFormData.append('file', file);
+    
+    const result = await uploadBlogImage(singleFileFormData, folder);
+    results.push(result);
+  }
+
+  return results;
 }

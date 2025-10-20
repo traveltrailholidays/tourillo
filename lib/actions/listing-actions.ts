@@ -58,7 +58,7 @@ export async function createListing(formData: FormData) {
       const imageFormData = new FormData();
       imageFormData.append('file', imageFile);
 
-      const uploadResult = await uploadBlogImage(imageFormData);
+      const uploadResult = await uploadBlogImage(imageFormData, 'listings');
       if (!uploadResult.success) {
         throw new Error(uploadResult.error || 'Image upload failed');
       }
@@ -139,7 +139,7 @@ export async function updateListing(id: string, formData: FormData) {
       const imageFormData = new FormData();
       imageFormData.append('file', imageFile);
 
-      const uploadResult = await uploadBlogImage(imageFormData);
+      const uploadResult = await uploadBlogImage(imageFormData, 'listings');
       if (!uploadResult.success) {
         throw new Error(uploadResult.error || 'Image upload failed');
       }
@@ -331,7 +331,7 @@ export async function getFeaturedListings() {
       orderBy: {
         rating: 'desc',
       },
-      take: 8, // Limit to 8 featured packages
+      take: 8,
     });
 
     return listings.map(toSafeListing);
@@ -359,7 +359,7 @@ export async function getWeekendListings() {
       orderBy: {
         rating: 'desc',
       },
-      take: 8, // Limit to 8 weekend packages
+      take: 8,
     });
 
     return listings.map(toSafeListing);
