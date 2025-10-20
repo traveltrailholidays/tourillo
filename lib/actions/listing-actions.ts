@@ -200,6 +200,7 @@ export async function updateListing(id: string, formData: FormData) {
 }
 
 // Delete listing
+// This is already in your code - just confirming it's correct
 export async function deleteListing(id: string) {
   try {
     const validatedId = uuidSchema.parse(id);
@@ -212,10 +213,12 @@ export async function deleteListing(id: string) {
       throw new Error('Listing not found');
     }
 
+    // Delete image from storage
     if (listing.imageSrc) {
       await deleteBlogImage(listing.imageSrc);
     }
 
+    // Delete listing from database
     await prisma.listing.delete({
       where: { id: validatedId },
     });
@@ -324,9 +327,7 @@ export async function getFeaturedListings() {
   try {
     const listings = await prisma.listing.findMany({
       where: {
-        OR: [
-          { category: 'featured' },
-        ],
+        OR: [{ category: 'featured' }],
       },
       orderBy: {
         rating: 'desc',
@@ -349,10 +350,7 @@ export async function getWeekendListings() {
         OR: [
           { category: 'weekend' },
           {
-            AND: [
-              { days: { lte: 3 } },
-              { nights: { lte: 2 } },
-            ],
+            AND: [{ days: { lte: 3 } }, { nights: { lte: 2 } }],
           },
         ],
       },

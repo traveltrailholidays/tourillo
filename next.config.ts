@@ -2,7 +2,7 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
-  allowedDevOrigins: ['http://82.25.110.29:3000'],
+  allowedDevOrigins: ['http://82.25.110.29:3000', 'https://tourillo.com'],
   images: {
     remotePatterns: [
       {
@@ -12,6 +12,7 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'tourillo.com',
+        pathname: '/uploads/**',
       },
     ],
   },

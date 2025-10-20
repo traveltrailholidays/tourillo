@@ -15,6 +15,7 @@
 
 # Uploads folder (don't commit uploaded files)
 /uploads
+/public/uploads
 
 # next.js
 /.next/
