@@ -315,6 +315,7 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
                   width={400}
                   height={250}
                   className="rounded-lg object-cover border-2 border-gray-200 dark:border-gray-700 w-full max-w-md h-64"
+                  unoptimized
                 />
                 <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg flex items-center justify-center">
                   <div className="flex gap-2">

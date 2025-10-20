@@ -43,6 +43,7 @@ const PackageCard: React.FC<PackageCardProps> = ({ data, initialLiked = false, b
           width={400}
           height={250}
           className="w-full h-52 object-cover"
+          unoptimized
         />
 
         {/* Category Badge */}
