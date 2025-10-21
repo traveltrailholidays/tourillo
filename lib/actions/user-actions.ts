@@ -127,7 +127,7 @@ export async function getUserById(id: string) {
 export async function updateUser(id: string, data: z.infer<typeof userSchema>) {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.isAdmin) {
       throw new Error('Unauthorized');
     }
@@ -157,7 +157,7 @@ export async function updateUser(id: string, data: z.infer<typeof userSchema>) {
 export async function deactivateUser(id: string) {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.isAdmin) {
       throw new Error('Unauthorized');
     }
@@ -186,7 +186,7 @@ export async function deactivateUser(id: string) {
 export async function deleteUserPermanently(id: string) {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.isAdmin) {
       throw new Error('Unauthorized');
     }
@@ -214,7 +214,7 @@ export async function deleteUserPermanently(id: string) {
 export async function reactivateUser(id: string) {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.isAdmin) {
       throw new Error('Unauthorized');
     }

@@ -1,36 +1,36 @@
-import { auth } from '@/auth'
-import { prisma } from '@/lib/prisma'
-import { redirect } from 'next/navigation'
-import { cache } from 'react'
+import { auth } from '@/auth';
+import { prisma } from '@/lib/prisma';
+import { redirect } from 'next/navigation';
+import { cache } from 'react';
 
 export const getValidSession = cache(async () => {
-  const session = await auth()
-  
+  const session = await auth();
+
   if (!session?.user || session.error) {
-    return null
+    return null;
   }
 
-  return session
-})
+  return session;
+});
 
 export async function requireAuth() {
-  const session = await getValidSession()
-  
+  const session = await getValidSession();
+
   if (!session) {
-    redirect('/login')
+    redirect('/login');
   }
-  
-  return session
+
+  return session;
 }
 
 export async function requireAdmin() {
-  const session = await requireAuth()
-  
+  const session = await requireAuth();
+
   if (!session.user.isAdmin) {
-    redirect('/')
+    redirect('/');
   }
-  
-  return session
+
+  return session;
 }
 
 // Utility to invalidate all sessions for a user
@@ -38,13 +38,13 @@ export async function invalidateUserSessions(userId: string) {
   try {
     const deletedSessions = await prisma.session.deleteMany({
       where: { userId },
-    })
-    
-    console.log(`Invalidated ${deletedSessions.count} sessions for user: ${userId}`)
-    return deletedSessions.count
+    });
+
+    console.log(`Invalidated ${deletedSessions.count} sessions for user: ${userId}`);
+    return deletedSessions.count;
   } catch (error) {
-    console.error(`Failed to invalidate sessions for user ${userId}:`, error)
-    throw error
+    console.error(`Failed to invalidate sessions for user ${userId}:`, error);
+    throw error;
   }
 }
 
@@ -55,22 +55,22 @@ export async function deactivateUser(userId: string) {
       // First deactivate the user
       await tx.user.update({
         where: { id: userId },
-        data: { 
+        data: {
           isActive: false,
           updatedAt: new Date(),
         },
-      })
-      
+      });
+
       // Then invalidate all sessions
       await tx.session.deleteMany({
         where: { userId },
-      })
-    })
-    
-    console.log(`User ${userId} deactivated and sessions cleared`)
+      });
+    });
+
+    console.log(`User ${userId} deactivated and sessions cleared`);
   } catch (error) {
-    console.error(`Failed to deactivate user ${userId}:`, error)
-    throw error
+    console.error(`Failed to deactivate user ${userId}:`, error);
+    throw error;
   }
 }
 
@@ -79,12 +79,12 @@ export async function deleteUser(userId: string) {
   try {
     await prisma.user.delete({
       where: { id: userId },
-    })
-    
-    console.log(`User ${userId} deleted successfully`)
+    });
+
+    console.log(`User ${userId} deleted successfully`);
   } catch (error) {
-    console.error(`Failed to delete user ${userId}:`, error)
-    throw error
+    console.error(`Failed to delete user ${userId}:`, error);
+    throw error;
   }
 }
 
@@ -93,16 +93,16 @@ export async function reactivateUser(userId: string) {
   try {
     const user = await prisma.user.update({
       where: { id: userId },
-      data: { 
+      data: {
         isActive: true,
         updatedAt: new Date(),
       },
-    })
-    
-    console.log(`User ${userId} reactivated successfully`)
-    return user
+    });
+
+    console.log(`User ${userId} reactivated successfully`);
+    return user;
   } catch (error) {
-    console.error(`Failed to reactivate user ${userId}:`, error)
-    throw error
+    console.error(`Failed to reactivate user ${userId}:`, error);
+    throw error;
   }
 }

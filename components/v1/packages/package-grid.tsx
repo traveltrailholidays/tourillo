@@ -12,11 +12,7 @@ interface PackageGridProps {
   emptyMessage?: string;
 }
 
-const PackageGrid: React.FC<PackageGridProps> = ({
-  packages,
-  title,
-  emptyMessage = 'No packages available',
-}) => {
+const PackageGrid: React.FC<PackageGridProps> = ({ packages, title, emptyMessage = 'No packages available' }) => {
   const { user } = useAuthStore();
   const wishlistIds = user?.wishlistId || [];
 
@@ -36,14 +32,10 @@ const PackageGrid: React.FC<PackageGridProps> = ({
 
   return (
     <div className="space-y-6">
-      {title && (
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-          {title}
-        </h2>
-      )}
+      {title && <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{title}</h2>}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {packages.map((pkg) => (
-          <PackageCard key={pkg.id} data={pkg} initialLiked={wishlistIds.includes(pkg.id)}/>
+          <PackageCard key={pkg.id} data={pkg} initialLiked={wishlistIds.includes(pkg.id)} />
         ))}
       </div>
     </div>

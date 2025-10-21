@@ -56,10 +56,7 @@ export const UserList: React.FC<UserListProps> = ({ users, userType }) => {
   const PAGE_SIZE = 10;
 
   const filtered = useMemo(
-    () =>
-      users.filter((u) =>
-        [u.name, u.email].some((v) => v?.toLowerCase().includes(search.toLowerCase()))
-      ),
+    () => users.filter((u) => [u.name, u.email].some((v) => v?.toLowerCase().includes(search.toLowerCase()))),
     [search, users]
   );
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
@@ -172,34 +169,22 @@ export const UserList: React.FC<UserListProps> = ({ users, userType }) => {
                       <Pencil className="h-4 w-4 text-purple-600" />
                     </Button>
                   </Link>
-                  
+
                   {!user.isActive ? (
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => handleReactivate(user.id)}
-                      title="Reactivate"
-                    >
+                    <Button size="icon" variant="ghost" onClick={() => handleReactivate(user.id)} title="Reactivate">
                       <UserCheck className="h-4 w-4 text-green-600" />
                     </Button>
                   ) : (
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => setDeleteId(user.id)}
-                          title="Delete"
-                        >
+                        <Button size="icon" variant="ghost" onClick={() => setDeleteId(user.id)} title="Delete">
                           <Trash2 className="h-4 w-4 text-red-600" />
                         </Button>
                       </DialogTrigger>
                       <DialogContent>
                         <DialogHeader>
                           <DialogTitle>Delete this {userType}?</DialogTitle>
-                          <DialogDescription>
-                            Choose how you want to remove this {userType}.
-                          </DialogDescription>
+                          <DialogDescription>Choose how you want to remove this {userType}.</DialogDescription>
                         </DialogHeader>
                         <div className="py-4">
                           <div className="flex items-center space-x-2">
@@ -233,17 +218,8 @@ export const UserList: React.FC<UserListProps> = ({ users, userType }) => {
                               Cancel
                             </Button>
                           </DialogClose>
-                          <Button
-                            variant="destructive"
-                            onClick={handleDelete}
-                            disabled={isDeleting}
-                            type="button"
-                          >
-                            {isDeleting
-                              ? 'Processing...'
-                              : permanentDelete
-                                ? 'Delete Permanently'
-                                : 'Deactivate'}
+                          <Button variant="destructive" onClick={handleDelete} disabled={isDeleting} type="button">
+                            {isDeleting ? 'Processing...' : permanentDelete ? 'Delete Permanently' : 'Deactivate'}
                           </Button>
                         </DialogFooter>
                       </DialogContent>

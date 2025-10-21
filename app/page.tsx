@@ -16,7 +16,7 @@ import NavbarMarginLayout from '@/components/v1/navbar/navbar-margin-layout';
 const page = async () => {
   return (
     <NavbarMarginLayout>
-      <div className='overflow-hidden'>
+      <div className="overflow-hidden">
         <Hero />
       </div>
       <main className="flex flex-col items-center justify-start w-full overflow-x-hidden">

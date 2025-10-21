@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
 const page = async () => {
-    const listings = await getAllListings();
+  const listings = await getAllListings();
 
   // Convert dates to strings for client component
   const packagesData = listings.map((listing) => ({
@@ -12,8 +12,8 @@ const page = async () => {
     createdAt: listing.createdAt.toISOString(),
   }));
   return (
-    <div className='p-6'>
-        <div className="flex items-center justify-between mb-4">
+    <div className="p-6">
+      <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold mb-4">All Packages</h1>
         <Link href="/admin/package/create-package">
           <Button className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white cursor-pointer rounded">
@@ -21,9 +21,9 @@ const page = async () => {
           </Button>
         </Link>
       </div>
-   <PackageList packages={packagesData} />
+      <PackageList packages={packagesData} />
     </div>
-  )
-}
+  );
+};
 
-export default page
+export default page;

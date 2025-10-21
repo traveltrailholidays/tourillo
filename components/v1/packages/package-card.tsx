@@ -16,7 +16,7 @@ interface PackageCardProps {
   background?: string;
 }
 
-const PackageCard: React.FC<PackageCardProps> = ({ data, initialLiked = false, background = "foreground" }) => {
+const PackageCard: React.FC<PackageCardProps> = ({ data, initialLiked = false, background = 'foreground' }) => {
   const discountedPrice = useMemo(() => {
     if (data.discount > 0) {
       return Math.round(data.price - data.price * (data.discount / 100));
@@ -32,7 +32,7 @@ const PackageCard: React.FC<PackageCardProps> = ({ data, initialLiked = false, b
     }).format(price);
   };
 
-  const likeBg = background === "foreground" ? "background" : "foreground";
+  const likeBg = background === 'foreground' ? 'background' : 'foreground';
 
   return (
     <article className={`bg-${background} rounded overflow-hidden transition duration-300 ease-in-out hover:shadow-lg`}>
@@ -111,7 +111,7 @@ const PackageCard: React.FC<PackageCardProps> = ({ data, initialLiked = false, b
 
         {/* View Details Button */}
         <div className="flex gap-3">
-          <LikeButton backgroundColor={likeBg} listingId={data.id} initialLiked={initialLiked}/>
+          <LikeButton backgroundColor={likeBg} listingId={data.id} initialLiked={initialLiked} />
           <Link
             href={`/packages/${data.id}`}
             className="block w-full font-medium text-sm px-4 py-2 rounded-xs text-white bg-gradient-to-r from-indigo-500 hover:from-indigo-500/90 via-purple-500 hover:via-purple-500/90 to-pink-500 hover:to-pink-500/90 cursor-pointer text-center transition-all duration-200"

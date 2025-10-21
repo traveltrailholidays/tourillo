@@ -12,9 +12,7 @@ export default async function ItineraryListPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold mb-2">Itinerary Management</h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Manage all travel itineraries
-          </p>
+          <p className="text-gray-600 dark:text-gray-400">Manage all travel itineraries</p>
         </div>
         <Link href="/admin/itinerary/create-itinerary">
           <Button className="flex items-center gap-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
@@ -22,7 +20,6 @@ export default async function ItineraryListPage() {
             Create Itinerary
           </Button>
         </Link>
-        
       </div>
 
       <ItineraryList itineraries={itineraries} />

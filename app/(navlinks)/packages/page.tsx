@@ -10,7 +10,7 @@ interface PageProps {
 const page = async ({ searchParams }: PageProps) => {
   // Await searchParams (Next.js 15+ requirement)
   const params = await searchParams;
-  
+
   return <Packages searchParams={params} />;
 };
 

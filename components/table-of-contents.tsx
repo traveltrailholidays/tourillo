@@ -60,13 +60,13 @@ const TableOfContents: React.FC<TableOfContentsProps> = ({ headings }) => {
         </span>
         <ChevronRight className={`h-4 w-4 transform transition-transform ${isOpen ? 'rotate-90' : ''}`} />
       </button>
-      
+
       {/* Desktop Title */}
       <h3 className="hidden lg:block font-semibold mb-4 flex items-center">
         <List className="h-4 w-4 mr-2" />
         Table of Contents
       </h3>
-      
+
       {/* TOC List */}
       <nav className={`${isOpen ? 'block' : 'hidden lg:block'}`}>
         <ul className="space-y-2">
@@ -75,9 +75,7 @@ const TableOfContents: React.FC<TableOfContentsProps> = ({ headings }) => {
               <button
                 onClick={() => handleClick(id)}
                 className={`block w-full text-left text-sm transition-colors hover:text-purple-600 ${
-                  activeId === id
-                    ? 'text-purple-600 font-medium'
-                    : 'text-gray-600 dark:text-gray-400'
+                  activeId === id ? 'text-purple-600 font-medium' : 'text-gray-600 dark:text-gray-400'
                 }`}
                 style={{ paddingLeft: `${(level - 1) * 16}px` }}
               >

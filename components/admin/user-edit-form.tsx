@@ -70,34 +70,22 @@ const UserEditForm: React.FC<UserEditFormProps> = ({ user }) => {
     <div className="bg-foreground rounded-lg shadow-lg p-8 max-w-3xl">
       <div className="flex items-center gap-4 mb-8">
         {user.image ? (
-          <Image
-            src={user.image}
-            alt={user.name || 'User'}
-            width={80}
-            height={80}
-            className="rounded-full"
-          />
+          <Image src={user.image} alt={user.name || 'User'} width={80} height={80} className="rounded-full" />
         ) : (
           <div className="w-20 h-20 rounded-full bg-purple-600 flex items-center justify-center text-white text-2xl font-bold">
             {user.name?.charAt(0).toUpperCase() || 'U'}
           </div>
         )}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Edit User Profile
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Manage user details and permissions
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Edit User Profile</h1>
+          <p className="text-gray-600 dark:text-gray-400">Manage user details and permissions</p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Information */}
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white border-b pb-2">
-            Basic Information
-          </h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white border-b pb-2">Basic Information</h2>
 
           <div className="grid md:grid-cols-2 gap-4">
             <div>
@@ -139,9 +127,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({ user }) => {
             <div>
               <Label>User Type</Label>
               <div className="flex items-center h-[52px] px-4 mt-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-800">
-                <span className="font-semibold text-purple-600 dark:text-purple-400">
-                  {getUserType()}
-                </span>
+                <span className="font-semibold text-purple-600 dark:text-purple-400">{getUserType()}</span>
               </div>
             </div>
           </div>
@@ -149,9 +135,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({ user }) => {
 
         {/* Permissions & Status */}
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white border-b pb-2">
-            Permissions & Status
-          </h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white border-b pb-2">Permissions & Status</h2>
 
           <div className="grid gap-4">
             <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
@@ -166,9 +150,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({ user }) => {
               <Switch
                 id="isActive"
                 checked={formData.isActive}
-                onCheckedChange={(checked) =>
-                  setFormData({ ...formData, isActive: checked })
-                }
+                onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
               />
             </div>
 
@@ -177,19 +159,17 @@ const UserEditForm: React.FC<UserEditFormProps> = ({ user }) => {
                 <Label htmlFor="isAgent" className="text-base font-medium">
                   Agent Access
                 </Label>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Grant agent permissions and features
-                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Grant agent permissions and features</p>
               </div>
               <Switch
                 id="isAgent"
                 checked={formData.isAgent}
                 onCheckedChange={(checked) => {
-                  setFormData({ 
-                    ...formData, 
+                  setFormData({
+                    ...formData,
                     isAgent: checked,
-                    isAdmin: checked ? false : formData.isAdmin // Remove admin if agent is enabled
-                  })
+                    isAdmin: checked ? false : formData.isAdmin, // Remove admin if agent is enabled
+                  });
                 }}
               />
             </div>
@@ -199,19 +179,17 @@ const UserEditForm: React.FC<UserEditFormProps> = ({ user }) => {
                 <Label htmlFor="isAdmin" className="text-base font-medium">
                   Admin Access
                 </Label>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Grant full administrative privileges
-                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Grant full administrative privileges</p>
               </div>
               <Switch
                 id="isAdmin"
                 checked={formData.isAdmin}
                 onCheckedChange={(checked) => {
-                  setFormData({ 
-                    ...formData, 
+                  setFormData({
+                    ...formData,
                     isAdmin: checked,
-                    isAgent: checked ? false : formData.isAgent // Remove agent if admin is enabled
-                  })
+                    isAgent: checked ? false : formData.isAgent, // Remove agent if admin is enabled
+                  });
                 }}
               />
             </div>
@@ -220,9 +198,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({ user }) => {
 
         {/* Account Details */}
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white border-b pb-2">
-            Account Details
-          </h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white border-b pb-2">Account Details</h2>
 
           <div className="grid md:grid-cols-2 gap-4">
             <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">

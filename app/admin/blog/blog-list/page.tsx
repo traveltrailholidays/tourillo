@@ -7,7 +7,7 @@ import React from 'react';
 const page = async () => {
   const blogs = await getAllBlogs();
   // Serialize Date objects to strings
-  const serializedBlogs = blogs.map(blog => ({
+  const serializedBlogs = blogs.map((blog) => ({
     ...blog,
     createdAt: blog.createdAt.toISOString(),
     updatedAt: blog.updatedAt.toISOString(),

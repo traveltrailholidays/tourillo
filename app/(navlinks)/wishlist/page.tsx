@@ -40,7 +40,7 @@ export default async function WishlistPage() {
     <main className="min-h-[80vh] bg-background">
       <PageHero imageUrl="/images/about-us/about.webp" headingText="Wishlist" />
       <Section className="py-16">
-        <Container className='w-full'>
+        <Container className="w-full">
           <PackageGrid
             packages={safePackages}
             emptyMessage="Your wishlist is currently empty. Start browsing to discover and save your favorite packages."

@@ -27,19 +27,16 @@ export default async function SearchPage({ searchParams }: PageProps) {
         </Link>
 
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            Search Results
-          </h1>
-          
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Search Results</h1>
+
           {/* Search Bar */}
           <SearchBar initialQuery={query} />
 
           {query && (
             <p className="text-gray-600 dark:text-gray-400 mt-4">
-              {packages.length > 0 
+              {packages.length > 0
                 ? `Found ${packages.length} result${packages.length !== 1 ? 's' : ''} for "${query}"`
-                : `No results found for "${query}"`
-              }
+                : `No results found for "${query}"`}
             </p>
           )}
         </div>
@@ -48,16 +45,14 @@ export default async function SearchPage({ searchParams }: PageProps) {
         {query ? (
           <Suspense fallback={<SearchResultsSkeleton />}>
             <PackageGrid
-              packages={packages} 
+              packages={packages}
               emptyMessage={`No packages found matching "${query}". Try different keywords.`}
             />
           </Suspense>
         ) : (
           <div className="text-center py-12">
             <Search className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-            <p className="text-gray-500 dark:text-gray-400 text-lg">
-              Enter a search query to find packages
-            </p>
+            <p className="text-gray-500 dark:text-gray-400 text-lg">Enter a search query to find packages</p>
           </div>
         )}
       </div>

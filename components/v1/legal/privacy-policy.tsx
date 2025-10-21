@@ -1,6 +1,6 @@
-import Section from "../section";
-import Container from "../container";
-import { Calendar } from "lucide-react";
+import Section from '../section';
+import Container from '../container';
+import { Calendar } from 'lucide-react';
 
 const Privacy = () => {
   return (
@@ -177,7 +177,7 @@ const Privacy = () => {
         </div>
       </Container>
     </Section>
-  )
-}
+  );
+};
 
-export default Privacy
+export default Privacy;

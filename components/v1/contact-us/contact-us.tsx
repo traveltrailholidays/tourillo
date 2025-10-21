@@ -27,7 +27,7 @@ const ContactUs = () => {
     try {
       await createContact(formData);
       toast.success('Message sent successfully! We will contact you soon.');
-      
+
       // Reset form
       setFormData({
         name: '',

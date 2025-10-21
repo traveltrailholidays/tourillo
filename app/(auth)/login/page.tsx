@@ -21,7 +21,7 @@ const page = async () => {
   }
 
   return (
-    <Section className='h-screen items-start bg-foreground'>
+    <Section className="h-screen items-start bg-foreground">
       <Container className="w-full relative flex h-[60vh] items-center">
         <Link href="/" className="absolute left-10 top-4 cursor-pointer hover:scale-125 transition text-custom-clp">
           <FaArrowLeftLong size={20} />

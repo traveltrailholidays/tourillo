@@ -42,7 +42,7 @@ function validateUUID(id: string): string {
 }
 
 function formatZodError(error: z.ZodError): string {
-  return error.issues.map(issue => issue.message).join(', ');
+  return error.issues.map((issue) => issue.message).join(', ');
 }
 
 // Create blog with state (for useActionState)
@@ -51,11 +51,11 @@ export async function createBlogWithState(prevState: ActionState, formData: Form
     // Handle image upload first
     let imagePath: string | null = null;
     const imageFile = formData.get('image') as File;
-    
+
     if (imageFile && imageFile.size > 0) {
       const imageFormData = new FormData();
       imageFormData.append('file', imageFile);
-      
+
       const uploadResult = await uploadBlogImage(imageFormData);
       if (!uploadResult.success) {
         throw new Error(uploadResult.error || 'Image upload failed');
@@ -95,7 +95,7 @@ export async function createBlogWithState(prevState: ActionState, formData: Form
 
     revalidatePath('/admin/blog/blog-list');
     revalidatePath('/blogs');
-    
+
     return {
       error: null,
       message: 'Blog post created successfully!',
@@ -123,11 +123,11 @@ export async function updateBlogWithState(prevState: ActionState, formData: Form
   try {
     const blogId = formData.get('blogId') as string;
     const validatedId = validateUUID(blogId);
-    
+
     const existingBlog = await prisma.blog.findUnique({
       where: { id: validatedId },
     });
-    
+
     if (!existingBlog) {
       throw new Error('Blog not found');
     }
@@ -135,7 +135,7 @@ export async function updateBlogWithState(prevState: ActionState, formData: Form
     let imagePath: string | null = existingBlog.image;
     const imageFile = formData.get('image') as File;
     const removeImage = formData.get('removeImage') === 'true';
-    
+
     if (removeImage) {
       if (existingBlog.image) {
         await deleteBlogImage(existingBlog.image);
@@ -144,16 +144,16 @@ export async function updateBlogWithState(prevState: ActionState, formData: Form
     } else if (imageFile && imageFile.size > 0) {
       const imageFormData = new FormData();
       imageFormData.append('file', imageFile);
-      
+
       const uploadResult = await uploadBlogImage(imageFormData);
       if (!uploadResult.success) {
         throw new Error(uploadResult.error || 'Image upload failed');
       }
-      
+
       if (existingBlog.image) {
         await deleteBlogImage(existingBlog.image);
       }
-      
+
       imagePath = uploadResult.imagePath || null;
     }
 
@@ -172,9 +172,9 @@ export async function updateBlogWithState(prevState: ActionState, formData: Form
     const slug = generateSlug(validatedData.title);
 
     const existingSlugBlog = await prisma.blog.findFirst({
-      where: { 
+      where: {
         slug,
-        NOT: { id: validatedId }
+        NOT: { id: validatedId },
       },
     });
 
@@ -192,7 +192,7 @@ export async function updateBlogWithState(prevState: ActionState, formData: Form
     revalidatePath('/admin/blog/blog-list');
     revalidatePath('/blogs');
     revalidatePath(`/blogs/${finalSlug}`);
-    
+
     return {
       error: null,
       message: 'Blog post updated successfully!',
@@ -221,15 +221,15 @@ export async function updateBlogWithState(prevState: ActionState, formData: Form
 export async function deleteBlog(id: string): Promise<void> {
   try {
     const validatedId = validateUUID(id);
-    
+
     const blog = await prisma.blog.findUnique({
       where: { id: validatedId },
     });
-    
+
     if (blog?.image) {
       await deleteBlogImage(blog.image);
     }
-    
+
     await prisma.blog.delete({
       where: { id: validatedId },
     });
@@ -292,7 +292,7 @@ export async function getPublishedBlogs() {
 export async function getBlogById(id: string) {
   try {
     const validatedId = validateUUID(id);
-    
+
     return await prisma.blog.findUnique({
       where: { id: validatedId },
     });

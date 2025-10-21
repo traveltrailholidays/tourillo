@@ -58,9 +58,7 @@ const SinglePackage: React.FC<SinglePackageProps> = ({ listing, initialLiked = f
               </div>
               <div className="flex items-center gap-2">
                 <FaStar size={18} className="text-yellow-500" />
-                <span className="font-medium text-gray-900 dark:text-white">
-                  {listing.rating.toFixed(1)} Rating
-                </span>
+                <span className="font-medium text-gray-900 dark:text-white">{listing.rating.toFixed(1)} Rating</span>
               </div>
               <div className="flex items-center gap-2">
                 <FaTag size={18} className="text-purple-600 dark:text-purple-400" />
@@ -70,9 +68,7 @@ const SinglePackage: React.FC<SinglePackageProps> = ({ listing, initialLiked = f
 
             {/* Package Description */}
             <div className="flex flex-col gap-4">
-              <h2 className="text-2xl md:text-3xl font-medium text-gray-900 dark:text-white">
-                Package description
-              </h2>
+              <h2 className="text-2xl md:text-3xl font-medium text-gray-900 dark:text-white">Package description</h2>
               <p className="text-lg">{listing.description}</p>
             </div>
 

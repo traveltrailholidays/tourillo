@@ -11,13 +11,7 @@ interface ShareButtonProps {
   className?: string;
 }
 
-const ShareButton: React.FC<ShareButtonProps> = ({
-  platform,
-  url,
-  title,
-  children,
-  className = '',
-}) => {
+const ShareButton: React.FC<ShareButtonProps> = ({ platform, url, title, children, className = '' }) => {
   const [copied, setCopied] = useState(false);
 
   const getShareUrl = () => {
@@ -40,7 +34,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({
 
   const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault();
-    
+
     if (platform === 'copy') {
       try {
         await navigator.clipboard.writeText(url);

@@ -15,10 +15,10 @@ interface PageProps {
 const Packages = async ({ searchParams }: PageProps) => {
   const category = searchParams?.category;
   const packages = await getPublicListings(category?.toLowerCase());
-  const pageTitle = category
-    ? `${category.charAt(0).toUpperCase() + category.slice(1)} Packages`
-    : 'All Packages';
-  const subHeadingText = category ? `Explore our ${packages.length} amazing ${category} packages` : `Discover amazing travel packages`;
+  const pageTitle = category ? `${category.charAt(0).toUpperCase() + category.slice(1)} Packages` : 'All Packages';
+  const subHeadingText = category
+    ? `Explore our ${packages.length} amazing ${category} packages`
+    : `Discover amazing travel packages`;
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-start min-w-screen overflow-x-hidden bg-background">
@@ -26,15 +26,13 @@ const Packages = async ({ searchParams }: PageProps) => {
       <Section className="py-20 px-4">
         <Container className="w-full">
           <div className="mb-10">
-            <SectionHeading mainHeading={pageTitle} subHeading={subHeadingText}/>
+            <SectionHeading mainHeading={pageTitle} subHeading={subHeadingText} />
           </div>
           <Suspense fallback={<PackageGridSkeleton />}>
             <PackageGrid
               packages={packages}
               emptyMessage={
-                category
-                  ? `No ${category} packages available at the moment`
-                  : 'No packages available at the moment'
+                category ? `No ${category} packages available at the moment` : 'No packages available at the moment'
               }
             />
           </Suspense>

@@ -24,13 +24,7 @@ const base64ToArrayBuffer = (base64: string): Uint8Array => {
 
 const getKey = async (): Promise<CryptoKey> => {
   const encoder = new TextEncoder();
-  const keyMaterial = await crypto.subtle.importKey(
-    'raw',
-    encoder.encode(SECRET_KEY),
-    'PBKDF2',
-    false,
-    ['deriveKey']
-  );
+  const keyMaterial = await crypto.subtle.importKey('raw', encoder.encode(SECRET_KEY), 'PBKDF2', false, ['deriveKey']);
 
   return crypto.subtle.deriveKey(
     {
@@ -52,11 +46,7 @@ export const encryptKey = async (token: string): Promise<string> => {
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const encoder = new TextEncoder();
 
-    const encrypted = await crypto.subtle.encrypt(
-      { name: 'AES-GCM', iv },
-      key,
-      encoder.encode(token)
-    );
+    const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encoder.encode(token));
 
     // Combine IV and encrypted data
     const combined = new Uint8Array(iv.length + encrypted.byteLength);
@@ -79,11 +69,7 @@ export const decryptKey = async (encryptedToken: string): Promise<string> => {
     const iv = combined.slice(0, 12);
     const encrypted = combined.slice(12);
 
-    const decrypted = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv },
-      key,
-      encrypted
-    );
+    const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, encrypted);
 
     return arrayBufferToString(decrypted);
   } catch (error) {

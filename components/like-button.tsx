@@ -13,7 +13,11 @@ interface LikeButtonProps {
   backgroundColor?: string;
 }
 
-export default function LikeButton({ listingId, initialLiked = false, backgroundColor = "background" }: LikeButtonProps) {
+export default function LikeButton({
+  listingId,
+  initialLiked = false,
+  backgroundColor = 'background',
+}: LikeButtonProps) {
   const router = useRouter();
   const { user, isAuthenticated, addToWishlist: addToStore, removeFromWishlist: removeFromStore } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
@@ -78,11 +82,7 @@ export default function LikeButton({ listingId, initialLiked = false, background
       className={`bg-${backgroundColor} p-2 rounded transition-colors disabled:opacity-50 cursor-pointer`}
       aria-label={isLiked ? 'Remove from wishlist' : 'Add to wishlist'}
     >
-      {isLiked ? (
-        <IoMdHeart className="h-5 w-5 text-red-500" />
-      ) : (
-        <IoMdHeartEmpty className="h-5 w-5" />
-      )}
+      {isLiked ? <IoMdHeart className="h-5 w-5 text-red-500" /> : <IoMdHeartEmpty className="h-5 w-5" />}
     </button>
   );
 }

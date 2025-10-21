@@ -53,9 +53,7 @@ export default function SearchBar({ initialQuery = '' }: SearchBarProps) {
         ) : (
           <Search
             className={`absolute left-2 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors ${
-              isFocused
-                ? 'text-purple-500 dark:text-purple-400'
-                : 'text-gray-400 dark:text-gray-500'
+              isFocused ? 'text-purple-500 dark:text-purple-400' : 'text-gray-400 dark:text-gray-500'
             }`}
           />
         )}

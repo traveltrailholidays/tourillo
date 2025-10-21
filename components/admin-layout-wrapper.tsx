@@ -7,11 +7,7 @@ import { AppSidebar } from '@/components/app-sidebar';
 import Navbar from '@/components/navbar';
 import { SidebarProvider } from '@/components/ui/sidebar';
 
-export default function AdminLayoutWrapper({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AdminLayoutWrapper({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { user, isAuthenticated } = useAuthStore();
   const [isChecking, setIsChecking] = useState(true);

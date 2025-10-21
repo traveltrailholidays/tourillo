@@ -26,16 +26,17 @@ type ImageUploadResult = {
 
 // Helper function to format Zod errors
 function formatZodError(error: z.ZodError): string {
-  return error.issues.map(issue => issue.message).join(', ');
+  return error.issues.map((issue) => issue.message).join(', ');
 }
 
 // Ensure upload directory exists
 async function ensureUploadDir() {
   // CHANGED: Use absolute path that matches Nginx configuration
-  const uploadDir = process.env.NODE_ENV === 'production'
-    ? '/var/www/app/uploads'  // Production path
-    : path.join(process.cwd(), 'public', 'uploads'); // Local dev path
-  
+  const uploadDir =
+    process.env.NODE_ENV === 'production'
+      ? '/var/www/app/uploads' // Production path
+      : path.join(process.cwd(), 'public', 'uploads'); // Local dev path
+
   try {
     await fs.access(uploadDir);
   } catch {
@@ -48,14 +49,14 @@ async function ensureUploadDir() {
 export async function uploadBlogImage(formData: FormData): Promise<ImageUploadResult> {
   try {
     const file = formData.get('file') as File;
-    
+
     if (!file || file.size === 0) {
       return {
         success: false,
         error: 'No file provided',
       };
     }
-    
+
     // Validate file
     const validation = imageSchema.safeParse({ file });
     if (!validation.success) {
@@ -67,40 +68,39 @@ export async function uploadBlogImage(formData: FormData): Promise<ImageUploadRe
 
     // Ensure upload directory exists
     const uploadDir = await ensureUploadDir();
-    
+
     // Generate unique filename
     const fileName = `${uuid()}.jpg`;
     const filePath = path.join(uploadDir, fileName);
-    
+
     // Convert file to buffer
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    
+
     // Process and compress image with Sharp
     const compressedBuffer = await sharp(buffer)
       .normalize()
-      .resize(1200, 800, { 
-        fit: 'inside', 
-        withoutEnlargement: true 
+      .resize(1200, 800, {
+        fit: 'inside',
+        withoutEnlargement: true,
       })
-      .jpeg({ 
+      .jpeg({
         quality: 85,
         progressive: true,
-        mozjpeg: true 
+        mozjpeg: true,
       })
       .toBuffer();
-    
+
     // Save compressed image
     await fs.writeFile(filePath, compressedBuffer);
-    
+
     // CHANGED: Return /uploads/ path for both dev and production
     const relativePath = `/uploads/${fileName}`;
-    
+
     return {
       success: true,
       imagePath: relativePath,
     };
-    
   } catch (error) {
     console.error('Image upload error:', error);
     return {
@@ -117,17 +117,16 @@ export async function deleteBlogImage(imagePath: string): Promise<boolean> {
     if (!imagePath.startsWith('/uploads/')) {
       return false;
     }
-    
+
     // Extract filename from path
     const fileName = path.basename(imagePath);
-    
+
     // Determine full path based on environment
-    const uploadDir = process.env.NODE_ENV === 'production'
-      ? '/var/www/app/uploads'
-      : path.join(process.cwd(), 'public', 'uploads');
-    
+    const uploadDir =
+      process.env.NODE_ENV === 'production' ? '/var/www/app/uploads' : path.join(process.cwd(), 'public', 'uploads');
+
     const fullPath = path.join(uploadDir, fileName);
-    
+
     await fs.unlink(fullPath);
     console.log('Image deleted successfully:', fullPath);
     return true;
@@ -138,39 +137,36 @@ export async function deleteBlogImage(imagePath: string): Promise<boolean> {
 }
 
 // Generate multiple sizes for responsive images
-export async function generateResponsiveImages(
-  originalBuffer: Buffer,
-  fileName: string
-): Promise<string[]> {
+export async function generateResponsiveImages(originalBuffer: Buffer, fileName: string): Promise<string[]> {
   const uploadDir = await ensureUploadDir();
   const baseName = path.parse(fileName).name;
   const generatedPaths: string[] = [];
-  
+
   const sizes = [
     { width: 400, height: 300, suffix: 'sm' },
     { width: 800, height: 600, suffix: 'md' },
     { width: 1200, height: 900, suffix: 'lg' },
   ];
-  
+
   try {
     for (const size of sizes) {
       const sizedFileName = `${baseName}-${size.suffix}.jpg`;
       const sizedFilePath = path.join(uploadDir, sizedFileName);
-      
+
       const processedBuffer = await sharp(originalBuffer)
-        .resize(size.width, size.height, { 
-          fit: 'inside', 
-          withoutEnlargement: true 
+        .resize(size.width, size.height, {
+          fit: 'inside',
+          withoutEnlargement: true,
         })
         .jpeg({ quality: 85, progressive: true })
         .toBuffer();
-        
+
       await fs.writeFile(sizedFilePath, processedBuffer);
       generatedPaths.push(`/uploads/${sizedFileName}`);
     }
   } catch (error) {
     console.error('Error generating responsive images:', error);
   }
-  
+
   return generatedPaths;
 }

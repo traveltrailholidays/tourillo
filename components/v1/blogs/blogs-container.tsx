@@ -33,7 +33,7 @@ const BlogsContainer: React.FC<BlogsContainerProps> = ({ blogPosts }) => {
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
     });
   };
 
@@ -42,7 +42,10 @@ const BlogsContainer: React.FC<BlogsContainerProps> = ({ blogPosts }) => {
       <Container className="w-auto px-4">
         <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 transition-all duration-200">
           {blogPosts.map((post) => (
-            <article key={post.id} className="bg-foreground rounded overflow-hidden transition duration-300 ease-in-out hover:shadow-lg">
+            <article
+              key={post.id}
+              className="bg-foreground rounded overflow-hidden transition duration-300 ease-in-out hover:shadow-lg"
+            >
               <div className="relative">
                 <Image
                   src={post.image || '/images/hero/hero01.jpg'}
@@ -63,13 +66,9 @@ const BlogsContainer: React.FC<BlogsContainerProps> = ({ blogPosts }) => {
               </div>
               <div className="p-5">
                 <h3 className="text-lg font-semibold mb-2 line-clamp-2 hover:text-purple-600 transition-colors">
-                  <Link href={`/blogs/${post.slug}`}>
-                    {post.title}
-                  </Link>
+                  <Link href={`/blogs/${post.slug}`}>{post.title}</Link>
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3">
-                  {post.excerpt}
-                </p>
+                <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3">{post.excerpt}</p>
                 <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 font-semibold mb-4">
                   <div className="flex items-center">
                     <User className="h-4 w-4 mr-1" />
@@ -80,7 +79,7 @@ const BlogsContainer: React.FC<BlogsContainerProps> = ({ blogPosts }) => {
                     {formatDate(post.date)}
                   </div>
                 </div>
-                <Link 
+                <Link
                   href={`/blogs/${post.slug}`}
                   className="block w-full font-medium text-sm px-4 py-2 rounded-xs text-white bg-gradient-to-r from-indigo-500 hover:from-indigo-500/90 via-purple-500 hover:via-purple-500/90 to-pink-500 hover:to-pink-500/90 cursor-pointer text-center transition-all duration-200"
                 >
@@ -90,13 +89,11 @@ const BlogsContainer: React.FC<BlogsContainerProps> = ({ blogPosts }) => {
             </article>
           ))}
         </div>
-        
+
         {blogPosts.length === 0 && (
           <div className="text-center py-16">
             <h3 className="text-xl font-semibold mb-4">No blog posts found</h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              Check back later for new content!
-            </p>
+            <p className="text-gray-600 dark:text-gray-400">Check back later for new content!</p>
           </div>
         )}
       </Container>

@@ -140,8 +140,8 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
                   <span>Dear {itinerary.clientName},</span>
                   <span>Greeting from Travel Trail Holidays!🌍</span>
                   <span>
-                    We&apos;re thrilled to present you with a selection of incredible holiday packages tailored just
-                    for you by Travel Trail Holidays, one of the most trusted names in travel!✨
+                    We&apos;re thrilled to present you with a selection of incredible holiday packages tailored just for
+                    you by Travel Trail Holidays, one of the most trusted names in travel!✨
                   </span>
                   <div className="flex gap-10 items-center mt-5">
                     <div className="flex items-center gap-2 font-semibold">

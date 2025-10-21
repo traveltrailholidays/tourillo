@@ -31,10 +31,7 @@ const WeekendTrips = async () => {
     <Section className="py-10 sm:py-12 md:py-16 lg:py-20 bg-foreground">
       <Container className="w-full">
         <div className="flex items-center justify-between mb-8">
-          <SectionHeading 
-            mainHeading="Weekend Trips" 
-            subHeading="Perfect Short Getaways for the Weekend" 
-          />
+          <SectionHeading mainHeading="Weekend Trips" subHeading="Perfect Short Getaways for the Weekend" />
           <Link
             href="/packages?category=weekend"
             className="hidden md:flex items-center gap-2 text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-semibold transition-colors group"
@@ -46,12 +43,7 @@ const WeekendTrips = async () => {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 transition-all duration-200">
           {packages.map((pkg) => (
-            <PackageCard
-              key={pkg.id}
-              data={pkg}
-              initialLiked={wishlistIds.includes(pkg.id)}
-              background='background'
-            />
+            <PackageCard key={pkg.id} data={pkg} initialLiked={wishlistIds.includes(pkg.id)} background="background" />
           ))}
         </div>
 

@@ -7,7 +7,7 @@ import { revalidatePath } from 'next/cache';
 export async function addToWishlist(listingId: string) {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.id) {
       return { success: false, error: 'Not authenticated' };
     }
@@ -39,7 +39,7 @@ export async function addToWishlist(listingId: string) {
 export async function removeFromWishlist(listingId: string) {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.id) {
       return { success: false, error: 'Not authenticated' };
     }
@@ -71,7 +71,7 @@ export async function removeFromWishlist(listingId: string) {
 export async function getWishlist() {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.id) {
       return { success: false, error: 'Not authenticated', wishlist: [] };
     }

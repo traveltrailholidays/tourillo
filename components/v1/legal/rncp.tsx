@@ -1,6 +1,6 @@
-import Section from "../section";
-import Container from "../container";
-import { Calendar } from "lucide-react";
+import Section from '../section';
+import Container from '../container';
+import { Calendar } from 'lucide-react';
 
 const Rncp = () => {
   return (
@@ -121,7 +121,7 @@ const Rncp = () => {
         </div>
       </Container>
     </Section>
-  )
-}
+  );
+};
 
 export default Rncp;

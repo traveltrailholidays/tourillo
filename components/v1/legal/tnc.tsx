@@ -1,6 +1,6 @@
-import Section from "../section";
-import Container from "../container";
-import { Calendar } from "lucide-react";
+import Section from '../section';
+import Container from '../container';
+import { Calendar } from 'lucide-react';
 
 const TermsCondition = () => {
   return (
@@ -29,8 +29,8 @@ const TermsCondition = () => {
             </div>
           </div>
           <p className="mt-4 leading-relaxed">
-            When you book a trip with Tourillo, you&apos;re confirming that you&apos;ve carefully read, understood, and agreed to
-            all the terms and conditions outlined below:
+            When you book a trip with Tourillo, you&apos;re confirming that you&apos;ve carefully read, understood, and
+            agreed to all the terms and conditions outlined below:
           </p>
         </div>
 
@@ -104,8 +104,8 @@ const TermsCondition = () => {
             </div>
             <ul className="list-disc list-inside space-y-2 ml-4">
               <li>
-                Should you wish to extend your ticket&apos;s validity or make any changes to it, any associated costs will be
-                your sole responsibility.
+                Should you wish to extend your ticket&apos;s validity or make any changes to it, any associated costs
+                will be your sole responsibility.
               </li>
             </ul>
           </div>
@@ -162,8 +162,8 @@ const TermsCondition = () => {
                 <h3 className="font-semibold mb-2">6d. Our Final Decision:</h3>
                 <ul className="list-disc list-inside space-y-2 ml-4">
                   <li>
-                    In any situation involving a dispute or misunderstanding, Tourillo&apos;s decision will be considered
-                    final and binding on all parties involved.
+                    In any situation involving a dispute or misunderstanding, Tourillo&apos;s decision will be
+                    considered final and binding on all parties involved.
                   </li>
                   <li>This decision cannot be challenged legally or otherwise.</li>
                 </ul>
@@ -180,7 +180,7 @@ const TermsCondition = () => {
         </div>
       </Container>
     </Section>
-  )
-}
+  );
+};
 
-export default TermsCondition
+export default TermsCondition;

@@ -62,7 +62,7 @@ const BlogForm: React.FC<BlogFormProps> = ({ initialData, onCancel }) => {
       } else {
         toast.success('Blog post created successfully!');
       }
-      
+
       setTimeout(() => {
         router.push('/admin/blog/blog-list');
         router.refresh();
@@ -441,13 +441,7 @@ const BlogForm: React.FC<BlogFormProps> = ({ initialData, onCancel }) => {
               className="flex items-center px-6 py-3 bg-gradient-to-r from-indigo-500 hover:from-indigo-500/90 via-purple-500 hover:via-purple-500/90 to-pink-500 hover:to-pink-500/90 text-white font-medium rounded-xs transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save className="h-4 w-4 mr-2" />
-              {isPending
-                ? isEditMode
-                  ? 'Updating...'
-                  : 'Creating...'
-                : isEditMode
-                  ? 'Update Post'
-                  : 'Create Post'}
+              {isPending ? (isEditMode ? 'Updating...' : 'Creating...') : isEditMode ? 'Update Post' : 'Create Post'}
             </button>
 
             {onCancel && (
