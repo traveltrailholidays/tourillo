@@ -7,13 +7,13 @@ import PackageCard from '../packages/package-card';
 import SectionHeading from '../section-heading';
 import { SafeListing } from '@/types';
 
-interface FeaturedTripsClientProps {
+interface WeekendTripsClientProps {
   packages: SafeListing[];
   wishlistIds: string[];
   showViewAll: boolean;
 }
 
-const FeaturedTripsClient = ({ packages, wishlistIds, showViewAll }: FeaturedTripsClientProps) => {
+const WeekendTripsClient = ({ packages, wishlistIds, showViewAll }: WeekendTripsClientProps) => {
   return (
     <>
       <motion.div
@@ -23,7 +23,7 @@ const FeaturedTripsClient = ({ packages, wishlistIds, showViewAll }: FeaturedTri
         transition={{ duration: 0.6 }}
         className="flex items-center mb-8 sm:mb-10"
       >
-        <SectionHeading mainHeading="Featured Trips" subHeading="Most Favorite Tour Packages" />
+        <SectionHeading mainHeading="Weekend Trips" subHeading="Perfect Getaways for Weekends" />
       </motion.div>
 
       <motion.div
@@ -31,7 +31,7 @@ const FeaturedTripsClient = ({ packages, wishlistIds, showViewAll }: FeaturedTri
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.2 }}
         transition={{ duration: 0.6, delay: 0.2 }}
-        className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8"
+        className="grid grid-cols-1 min-[450px]:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8"
       >
         {packages.map((pkg) => (
           <PackageCard key={pkg.id} data={pkg} initialLiked={wishlistIds.includes(pkg.id)} background="background" />
@@ -47,7 +47,7 @@ const FeaturedTripsClient = ({ packages, wishlistIds, showViewAll }: FeaturedTri
           className="mt-8 flex justify-center"
         >
           <Link
-            href="/packages?category=featured"
+            href="/packages?category=weekend"
             className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-semibold rounded-lg hover:opacity-90 transition-opacity shadow-lg group"
           >
             View All
@@ -59,4 +59,4 @@ const FeaturedTripsClient = ({ packages, wishlistIds, showViewAll }: FeaturedTri
   );
 };
 
-export default FeaturedTripsClient;
+export default WeekendTripsClient;

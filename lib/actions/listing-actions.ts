@@ -325,6 +325,14 @@ export async function searchListings(query: string) {
 // Get featured listings
 export async function getFeaturedListings() {
   try {
+    // Get total count
+    const totalCount = await prisma.listing.count({
+      where: {
+        OR: [{ category: 'featured' }],
+      },
+    });
+
+    // Get listings
     const listings = await prisma.listing.findMany({
       where: {
         OR: [{ category: 'featured' }],
@@ -335,16 +343,33 @@ export async function getFeaturedListings() {
       take: 8, // Limit to 8 featured packages
     });
 
-    return listings.map(toSafeListing);
+    return {
+      listings: listings.map(toSafeListing),
+      totalCount,
+    };
   } catch (error) {
     console.log(error);
     throw new Error('Failed to fetch featured listings');
   }
 }
 
+
 // Get weekend listings (category = 'weekend' and days <= 3)
 export async function getWeekendListings() {
   try {
+    // Get total count
+    const totalCount = await prisma.listing.count({
+      where: {
+        OR: [
+          { category: 'weekend' },
+          {
+            AND: [{ days: { lte: 3 } }, { nights: { lte: 2 } }],
+          },
+        ],
+      },
+    });
+
+    // Get listings
     const listings = await prisma.listing.findMany({
       where: {
         OR: [
@@ -360,12 +385,16 @@ export async function getWeekendListings() {
       take: 8, // Limit to 8 weekend packages
     });
 
-    return listings.map(toSafeListing);
+    return {
+      listings: listings.map(toSafeListing),
+      totalCount,
+    };
   } catch (error) {
     console.log(error);
     throw new Error('Failed to fetch weekend listings');
   }
 }
+
 
 // Get discounted listings
 export async function getDiscountedListings() {

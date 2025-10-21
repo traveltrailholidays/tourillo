@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma';
 import FeaturedTripsClient from './featured-trips-client';
 
 const FeaturedTrips = async () => {
-  const packages = await getFeaturedListings();
+  const { listings: packages, totalCount } = await getFeaturedListings();
 
   // Get user's wishlist if logged in
   const session = await auth();
@@ -27,7 +27,11 @@ const FeaturedTrips = async () => {
   return (
     <Section className="py-10 sm:py-12 md:py-16 lg:py-20 bg-foreground">
       <Container className="w-full">
-        <FeaturedTripsClient packages={packages} wishlistIds={wishlistIds} />
+        <FeaturedTripsClient 
+          packages={packages} 
+          wishlistIds={wishlistIds} 
+          showViewAll={totalCount > 8}
+        />
       </Container>
     </Section>
   );
