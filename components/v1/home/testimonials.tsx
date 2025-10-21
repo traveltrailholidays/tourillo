@@ -8,6 +8,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Testimonialcard from './testimonial-card';
 import DATA from '@/lib/data';
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { motion } from 'framer-motion';
 
 const Testimonials = () => {
   const [api, setApi] = useState<CarouselApi | null>(null);
@@ -103,15 +104,28 @@ const Testimonials = () => {
   return (
     <Section className="py-20">
       <Container className="w-full">
-        <div className="w-full flex flex-col justify-center items-center gap-1 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.6 }}
+          className="w-full flex flex-col justify-center items-center gap-1 text-center"
+        >
           <span className="capitalize bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text w-fit text-2xl md:text-3xl font-bold">
             Reviews & Testimonials
           </span>
           <span className="font-medium text-sm md:text-base lg:text-lg">
             From Happy, Delighted Trips, Check out what they have to say
           </span>
-        </div>
-        <div className="w-full mt-10 lg:mt-14">
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="w-full mt-10 lg:mt-14"
+        >
           <Carousel
             dir="ltr"
             className="w-full"
@@ -141,8 +155,15 @@ const Testimonials = () => {
               ))}
             </CarouselContent>
           </Carousel>
-        </div>
-        <div className="mt-5 flex items-center justify-center gap-4">
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="mt-5 flex items-center justify-center gap-4"
+        >
           <button
             onClick={() => api?.scrollPrev()}
             disabled={!api}
@@ -157,15 +178,22 @@ const Testimonials = () => {
           >
             <FiChevronRight size={24} strokeWidth={3} />
           </button>
-        </div>
-        <div className="mt-10 text-sm flex flex-col items-center">
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+          className="mt-10 text-sm flex flex-col items-center"
+        >
           <span>
             <strong>Google</strong> rating score: <strong>4.9</strong> of 5,
           </span>
           <span>
             based on <strong>186 reviews</strong>
           </span>
-        </div>
+        </motion.div>
       </Container>
     </Section>
   );

@@ -1,19 +1,50 @@
+'use client';
+
 import Link from 'next/link';
 import Section from '../section';
 import LogoFull from '../logo-full';
 import Container from '../container';
 import DATA from '@/lib/data';
+import { motion, Variants } from 'framer-motion';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.15,
+      },
+    },
+  };
+
+  const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: 'easeOut' as const,
+      },
+    },
+  };
 
   return (
     <Section className="pt-16 pb-8 bg-slate-950 text-white mb-10 lg:mb-0">
       <Container className="w-full">
         {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.1 }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12"
+        >
           {/* Company Info */}
-          <div className="lg:col-span-1">
+          <motion.div variants={itemVariants} className="lg:col-span-1">
             <div className="mb-6">
               <LogoFull />
             </div>
@@ -47,10 +78,10 @@ const Footer = () => {
                 </svg>
               </Link>
             </div>
-          </div>
+          </motion.div>
 
           {/* Quick Links */}
-          <div>
+          <motion.div variants={itemVariants}>
             <h3 className="text-lg font-semibold mb-6 text-white">Quick Links</h3>
             <ul className="space-y-3">
               {DATA.quickLinks.map((tour, index) => (
@@ -64,10 +95,10 @@ const Footer = () => {
                 </li>
               ))}
             </ul>
-          </div>
+          </motion.div>
 
-          {/* Quick Links */}
-          <div>
+          {/* Legal Links */}
+          <motion.div variants={itemVariants}>
             <h3 className="text-lg font-semibold mb-6 text-white">Legal</h3>
             <ul className="space-y-3">
               {DATA.legalLinks.map((link, index) => (
@@ -81,10 +112,10 @@ const Footer = () => {
                 </li>
               ))}
             </ul>
-          </div>
+          </motion.div>
 
           {/* Support & Contact */}
-          <div>
+          <motion.div variants={itemVariants}>
             <h3 className="text-lg font-semibold mb-6 text-white">Support & Contact</h3>
             <div className="space-y-4 mb-6">
               <div className="flex items-start space-x-3">
@@ -120,15 +151,26 @@ const Footer = () => {
                 <span className="text-gray-400 font-medium">support@tourillo.com</span>
               </div>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {/* Gradient Divider */}
-        {/* <div className="w-full h-0.5 bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500 mb-8"></div> */}
-        <div className="w-full h-[1px] bg-border/20 mb-8"></div>
+        <motion.div
+          initial={{ opacity: 0, scaleX: 0 }}
+          whileInView={{ opacity: 1, scaleX: 1 }}
+          viewport={{ once: true, amount: 0.1 }}
+          transition={{ duration: 0.8, delay: 0.6 }}
+          className="w-full h-[1px] bg-border/20 mb-8"
+        />
 
         {/* Bottom Footer */}
-        <div className="w-full flex justify-between flex-col text-center md:flex-row items-center gap-4 text-sm font-medium">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.1 }}
+          transition={{ duration: 0.6, delay: 0.8 }}
+          className="w-full flex justify-between flex-col text-center md:flex-row items-center gap-4 text-sm font-medium"
+        >
           <div className="flex flex-col md:flex-row items-center gap-4">
             <span className="">
               Copyright © {currentYear}{' '}
@@ -151,7 +193,7 @@ const Footer = () => {
               Diwakar Jha
             </Link>
           </span>
-        </div>
+        </motion.div>
       </Container>
     </Section>
   );

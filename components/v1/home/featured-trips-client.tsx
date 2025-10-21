@@ -48,7 +48,7 @@ const FeaturedTripsClient = ({ packages, wishlistIds, showViewAll }: FeaturedTri
         >
           <Link
             href="/packages?category=featured"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-semibold rounded-lg hover:opacity-90 transition-opacity shadow-lg group"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-semibold rounded hover:opacity-90 transition-opacity shadow-lg group"
           >
             View All
             <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />

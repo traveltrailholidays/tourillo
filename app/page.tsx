@@ -5,7 +5,7 @@ import FeaturedTrips from '@/components/v1/home/featured-trips';
 import GetQuotes from '@/components/v1/home/get-quotes';
 import Hero from '@/components/v1/home/hero';
 import HomeStats from '@/components/v1/home/home-stats';
-// import OfferImage from '@/components/v1/home/offer-image';
+import OfferImage from '@/components/v1/home/offer-image';
 import QuoteAction from '@/components/v1/home/quote-action';
 import SelectTheme from '@/components/v1/home/select-theme';
 import Testimonials from '@/components/v1/home/testimonials';
@@ -22,7 +22,7 @@ const page = async () => {
       <main className="flex flex-col items-center justify-start w-full overflow-x-hidden">
         <SelectTheme />
         <FeaturedTrips />
-        {/* <OfferImage /> */}
+        <OfferImage />
         <WeekendTrips />
         <Values />
         <GetQuotes />
