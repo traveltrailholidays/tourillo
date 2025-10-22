@@ -2,7 +2,7 @@
 
 import { SafeListing } from '@/types';
 import Image from 'next/image';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { MdWatchLater } from 'react-icons/md';
 import { GiForkKnifeSpoon } from 'react-icons/gi';
 import { FaBuilding } from 'react-icons/fa6';
@@ -17,6 +17,8 @@ interface PackageCardProps {
 }
 
 const PackageCard: React.FC<PackageCardProps> = ({ data, initialLiked = false, background = 'foreground' }) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+
   const discountedPrice = useMemo(() => {
     if (data.discount > 0) {
       return Math.round(data.price - data.price * (data.discount / 100));
@@ -37,12 +39,20 @@ const PackageCard: React.FC<PackageCardProps> = ({ data, initialLiked = false, b
   return (
     <article className={`bg-${background} rounded overflow-hidden transition duration-300 ease-in-out hover:shadow-lg`}>
       <div className="relative">
+        {/* Image Skeleton */}
+        {!imageLoaded && (
+          <div className="absolute inset-0 bg-gray-300 dark:bg-gray-700 animate-pulse" />
+        )}
+        
         <Image
           src={data.imageSrc || '/images/hero/hero01.jpg'}
           alt={data.title}
           width={400}
           height={250}
-          className="w-full h-52 object-cover"
+          className={`w-full h-52 object-cover transition-opacity duration-300 ${
+            imageLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
+          onLoad={() => setImageLoaded(true)}
           unoptimized
         />
 
@@ -73,7 +83,6 @@ const PackageCard: React.FC<PackageCardProps> = ({ data, initialLiked = false, b
 
         {/* Location */}
         <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400 text-sm mb-3">
-          {/* <FaMapLocationDot className="h-4 w-4 text-purple-500" /> */}
           <span className="text-red-400 font-medium">{data.location}</span>
         </div>
 

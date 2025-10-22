@@ -9,6 +9,7 @@ import PageHero from '../page-hero';
 import Section from '../section';
 import GradientIcon from '../gradient-icon';
 import { MdMail } from 'react-icons/md';
+import { motion } from 'framer-motion';
 
 const ContactUs = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -50,13 +51,35 @@ const ContactUs = () => {
         <Container className="w-full flex flex-col items-center justify-center">
           <div className="flex flex-col lg:flex-row w-full p-4">
             {/* Left side - Contact Form */}
-            <div className="bg-foreground p-6 lg:p-8 w-full lg:w-4/6">
-              <div className="flex items-center justify-between gap-3 mb-8">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, ease: 'easeOut' as const }}
+              className="bg-foreground p-6 lg:p-8 w-full lg:w-4/6"
+            >
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="flex items-center justify-between gap-3 mb-8"
+              >
                 <span className="text-2xl lg:text-3xl font-semibold">Send us a message</span>
-                <GradientIcon icon={MdMail} size={28} />
-              </div>
+                <motion.div
+                  initial={{ scale: 0, rotate: -180 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ duration: 0.8, delay: 0.4, type: 'spring', stiffness: 200 }}
+                >
+                  <GradientIcon icon={MdMail} size={28} />
+                </motion.div>
+              </motion.div>
 
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <motion.form
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                onSubmit={handleSubmit}
+                className="space-y-6"
+              >
                 {/* Name and Email Row */}
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
@@ -134,22 +157,41 @@ const ContactUs = () => {
 
                 {/* Submit Button */}
                 <div className="w-full flex justify-end">
-                  <button
+                  <motion.button
                     type="submit"
                     disabled={isSubmitting}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     className="bg-gradient-to-r from-indigo-500 hover:from-indigo-500/90 via-purple-500 hover:via-purple-500/90 to-pink-500 hover:to-pink-500/90 px-5 py-[7px] text-lg rounded-xs cursor-pointer font-semibold text-white lg:flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isSubmitting ? 'Sending...' : 'Submit'}
-                  </button>
+                  </motion.button>
                 </div>
-              </form>
-            </div>
+              </motion.form>
+            </motion.div>
 
             {/* Right side - Contact Information */}
-            <div className="bg-slate-950 text-white p-6 lg:p-8 flex flex-col w-full min-h-[400px] lg:w-2/6">
-              <span className="text-2xl lg:text-3xl font-semibold mb-12">Contact Information</span>
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.2, ease: 'easeOut' as const }}
+              className="bg-slate-950 text-white p-6 lg:p-8 flex flex-col w-full min-h-[400px] lg:w-2/6"
+            >
+              <motion.span
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+                className="text-2xl lg:text-3xl font-semibold mb-12"
+              >
+                Contact Information
+              </motion.span>
 
-              <div className="flex-1 flex flex-col justify-center items-center">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.6 }}
+                className="flex-1 flex flex-col justify-center items-center"
+              >
                 <div className="space-y-4 mb-6">
                   <div className="flex items-start space-x-3">
                     <svg
@@ -184,10 +226,15 @@ const ContactUs = () => {
                     <span className="text-gray-400 font-medium">support@tourillo.com</span>
                   </div>
                 </div>
-              </div>
+              </motion.div>
 
               {/* Social Media Icons */}
-              <div className="flex items-center min-h-[42px]">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.8 }}
+                className="flex items-center min-h-[42px]"
+              >
                 <div className="flex space-x-4">
                   {/* Facebook */}
                   <Link
@@ -223,8 +270,8 @@ const ContactUs = () => {
                     </svg>
                   </Link>
                 </div>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           </div>
         </Container>
       </Section>
