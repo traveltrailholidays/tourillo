@@ -31,11 +31,7 @@ const LegalPageWrapper = ({ children }: LegalPageWrapperProps) => {
   };
 
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-    >
+    <motion.div variants={containerVariants} initial="hidden" animate="visible">
       {Array.isArray(children) ? (
         children.map((child, index) => (
           <motion.div key={index} variants={itemVariants}>

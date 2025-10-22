@@ -32,7 +32,7 @@ const AboutUs = () => {
   return (
     <main className="flex min-h-screen flex-col items-center justify-start min-w-screen overflow-x-hidden bg-background">
       <PageHero imageUrl="/images/about-us/about.webp" headingText="About Us" />
-      
+
       {/* Introduction Section */}
       <Section className="py-20 px-4">
         <Container className="text-center">

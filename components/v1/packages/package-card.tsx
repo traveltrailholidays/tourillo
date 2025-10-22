@@ -40,10 +40,8 @@ const PackageCard: React.FC<PackageCardProps> = ({ data, initialLiked = false, b
     <article className={`bg-${background} rounded overflow-hidden transition duration-300 ease-in-out hover:shadow-lg`}>
       <div className="relative">
         {/* Image Skeleton */}
-        {!imageLoaded && (
-          <div className="absolute inset-0 bg-gray-300 dark:bg-gray-700 animate-pulse" />
-        )}
-        
+        {!imageLoaded && <div className="absolute inset-0 bg-gray-300 dark:bg-gray-700 animate-pulse" />}
+
         <Image
           src={data.imageSrc || '/images/hero/hero01.jpg'}
           alt={data.title}

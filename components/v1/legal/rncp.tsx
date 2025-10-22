@@ -60,8 +60,9 @@ const Rncp = () => {
               </div>
             </div>
             <p className="mt-4 leading-relaxed">
-              By booking a trip with Tourillo, you acknowledge that you have read, understood, and agreed to the following
-              policies. These terms are designed to maintain a fair balance between the customer and the company.
+              By booking a trip with Tourillo, you acknowledge that you have read, understood, and agreed to the
+              following policies. These terms are designed to maintain a fair balance between the customer and the
+              company.
             </p>
           </motion.div>
 
@@ -76,7 +77,9 @@ const Rncp = () => {
               </div>
               <ul className="list-disc list-inside space-y-2 ml-4">
                 <li>An advance payment of 30% of the total package cost is required to confirm the booking.</li>
-                <li>The remaining 70% payment must be completed before the journey begins by the specified due date.</li>
+                <li>
+                  The remaining 70% payment must be completed before the journey begins by the specified due date.
+                </li>
                 <li>
                   Failure to make the full payment on time may result in cancellation of the booking by Tourillo without
                   any refund.

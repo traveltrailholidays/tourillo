@@ -41,9 +41,9 @@ const Faqs = () => {
                 How do I book a package from Tourillo?
               </AccordionTrigger>
               <AccordionContent className="text-xs md:text-sm lg:text-base text-neutral-700 dark:text-neutral-300">
-                Booking a travel package with us is effortless! Simply visit our website to submit a travel inquiry or DM
-                us on social media. Our dedicated team will quickly provide you with all the information and guidance you
-                need.
+                Booking a travel package with us is effortless! Simply visit our website to submit a travel inquiry or
+                DM us on social media. Our dedicated team will quickly provide you with all the information and guidance
+                you need.
               </AccordionContent>
             </AccordionItem>
 
@@ -52,8 +52,8 @@ const Faqs = () => {
                 Is Tourillo safe for solo female travelers?
               </AccordionTrigger>
               <AccordionContent className="text-xs md:text-sm lg:text-base text-neutral-700 dark:text-neutral-300">
-                At Tourillo, safety is our top priority. We take extra measures to ensure the comfort and security of solo
-                female travelers. Our Team Captains receive specialized training to provide a seamless and secure
+                At Tourillo, safety is our top priority. We take extra measures to ensure the comfort and security of
+                solo female travelers. Our Team Captains receive specialized training to provide a seamless and secure
                 experience, with a strong focus on women&apos;s safety.
               </AccordionContent>
             </AccordionItem>

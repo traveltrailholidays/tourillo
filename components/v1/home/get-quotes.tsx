@@ -22,11 +22,11 @@ const GetQuotes = () => {
             initial={{ scale: 0, rotate: -180 }}
             whileInView={{ scale: 1, rotate: 0 }}
             viewport={{ once: true, amount: 0.3 }}
-            transition={{ 
-              duration: 1, 
+            transition={{
+              duration: 1,
               delay: 0.2,
               type: 'spring',
-              stiffness: 150
+              stiffness: 150,
             }}
           >
             <GradientIcon icon={MdOutlineSupportAgent} size={100} />

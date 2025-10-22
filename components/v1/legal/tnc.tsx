@@ -60,8 +60,8 @@ const TermsCondition = () => {
               </div>
             </div>
             <p className="mt-4 leading-relaxed">
-              When you book a trip with Tourillo, you&apos;re confirming that you&apos;ve carefully read, understood, and
-              agreed to all the terms and conditions outlined below:
+              When you book a trip with Tourillo, you&apos;re confirming that you&apos;ve carefully read, understood,
+              and agreed to all the terms and conditions outlined below:
             </p>
           </motion.div>
 
@@ -94,8 +94,8 @@ const TermsCondition = () => {
               <ul className="list-disc list-inside space-y-2 ml-4">
                 <li>
                   If your trip is cancelled due to unforeseen circumstances like natural disasters (such as landslides,
-                  heavy rainfall, snowfall), severe weather, strikes, political unrest, or any other unavoidable reasons,
-                  Tourillo will not be obligated to issue any refunds.
+                  heavy rainfall, snowfall), severe weather, strikes, political unrest, or any other unavoidable
+                  reasons, Tourillo will not be obligated to issue any refunds.
                 </li>
               </ul>
             </motion.div>
@@ -118,8 +118,9 @@ const TermsCondition = () => {
                   <li>Hotel or flight overbookings, flight cancellations/rerouting</li>
                   <li>Venue closures, or government/administrative restrictions</li>
                   <li>
-                    While Tourillo will always do its best to arrange suitable alternatives, we cannot be held responsible
-                    for any such changes, and no refunds or compensation will be offered in these situations.
+                    While Tourillo will always do its best to arrange suitable alternatives, we cannot be held
+                    responsible for any such changes, and no refunds or compensation will be offered in these
+                    situations.
                   </li>
                 </ul>
               </div>
@@ -167,7 +168,9 @@ const TermsCondition = () => {
                 <div>
                   <h3 className="font-semibold mb-2">6a. Legal Jurisdiction:</h3>
                   <ul className="list-disc list-inside space-y-2 ml-4">
-                    <li>Any disputes arising will exclusively fall under the jurisdiction of the courts in New Delhi.</li>
+                    <li>
+                      Any disputes arising will exclusively fall under the jurisdiction of the courts in New Delhi.
+                    </li>
                     <li>No other jurisdiction will be accepted.</li>
                   </ul>
                 </div>

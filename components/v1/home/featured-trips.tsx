@@ -27,11 +27,7 @@ const FeaturedTrips = async () => {
   return (
     <Section className="py-10 sm:py-12 md:py-16 lg:py-20 bg-foreground">
       <Container className="w-full">
-        <FeaturedTripsClient 
-          packages={packages} 
-          wishlistIds={wishlistIds} 
-          showViewAll={totalCount > 8}
-        />
+        <FeaturedTripsClient packages={packages} wishlistIds={wishlistIds} showViewAll={totalCount > 8} />
       </Container>
     </Section>
   );

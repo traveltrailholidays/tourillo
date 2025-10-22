@@ -353,7 +353,6 @@ export async function getFeaturedListings() {
   }
 }
 
-
 // Get weekend listings (category = 'weekend' and days <= 3)
 export async function getWeekendListings() {
   try {
@@ -394,7 +393,6 @@ export async function getWeekendListings() {
     throw new Error('Failed to fetch weekend listings');
   }
 }
-
 
 // Get discounted listings
 export async function getDiscountedListings() {
