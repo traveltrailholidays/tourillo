@@ -129,48 +129,48 @@ const DATA = {
   TestimonialData: [
     {
       id: 1,
-      name: 'Kaushiki Kashyap',
+      name: 'Sourav Chakrabarti',
       review:
-        'Amazing service and so satisfactory, Mrs Kiran is so humble while each and every service highly recommended to each one of you. Good number of experience she is holding which is clearly noticeable in her service. Thanks a lot will surely book again.',
+        'Himachal Trip : Dalhousie-Dharamshala-Palampur.The trip was nicely planed for us with good accommodation and skilled driver. Our communication with Mr. Mukul was excellent throughout the tour from the beginning of our tour plan.',
       rating: 5,
-      image: '/images/testimonials/testimonial1.png',
-      reviewDate: '01/01/2023',
+      image: '/rev/rev1.webp',
+      reviewDate: '05/10/2024',
     },
     {
       id: 2,
-      name: 'Rakhi Sharma',
+      name: 'Deepanshu Arora',
       review:
-        'I got nail extensions done for my engagement which worked really well and lasted a long time. I also got them done for my bridal ,I have great experience with Advanced Beauty.',
+        'I recently booked a Mussoorie trip through Tourillo, and it was an incredible experience! Everything was well-organized, from smooth bookings to a well-planned itinerary. The stay was comfortable, travel was seamless, and the sightseeing was perfect. Highly recommend Tourillo for a stress-free and enjoyable holiday!',
       rating: 5,
-      image: '/images/testimonials/testimonial2.png',
-      reviewDate: '01/02/2023',
+      image: '/rev/rev2.webp',
+      reviewDate: '22/03/2025',
     },
     {
       id: 3,
-      name: 'Reetika Malik',
+      name: 'Param Suman',
       review:
-        'The extensions are beautifully done—natural-looking and sturdy. The nail paint is vibrant and flawless, really enhancing the overall look. The service was professional and friendly, making the experience even better.',
+        'Excellent tour organized by Tourillo to IIRS and FRI, with smooth logistics, great hospitality, and a memorable learning experience for our students. Highly recommended!',
       rating: 5,
-      image: '/images/testimonials/testimonial3.png',
-      reviewDate: '01/03/2023',
+      image: '/rev/rev3.webp',
+      reviewDate: '01/10/2024',
     },
     {
       id: 4,
-      name: 'Geetanjali Dayal',
+      name: 'Ajay Kumar',
       review:
-        'Amazing work !! kiran is really calm while doing the extensions and ensures that you are comfortable.She is very good at her work.I would recommend her as her prices are very reasonable and best.',
+        'Very good behavior from driver & management. Arrangements are up to the expectation. Anybody can approach the agency for safe trip.',
       rating: 5,
-      image: '/images/testimonials/testimonial4.png',
-      reviewDate: '01/04/2023',
+      image: '/rev/rev4.webp',
+      reviewDate: '07/12/2024',
     },
     {
       id: 5,
       name: 'Khushi Yadav',
       review:
-        'I recently had the pleasure of getting services from Kiran. She did pedicure, manicure, and cleanup for me and I couldn’t be happier with the results. From the moment she walked in, she made me feel comfortable and pampered. The attention to detail was exceptional, and it was clear that she takes great pride in her work.',
+        'The overall experience was amazing. The facilities were well organised by the staff. It was wonderful. I would again plan something with my friends. Thanks 😊',
       rating: 5,
-      image: '/images/testimonials/testimonial5.png',
-      reviewDate: '01/05/2023',
+      image: '/rev/rev5.webp',
+      reviewDate: '03/05/2025',
     },
   ],
   BlogPosts: [
