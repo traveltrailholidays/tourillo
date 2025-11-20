@@ -78,7 +78,6 @@ export const authConfig = {
                 console.warn(`Sign in blocked - user deactivated: ${user.email}`);
                 return false;
               }
-              console.log(`Existing user signing in: ${user.email}`);
               return true;
             }
 
