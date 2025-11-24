@@ -4,9 +4,10 @@ import { useState, useRef, useEffect } from 'react';
 import { useForm, FieldValues } from 'react-hook-form';
 import { createListing, updateListing } from '@/lib/actions/listing-actions';
 import { categories } from '@/data/categories';
-import { Upload, Trash2, Plus, Minus, Image as ImageIcon, Save, X } from 'lucide-react';
+import { Upload, Trash2, Minus, Image as ImageIcon, Save, X } from 'lucide-react';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 
 interface ListingFormProps {
   initialData?: {
@@ -28,11 +29,13 @@ interface ListingFormProps {
 }
 
 const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCancel }) => {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(initialData?.imageSrc || null);
   const [removeImage, setRemoveImage] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [compressedImageFile, setCompressedImageFile] = useState<File | null>(null);
+  const [hasExistingImage, setHasExistingImage] = useState(!!initialData?.imageSrc);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -58,6 +61,14 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
   });
 
   const watchedFields = watch();
+
+  // Set initial image preview from existing data
+  useEffect(() => {
+    if (initialData?.imageSrc && !compressedImageFile) {
+      setImagePreview(initialData.imageSrc);
+      setHasExistingImage(true);
+    }
+  }, [initialData?.imageSrc, compressedImageFile]);
 
   useEffect(() => {
     if (initialData?.category) {
@@ -179,7 +190,7 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
       formData.append('discount', data.discount.toString());
       formData.append('itinary', JSON.stringify(data.itinary));
 
-      // Add compressed image file if available
+      // Add compressed image file if available (new image uploaded)
       if (compressedImageFile) {
         formData.append('image', compressedImageFile);
       }
@@ -191,19 +202,21 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
 
       if (initialData?.id) {
         await updateListing(initialData.id, formData);
-        toast.success('Listing updated successfully!');
+        toast.success('Package updated successfully!');
+        router.push('/admin/package/package-list');
       } else {
         await createListing(formData);
-        toast.success('Listing created successfully!');
+        toast.success('Package created successfully!');
+        reset();
+        setImagePreview(null);
+        setRemoveImage(false);
+        setCompressedImageFile(null);
+        setHasExistingImage(false);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
       }
 
-      reset();
-      setImagePreview(null);
-      setRemoveImage(false);
-      setCompressedImageFile(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
       onSuccess?.();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Something went wrong');
@@ -248,6 +261,7 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
 
       // Store compressed file
       setCompressedImageFile(compressed);
+      setHasExistingImage(false);
 
       // Create preview from compressed image
       const reader = new FileReader();
@@ -288,6 +302,7 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
     setImagePreview(null);
     setRemoveImage(true);
     setCompressedImageFile(null);
+    setHasExistingImage(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -310,6 +325,8 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
   const addItineraryDay = () => {
     const currentItinary = watchedFields.itinary || [];
     setValue('itinary', [...currentItinary, '']);
+    setValue('days', currentItinary.length + 1);
+    setValue('nights', currentItinary.length);
   };
 
   const removeItineraryDay = (index: number) => {
@@ -326,10 +343,10 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
   };
 
   return (
-    <div className="p-6">
-      <div className="bg-foreground rounded shadow-lg p-8">
+    <div className="p-3 sm:p-6">
+      <div className="bg-foreground rounded shadow-lg p-4 sm:p-8">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
             {initialData?.id ? 'Edit Package' : 'Create New Package'}
           </h1>
           {onCancel && (
@@ -342,25 +359,25 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
           )}
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 sm:space-y-8">
           {/* Category Selection */}
           <div>
-            <label className="block text-lg font-medium mb-4">Category *</label>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <label className="block text-base sm:text-lg font-medium mb-4">Category *</label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
               {categories.map((item) => (
                 <button
                   key={item.label}
                   type="button"
                   onClick={() => setValue('category', item.label.toLowerCase())}
-                  className={`p-4 border-2 rounded-lg transition-all duration-200 ${
+                  className={`p-3 sm:p-4 border-2 rounded-lg transition-all duration-200 ${
                     isCategorySelected(item.label)
                       ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
                       : 'border-gray-300 dark:border-gray-600 hover:border-purple-300'
                   }`}
                 >
                   <div className="flex flex-col items-center">
-                    <item.icon className="h-6 w-6 mb-2" />
-                    <span className="text-sm font-medium">{item.label}</span>
+                    <item.icon className="h-5 w-5 sm:h-6 sm:w-6 mb-2" />
+                    <span className="text-xs sm:text-sm font-medium text-center">{item.label}</span>
                   </div>
                 </button>
               ))}
@@ -369,12 +386,12 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
           </div>
 
           {/* Basic Information */}
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
             <div>
               <label className="block text-sm font-medium mb-2">Title *</label>
               <input
                 {...register('title', { required: 'Title is required' })}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700"
                 placeholder="Package title"
               />
               {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title.message as string}</p>}
@@ -384,7 +401,7 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
               <label className="block text-sm font-medium mb-2">Location *</label>
               <input
                 {...register('location', { required: 'Location is required' })}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700"
                 placeholder="Destination location"
               />
               {errors.location && <p className="mt-1 text-sm text-red-600">{errors.location.message as string}</p>}
@@ -397,7 +414,7 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
             <textarea
               {...register('description', { required: 'Description is required' })}
               rows={4}
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700"
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700"
               placeholder="Package description"
             />
             {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description.message as string}</p>}
@@ -417,10 +434,10 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
                   alt="Preview"
                   width={400}
                   height={250}
-                  className="rounded-lg object-cover border-2 border-gray-200 dark:border-gray-700 w-full max-w-md h-64"
-                  unoptimized
+                  className="rounded-lg object-cover border-2 border-gray-200 dark:border-gray-700 w-full max-w-md h-48 sm:h-64"
+                  unoptimized={!hasExistingImage}
                 />
-                <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg flex items-center justify-center">
+                <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg flex items-center justify-center max-w-md">
                   <div className="flex gap-2">
                     <button
                       type="button"
@@ -450,7 +467,7 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
                 onDrop={handleDrop}
-                className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 ${
+                className={`border-2 border-dashed rounded-lg p-6 sm:p-8 text-center transition-all duration-200 ${
                   isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                 } ${
                   dragActive
@@ -459,11 +476,11 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
                 }`}
               >
                 <div className="flex flex-col items-center">
-                  <ImageIcon className={`h-12 w-12 mb-4 ${dragActive ? 'text-purple-500' : 'text-gray-400'}`} />
-                  <p className="text-gray-600 dark:text-gray-400 mb-2 font-medium">
+                  <ImageIcon className={`h-10 w-10 sm:h-12 sm:w-12 mb-4 ${dragActive ? 'text-purple-500' : 'text-gray-400'}`} />
+                  <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-2 font-medium">
                     {dragActive ? 'Drop image here' : 'Click to upload or drag and drop'}
                   </p>
-                  <p className="text-sm text-gray-500">JPEG, PNG, or WebP (max 100MB)</p>
+                  <p className="text-xs sm:text-sm text-gray-500">JPEG, PNG, or WebP (max 100MB)</p>
                   <p className="text-xs text-gray-400 mt-1">Images will be automatically compressed</p>
                 </div>
               </div>
@@ -480,7 +497,7 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
           </div>
 
           {/* Pricing and Details */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             <div>
               <label className="block text-sm font-medium mb-2">Price (₹) *</label>
               <input
@@ -489,7 +506,7 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
                   required: 'Price is required',
                   min: { value: 1, message: 'Price must be at least ₹1' },
                 })}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700"
                 placeholder="0"
               />
               {errors.price && <p className="mt-1 text-sm text-red-600">{errors.price.message as string}</p>}
@@ -504,7 +521,7 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
                   min: { value: 1, message: 'Must be at least 1 day' },
                 })}
                 onChange={handleDaysChange}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700"
                 placeholder="1"
               />
               {errors.days && <p className="mt-1 text-sm text-red-600">{errors.days.message as string}</p>}
@@ -517,7 +534,7 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
                 {...register('nights')}
                 value={watchedFields.nights}
                 readOnly
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-600"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-600"
               />
             </div>
 
@@ -532,14 +549,14 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
                   min: { value: 0, message: 'Rating cannot be negative' },
                   max: { value: 5, message: 'Rating cannot exceed 5' },
                 })}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700"
                 placeholder="5.0"
               />
               {errors.rating && <p className="mt-1 text-sm text-red-600">{errors.rating.message as string}</p>}
             </div>
           </div>
 
-          <div className="w-full md:w-1/4">
+          <div className="w-full sm:w-1/2 lg:w-1/4">
             <label className="block text-sm font-medium mb-2">Discount (%)</label>
             <input
               type="number"
@@ -549,7 +566,7 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
                 min: { value: 0, message: 'Discount cannot be negative' },
                 max: { value: 100, message: 'Discount cannot exceed 100%' },
               })}
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700"
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700"
               placeholder="0"
             />
             {errors.discount && <p className="mt-1 text-sm text-red-600">{errors.discount.message as string}</p>}
@@ -558,20 +575,12 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
           {/* Itinerary */}
           <div>
             <div className="flex items-center justify-between mb-4">
-              <label className="block text-lg font-medium">Itinerary *</label>
-              <button
-                type="button"
-                onClick={addItineraryDay}
-                className="flex items-center px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Day
-              </button>
+              <label className="block text-base sm:text-lg font-medium">Itinerary *</label>
             </div>
 
             <div className="space-y-4">
               {(watchedFields.itinary || ['']).map((item: string, index: number) => (
-                <div key={index} className="flex gap-4">
+                <div key={index} className="flex gap-2 sm:gap-4">
                   <div className="flex-1">
                     <label className="block text-sm font-medium mb-2">Day {index + 1}</label>
                     <textarea
@@ -579,7 +588,7 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
                         required: `Day ${index + 1} description is required`,
                       })}
                       rows={3}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700"
+                      className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700"
                       placeholder={`Activities for day ${index + 1}`}
                     />
                     {getItineraryError(index) && (
@@ -602,11 +611,11 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
           </div>
 
           {/* Submit Button */}
-          <div className="flex gap-4 pt-6">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-6">
             <button
               type="submit"
               disabled={isLoading}
-              className="flex items-center px-8 py-3 bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+              className="flex items-center justify-center px-6 sm:px-8 py-3 bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg"
             >
               <Save className="h-5 w-5 mr-2" />
               {isLoading
@@ -623,7 +632,7 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
                 type="button"
                 onClick={onCancel}
                 disabled={isLoading}
-                className="px-8 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+                className="px-6 sm:px-8 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>

@@ -40,15 +40,6 @@ export default async function EditPackagePage({ params }: PageProps) {
   return (
     <div>
       <div>
-        {/* Back button */}
-        <Link
-          href="/admin/package/package-list"
-          className="inline-flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 px-6 py-2"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Packages
-        </Link>
-
         {/* Listing Form with initial data */}
         <ListingForm
           initialData={{

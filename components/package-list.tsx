@@ -85,11 +85,11 @@ export const PackageList: React.FC<PackageListProps> = ({ packages }) => {
   };
 
   return (
-    <div className="rounded bg-foreground p-6">
+    <div className="rounded bg-foreground p-3 sm:p-6">
       <div className="mb-4 flex items-center gap-2">
         <input
-          className="w-full md:max-w-xs px-3 py-2 rounded bg-background"
-          placeholder="Search by title, category, or location..."
+          className="w-full px-3 py-2 rounded bg-background text-sm md:text-base"
+          placeholder="Search packages..."
           value={search}
           onChange={(e) => {
             setPage(1);
@@ -97,7 +97,9 @@ export const PackageList: React.FC<PackageListProps> = ({ packages }) => {
           }}
         />
       </div>
-      <div className="overflow-x-auto">
+
+      {/* Desktop Table View - Hidden on mobile */}
+      <div className="hidden lg:block overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -157,13 +159,13 @@ export const PackageList: React.FC<PackageListProps> = ({ packages }) => {
                 <TableCell className="text-sm">{formatDate(pkg.createdAt)}</TableCell>
                 <TableCell className="flex gap-2">
                   <Link href={`/admin/package/edit/${pkg.id}`}>
-                    <Button size="icon" variant="ghost">
+                    <Button size="icon" variant="ghost" title="Edit">
                       <Pencil className="h-4 w-4 text-purple-600" />
                     </Button>
                   </Link>
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button size="icon" variant="ghost" onClick={() => setDeleteId(pkg.id)}>
+                      <Button size="icon" variant="ghost" onClick={() => setDeleteId(pkg.id)} title="Delete">
                         <Trash2 className="h-4 w-4 text-red-600" />
                       </Button>
                     </DialogTrigger>
@@ -192,8 +194,103 @@ export const PackageList: React.FC<PackageListProps> = ({ packages }) => {
           </TableBody>
         </Table>
       </div>
-      <div className="flex justify-between items-center mt-4">
-        <span className="text-sm">
+
+      {/* Mobile Card View - Visible on tablets and below */}
+      <div className="lg:hidden space-y-3">
+        {pageData.length === 0 && <div className="text-center py-8 text-sm">No packages found.</div>}
+        {pageData.map((pkg) => (
+          <div key={pkg.id} className="rounded-lg border p-4 space-y-3 bg-background">
+            {/* Header */}
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <Link href={`/packages/${pkg.id}`} className="hover:underline">
+                  <h3 className="font-semibold text-base capitalize truncate">{pkg.title}</h3>
+                </Link>
+                <span className="inline-block mt-1 capitalize text-xs px-2 py-1 rounded bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300">
+                  {pkg.category}
+                </span>
+              </div>
+              <div className="flex gap-1 shrink-0">
+                <Link href={`/admin/package/edit/${pkg.id}`}>
+                  <Button size="icon" variant="ghost" className="h-8 w-8" title="Edit">
+                    <Pencil className="h-4 w-4 text-purple-600" />
+                  </Button>
+                </Link>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setDeleteId(pkg.id)} title="Delete">
+                      <Trash2 className="h-4 w-4 text-red-600" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-[95vw] sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Delete this package?</DialogTitle>
+                      <DialogDescription>
+                        Are you sure you want to delete this package? This action cannot be undone.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="flex-col sm:flex-row gap-2">
+                      <DialogClose asChild>
+                        <Button variant="secondary" onClick={() => setDeleteId(null)} className="w-full sm:w-auto">
+                          Cancel
+                        </Button>
+                      </DialogClose>
+                      <Button
+                        variant="destructive"
+                        onClick={handleDelete}
+                        disabled={isDeleting}
+                        type="button"
+                        className="w-full sm:w-auto"
+                      >
+                        {isDeleting ? 'Deleting...' : 'Delete'}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </div>
+
+            {/* Package details */}
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-500 dark:text-gray-400">Location:</span>
+                <span className="text-right">{pkg.location}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500 dark:text-gray-400">Price:</span>
+                <span className="font-semibold text-green-600 dark:text-green-400">{formatPrice(pkg.price)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500 dark:text-gray-400">Duration:</span>
+                <span>
+                  {pkg.days}D / {pkg.nights}N
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500 dark:text-gray-400">Rating:</span>
+                <div className="flex items-center gap-1">
+                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                  <span className="font-medium">{pkg.rating.toFixed(1)}</span>
+                </div>
+              </div>
+              {pkg.discount > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-gray-500 dark:text-gray-400">Discount:</span>
+                  <span className="font-medium text-orange-600 dark:text-orange-400">{pkg.discount}% OFF</span>
+                </div>
+              )}
+              <div className="flex justify-between">
+                <span className="text-gray-500 dark:text-gray-400">Created:</span>
+                <span>{formatDate(pkg.createdAt)}</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Pagination */}
+      <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-3">
+        <span className="text-xs sm:text-sm">
           Page {page} of {totalPages || 1}
         </span>
         <div className="flex gap-2">

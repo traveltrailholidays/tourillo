@@ -88,19 +88,6 @@ export async function createListing(formData: FormData) {
     const rating = formData.get('rating');
     const discount = formData.get('discount');
 
-    // DEBUG: Log all field values
-    console.log('FormData fields:', {
-      title: title ? 'present' : 'NULL',
-      description: description ? 'present' : 'NULL',
-      category: category ? 'present' : 'NULL',
-      location: location ? 'present' : 'NULL',
-      price: price ? 'present' : 'NULL',
-      days: days ? 'present' : 'NULL',
-      nights: nights ? 'present' : 'NULL',
-      rating: rating ? 'present' : 'NULL',
-      discount: discount ? 'present' : 'NULL',
-    });
-
     // Check if any required field is null
     if (!title || !description || !category || !location || !price || !days || !nights) {
       const missingFields = [];

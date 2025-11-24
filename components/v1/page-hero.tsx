@@ -26,9 +26,9 @@ const PageHero: React.FC<PageHeroProps> = ({ imageUrl, headingText }) => {
           alt="hero_bg"
           priority
           quality={100}
-          onLoadingComplete={() => setIsLoading(false)}
+          onLoad={() => setIsLoading(false)}
           onError={() => setIsLoading(false)}
-          className={`w-[100vw] h-full object-cover select-none transition-opacity duration-500 ${
+          className={`w-screen h-full object-cover select-none transition-opacity duration-500 ${
             isLoading ? 'opacity-0' : 'opacity-100'
           }`}
         />
