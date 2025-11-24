@@ -4,16 +4,50 @@ import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
-// Generate unique travelId
+// Generate unique travelId in format: TRL2411202516110001
 function generateTravelId(): string {
-  const timestamp = Date.now().toString(36);
-  const random = Math.random().toString(36).substring(2, 8);
-  return `TRV${timestamp}${random}`.toUpperCase();
+  const now = new Date();
+
+  const day = String(now.getDate()).padStart(2, '0');
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const year = String(now.getFullYear());
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+
+  const randomNum = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+
+  return `TRL${day}${month}${year}${hours}${minutes}${randomNum}`;
+}
+
+// Check if travelId is unique, if not, regenerate
+async function generateUniqueTravelId(): Promise<string> {
+  let travelId = generateTravelId();
+  let attempts = 0;
+  const maxAttempts = 10;
+
+  while (attempts < maxAttempts) {
+    const existing = await prisma.itinerary.findUnique({
+      where: { travelId },
+    });
+
+    if (!existing) {
+      return travelId;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    travelId = generateTravelId();
+    attempts++;
+  }
+
+  throw new Error('Failed to generate unique travel ID');
 }
 
 // Itinerary validation schema
 const itinerarySchema = z.object({
+  travelId: z.string().min(1, 'Travel ID is required'),
   clientName: z.string().min(1, 'Client name is required'),
+  clientPhone: z.string().min(10, 'Phone number must be at least 10 digits'),
+  clientEmail: z.string().email('Invalid email').optional().or(z.literal('')),
   packageTitle: z.string().min(1, 'Package title is required'),
   numberOfDays: z.number().min(1),
   numberOfNights: z.number().min(0),
@@ -26,21 +60,33 @@ const itinerarySchema = z.object({
   pricePerPerson: z.number().min(0),
   days: z.array(z.any()),
   hotels: z.array(z.any()),
-  inclusions: z.array(z.any()),
-  exclusions: z.array(z.any()),
+  inclusions: z.array(z.string()),
+  exclusions: z.array(z.string()),
 });
 
 // Create itinerary
 export async function createItinerary(data: z.infer<typeof itinerarySchema>) {
   try {
     const validatedData = itinerarySchema.parse(data);
-    const travelId = generateTravelId();
+
+    // Check if custom travelId already exists
+    const existingTravelId = await prisma.itinerary.findUnique({
+      where: { travelId: validatedData.travelId },
+    });
+
+    if (existingTravelId) {
+      throw new Error(`Travel ID ${validatedData.travelId} already exists. Please use a different ID.`);
+    }
+
+    // Convert empty email to null
+    const cleanedData = {
+      ...validatedData,
+      clientEmail:
+        validatedData.clientEmail && validatedData.clientEmail.trim() !== '' ? validatedData.clientEmail : null,
+    };
 
     const itinerary = await prisma.itinerary.create({
-      data: {
-        ...validatedData,
-        travelId,
-      },
+      data: cleanedData,
     });
 
     revalidatePath('/admin/itinerary/itinerary-list');
@@ -52,6 +98,11 @@ export async function createItinerary(data: z.infer<typeof itinerarySchema>) {
     }
     throw new Error(error instanceof Error ? error.message : 'Failed to create itinerary');
   }
+}
+
+// Generate new Travel ID
+export async function generateNewTravelId(): Promise<string> {
+  return await generateUniqueTravelId();
 }
 
 // Get all itineraries
@@ -108,5 +159,18 @@ export async function deleteItinerary(id: string) {
     return { success: true };
   } catch (error) {
     throw new Error(error instanceof Error ? error.message : 'Failed to delete itinerary');
+  }
+}
+
+// Check if travelId exists
+export async function checkTravelIdExists(travelId: string): Promise<boolean> {
+  try {
+    const itinerary = await prisma.itinerary.findUnique({
+      where: { travelId },
+      select: { id: true },
+    });
+    return !!itinerary;
+  } catch (error) {
+    return false;
   }
 }

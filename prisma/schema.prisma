@@ -137,8 +137,10 @@ model Quote {
 
 model Itinerary {
   id                   String   @id @default(uuid())
-  travelId             String   @unique @map("travel_id") // Unique identifier
+  travelId             String   @unique @map("travel_id")
   clientName           String   @map("client_name")
+  clientPhone          String   @map("client_phone")
+  clientEmail          String?  @map("client_email")
   packageTitle         String   @map("package_title")
   numberOfDays         Int      @map("number_of_days")
   numberOfNights       Int      @map("number_of_nights")
@@ -149,13 +151,14 @@ model Itinerary {
   flights              String
   quotePrice           Int      @map("quote_price")
   pricePerPerson       Int      @map("price_per_person")
-  days                 Json     // Array of day objects
-  hotels               Json     // Array of hotel objects
-  inclusions           Json     // Array of inclusion strings
-  exclusions           Json     // Array of exclusion strings
+  days                 Json
+  hotels               Json
+  inclusions           Json
+  exclusions           Json
   createdAt            DateTime @default(now()) @map("created_at")
   updatedAt            DateTime @updatedAt @map("updated_at")
 
   @@map("itineraries")
 }
+
 

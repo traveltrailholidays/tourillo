@@ -216,7 +216,7 @@ export async function getDashboardStats(dateRange?: { from: Date; to: Date }): P
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const currentMonth = new Date().getMonth();
     const last6Months = [];
-    
+
     for (let i = 5; i >= 0; i--) {
       const monthIndex = (currentMonth - i + 12) % 12;
       last6Months.push(monthNames[monthIndex]);
