@@ -1,7 +1,8 @@
-import React from 'react';
+import Dashboard from '@/components/admin/dashboard';
+import { getDashboardStats } from '@/lib/actions/dashboard-actions';
 
-const page = () => {
-  return <div>page</div>;
-};
+export default async function DashboardPage() {
+  const stats = await getDashboardStats();
 
-export default page;
+  return <Dashboard initialStats={stats} />;
+}
