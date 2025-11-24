@@ -6,7 +6,7 @@ import { Calendar, User, Clock, ArrowLeft } from 'lucide-react';
 import { Metadata } from 'next';
 import Container from '@/components/v1/container';
 import Section from '@/components/v1/section';
-import { Blog } from '@prisma/client'; // Import Prisma-generated type
+import { Blog } from '@prisma/client';
 
 interface BlogDetailPageProps {
   params: Promise<{
@@ -78,7 +78,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
           </div>
         )}
 
-        <main className="px-4 py-12 max-w-4xl">
+        <main className="px-4 py-12 mx-auto">
           <article>
             <header className="mb-8">
               <div className="mb-4">
@@ -109,81 +109,26 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
               </div>
             </header>
 
-            <div className="prose prose-lg dark:prose-invert max-w-none">
-              {blog.content.split('\n\n').map((paragraph: string, index: number) => {
-                if (paragraph.startsWith('#')) {
-                  const level = paragraph.match(/^#+/)?.[0].length || 1;
-                  const text = paragraph.replace(/^#+\s+/, '');
-                  const headingLevel = Math.min(level, 6);
-
-                  const headingClasses = {
-                    1: 'text-3xl font-bold mt-8 mb-4',
-                    2: 'text-2xl font-bold mt-8 mb-4',
-                    3: 'text-xl font-bold mt-6 mb-3',
-                    4: 'text-lg font-bold mt-6 mb-3',
-                    5: 'text-base font-bold mt-4 mb-2',
-                    6: 'text-base font-bold mt-4 mb-2',
-                  };
-
-                  const className = headingClasses[headingLevel as keyof typeof headingClasses];
-
-                  switch (headingLevel) {
-                    case 1:
-                      return (
-                        <h1 key={index} className={className}>
-                          {text}
-                        </h1>
-                      );
-                    case 2:
-                      return (
-                        <h2 key={index} className={className}>
-                          {text}
-                        </h2>
-                      );
-                    case 3:
-                      return (
-                        <h3 key={index} className={className}>
-                          {text}
-                        </h3>
-                      );
-                    case 4:
-                      return (
-                        <h4 key={index} className={className}>
-                          {text}
-                        </h4>
-                      );
-                    case 5:
-                      return (
-                        <h5 key={index} className={className}>
-                          {text}
-                        </h5>
-                      );
-                    case 6:
-                      return (
-                        <h6 key={index} className={className}>
-                          {text}
-                        </h6>
-                      );
-                    default:
-                      return (
-                        <h2 key={index} className={className}>
-                          {text}
-                        </h2>
-                      );
-                  }
-                }
-
-                if (paragraph.trim()) {
-                  return (
-                    <p key={index} className="mb-4 leading-relaxed text-gray-700 dark:text-gray-300">
-                      {paragraph.trim()}
-                    </p>
-                  );
-                }
-
-                return null;
-              })}
-            </div>
+            {/* Render HTML content from TipTap editor */}
+            <div
+              className="prose prose-lg dark:prose-invert max-w-none
+                prose-headings:text-gray-900 dark:prose-headings:text-white
+                prose-h1:text-3xl prose-h1:font-bold prose-h1:mt-8 prose-h1:mb-4
+                prose-h2:text-2xl prose-h2:font-bold prose-h2:mt-8 prose-h2:mb-4
+                prose-h3:text-xl prose-h3:font-bold prose-h3:mt-6 prose-h3:mb-3
+                prose-p:mb-4 prose-p:leading-relaxed prose-p:text-gray-700 dark:prose-p:text-gray-300
+                prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline
+                prose-strong:text-gray-900 dark:prose-strong:text-white prose-strong:font-semibold
+                prose-em:text-gray-700 dark:prose-em:text-gray-300
+                prose-code:text-purple-600 dark:prose-code:text-purple-400 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded
+                prose-pre:bg-gray-900 dark:prose-pre:bg-gray-950 prose-pre:text-gray-100
+                prose-ul:list-disc prose-ul:ml-6 prose-ul:my-4
+                prose-ol:list-decimal prose-ol:ml-6 prose-ol:my-4
+                prose-li:mb-2 prose-li:text-gray-700 dark:prose-li:text-gray-300
+                prose-blockquote:border-l-4 prose-blockquote:border-purple-500 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-gray-700 dark:prose-blockquote:text-gray-300
+                prose-img:rounded-lg prose-img:shadow-lg prose-img:my-8"
+              dangerouslySetInnerHTML={{ __html: blog.content }}
+            />
           </article>
 
           {filteredRelatedPosts.length > 0 && (
