@@ -42,6 +42,46 @@ async function generateUniqueTravelId(): Promise<string> {
   throw new Error('Failed to generate unique travel ID');
 }
 
+// Type definitions for structured data
+export interface DayData {
+  dayNumber: number;
+  summary: string;
+  imageSrc: string;
+  description: string;
+}
+
+export interface HotelData {
+  placeName: string;
+  placeDescription: string;
+  hotelName: string;
+  roomType: string;
+  hotelDescription: string;
+}
+
+export interface ItineraryData {
+  id: string;
+  travelId: string;
+  clientName: string;
+  clientPhone: string;
+  clientEmail: string | null;
+  packageTitle: string;
+  numberOfDays: number;
+  numberOfNights: number;
+  numberOfHotels: number;
+  tripAdvisorName: string;
+  tripAdvisorNumber: string;
+  cabs: string;
+  flights: string;
+  quotePrice: number;
+  pricePerPerson: number;
+  days: DayData[];
+  hotels: HotelData[];
+  inclusions: string[];
+  exclusions: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 // Itinerary validation schema
 const itinerarySchema = z.object({
   travelId: z.string().min(1, 'Travel ID is required'),
@@ -116,6 +156,10 @@ export async function getAllItineraries() {
 
     return itineraries.map((itinerary) => ({
       ...itinerary,
+      days: itinerary.days as unknown as DayData[],
+      hotels: itinerary.hotels as unknown as HotelData[],
+      inclusions: itinerary.inclusions as unknown as string[],
+      exclusions: itinerary.exclusions as unknown as string[],
       createdAt: itinerary.createdAt.toISOString(),
       updatedAt: itinerary.updatedAt.toISOString(),
     }));
@@ -125,8 +169,8 @@ export async function getAllItineraries() {
   }
 }
 
-// Get itinerary by travelId
-export async function getItineraryByTravelId(travelId: string) {
+// Get itinerary by travelId - WITH PROPER TYPING
+export async function getItineraryByTravelId(travelId: string): Promise<ItineraryData | null> {
   try {
     const itinerary = await prisma.itinerary.findUnique({
       where: { travelId },
@@ -137,7 +181,25 @@ export async function getItineraryByTravelId(travelId: string) {
     }
 
     return {
-      ...itinerary,
+      id: itinerary.id,
+      travelId: itinerary.travelId,
+      clientName: itinerary.clientName,
+      clientPhone: itinerary.clientPhone,
+      clientEmail: itinerary.clientEmail,
+      packageTitle: itinerary.packageTitle,
+      numberOfDays: itinerary.numberOfDays,
+      numberOfNights: itinerary.numberOfNights,
+      numberOfHotels: itinerary.numberOfHotels,
+      tripAdvisorName: itinerary.tripAdvisorName,
+      tripAdvisorNumber: itinerary.tripAdvisorNumber,
+      cabs: itinerary.cabs,
+      flights: itinerary.flights,
+      quotePrice: itinerary.quotePrice,
+      pricePerPerson: itinerary.pricePerPerson,
+      days: itinerary.days as unknown as DayData[],
+      hotels: itinerary.hotels as unknown as HotelData[],
+      inclusions: itinerary.inclusions as unknown as string[],
+      exclusions: itinerary.exclusions as unknown as string[],
       createdAt: itinerary.createdAt.toISOString(),
       updatedAt: itinerary.updatedAt.toISOString(),
     };
@@ -172,5 +234,35 @@ export async function checkTravelIdExists(travelId: string): Promise<boolean> {
     return !!itinerary;
   } catch (error) {
     return false;
+  }
+}
+
+// Update itinerary
+export async function updateItinerary(travelId: string, data: z.infer<typeof itinerarySchema>) {
+  try {
+    const validatedData = itinerarySchema.parse(data);
+
+    // Convert empty email to null
+    const cleanedData = {
+      ...validatedData,
+      clientEmail:
+        validatedData.clientEmail && validatedData.clientEmail.trim() !== '' ? validatedData.clientEmail : null,
+    };
+
+    const itinerary = await prisma.itinerary.update({
+      where: { travelId },
+      data: cleanedData,
+    });
+
+    revalidatePath('/admin/itinerary/itinerary-list');
+    revalidatePath(`/admin/itinerary/edit-itinerary/${travelId}`);
+    revalidatePath(`/itinerary/view/${travelId}`);
+
+    return { success: true, travelId: itinerary.travelId, id: itinerary.id };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      throw new Error('Invalid data: ' + error.issues.map((e) => e.message).join(', '));
+    }
+    throw new Error(error instanceof Error ? error.message : 'Failed to update itinerary');
   }
 }

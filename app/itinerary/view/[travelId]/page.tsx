@@ -16,25 +16,5 @@ export default async function ViewItineraryPage({ params }: PageProps) {
     notFound();
   }
 
-  // Type assertion for JSON fields
-  const typedItinerary = {
-    ...itinerary,
-    days: itinerary.days as Array<{
-      dayNumber: number;
-      summary: string;
-      imageSrc: string;
-      description: string;
-    }>,
-    hotels: itinerary.hotels as Array<{
-      placeName: string;
-      placeDescription: string;
-      hotelName: string;
-      roomType: string;
-      hotelDescription: string;
-    }>,
-    inclusions: itinerary.inclusions as Array<{ value: string }>,
-    exclusions: itinerary.exclusions as Array<{ value: string }>,
-  };
-
-  return <ViewItineraryClient itinerary={typedItinerary} />;
+  return <ViewItineraryClient itinerary={itinerary} />;
 }

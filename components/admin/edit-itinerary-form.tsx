@@ -5,14 +5,16 @@ import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import * as z from 'zod';
-import { createItinerary, generateNewTravelId } from '@/lib/actions/itinerary-actions';
-import { Upload, Trash2, Image as ImageIcon, Plus, Minus, Copy, Clipboard, RefreshCw } from 'lucide-react';
+import { updateItinerary } from '@/lib/actions/itinerary-actions';
+import { Upload, Trash2, Image as ImageIcon, Plus, Minus, Copy, Clipboard, ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { DEFAULT_INCLUSIONS, DEFAULT_EXCLUSIONS, ROOM_TYPES, CAB_OPTIONS } from '@/data/itinerary';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 // Image compression function
-export const compressImage = async (file: File): Promise<File> => {
+const compressImage = async (file: File): Promise<File> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -87,7 +89,7 @@ export const compressImage = async (file: File): Promise<File> => {
   });
 };
 
-// Updated Zod schema with new fields
+// Zod schema
 const ItinerarySchema = z.object({
   travelId: z.string().min(1, 'Travel ID is required'),
   clientName: z.string().min(1, 'Client name is required'),
@@ -128,10 +130,49 @@ const ItinerarySchema = z.object({
 
 type ItineraryFormValues = z.infer<typeof ItinerarySchema>;
 
-export default function CreateItinerary() {
+// Proper type for itinerary from database
+interface ItineraryData {
+  id: string;
+  travelId: string;
+  clientName: string;
+  clientPhone: string;
+  clientEmail: string | null;
+  packageTitle: string;
+  numberOfDays: number;
+  numberOfNights: number;
+  numberOfHotels: number;
+  tripAdvisorName: string;
+  tripAdvisorNumber: string;
+  cabs: string;
+  flights: string;
+  quotePrice: number;
+  pricePerPerson: number;
+  days: Array<{
+    dayNumber: number;
+    summary: string;
+    imageSrc: string;
+    description: string;
+  }>;
+  hotels: Array<{
+    placeName: string;
+    placeDescription: string;
+    hotelName: string;
+    roomType: string;
+    hotelDescription: string;
+  }>;
+  inclusions: string[];
+  exclusions: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface EditItineraryFormProps {
+  itinerary: ItineraryData;
+}
+
+export default function EditItineraryForm({ itinerary }: EditItineraryFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isGeneratingId, setIsGeneratingId] = useState(false);
   const [dayImagePreviews, setDayImagePreviews] = useState<{ [key: number]: string }>({});
   const [dayDragActive, setDayDragActive] = useState<{ [key: number]: boolean }>({});
   const [compressedImages, setCompressedImages] = useState<{ [key: number]: File }>({});
@@ -151,37 +192,28 @@ export default function CreateItinerary() {
   } = useForm<ItineraryFormValues>({
     resolver: zodResolver(ItinerarySchema),
     defaultValues: {
-      travelId: '',
-      clientName: '',
-      clientPhone: '',
-      clientEmail: '',
-      packageTitle: '',
-      numberOfDays: 1,
-      numberOfNights: 0,
-      numberOfHotels: 1,
-      tripAdvisorName: '',
-      tripAdvisorNumber: '',
-      cabs: '',
+      travelId: itinerary.travelId,
+      clientName: itinerary.clientName,
+      clientPhone: itinerary.clientPhone,
+      clientEmail: itinerary.clientEmail || '',
+      packageTitle: itinerary.packageTitle,
+      numberOfDays: itinerary.numberOfDays,
+      numberOfNights: itinerary.numberOfNights,
+      numberOfHotels: itinerary.numberOfHotels,
+      tripAdvisorName: itinerary.tripAdvisorName,
+      tripAdvisorNumber: itinerary.tripAdvisorNumber,
+      cabs: itinerary.cabs,
       cabsCustom: '',
-      flights: '',
-      quotePrice: 0,
-      pricePerPerson: 0,
-      days: Array.from({ length: 1 }, (_, index) => ({
-        dayNumber: index + 1,
-        summary: '',
-        imageSrc: '',
-        description: '',
-      })),
-      hotels: Array.from({ length: 1 }, () => ({
-        placeName: '',
-        placeDescription: '',
-        hotelName: '',
-        roomType: '',
+      flights: itinerary.flights,
+      quotePrice: itinerary.quotePrice,
+      pricePerPerson: itinerary.pricePerPerson,
+      days: itinerary.days,
+      hotels: itinerary.hotels.map((hotel) => ({
+        ...hotel,
         roomTypeCustom: '',
-        hotelDescription: '',
       })),
-      inclusions: [...DEFAULT_INCLUSIONS],
-      exclusions: [...DEFAULT_EXCLUSIONS],
+      inclusions: itinerary.inclusions,
+      exclusions: itinerary.exclusions,
     },
   });
 
@@ -195,21 +227,24 @@ export default function CreateItinerary() {
     name: 'days',
   });
 
-  const [inclusions, setInclusions] = useState<string[]>(DEFAULT_INCLUSIONS);
-  const [exclusions, setExclusions] = useState<string[]>(DEFAULT_EXCLUSIONS);
+  const [inclusions, setInclusions] = useState<string[]>(itinerary.inclusions);
+  const [exclusions, setExclusions] = useState<string[]>(itinerary.exclusions);
 
   const numberOfDays = watch('numberOfDays');
   const numberOfHotels = watch('numberOfHotels');
   const cabsSelection = watch('cabs');
+  const hotels = watch('hotels');
 
-  // Initialize with auto-generated travel ID
+  // Initialize image previews from existing data
   useEffect(() => {
-    const initTravelId = async () => {
-      const newId = await generateNewTravelId();
-      setValue('travelId', newId);
-    };
-    initTravelId();
-  }, [setValue]);
+    const previews: { [key: number]: string } = {};
+    itinerary.days.forEach((day, index) => {
+      if (day.imageSrc) {
+        previews[index] = day.imageSrc;
+      }
+    });
+    setDayImagePreviews(previews);
+  }, [itinerary.days]);
 
   // Watch for custom cab selection
   useEffect(() => {
@@ -221,28 +256,29 @@ export default function CreateItinerary() {
     }
   }, [cabsSelection, setValue]);
 
-  // Watch hotel room types for custom selection - FIXED VERSION
+  // Watch hotel room types for custom selection
   useEffect(() => {
-    const subscription = watch((value, { name }) => {
-      // Check if a hotel roomType field changed
-      if (name && name.startsWith('hotels.') && name.endsWith('.roomType')) {
-        const match = name.match(/hotels\.(\d+)\.roomType/);
-        if (match) {
-          const index = parseInt(match[1], 10);
-          const roomType = value.hotels?.[index]?.roomType;
+    if (!hotels) return;
 
-          if (roomType === 'Custom (Enter below)') {
-            setHotelRoomTypeCustom((prev) => ({ ...prev, [index]: true }));
-          } else {
-            setHotelRoomTypeCustom((prev) => ({ ...prev, [index]: false }));
-            setValue(`hotels.${index}.roomTypeCustom`, '');
+    hotels.forEach((hotel, index) => {
+      if (hotel.roomType === 'Custom (Enter below)') {
+        setHotelRoomTypeCustom((prev) => {
+          if (!prev[index]) {
+            return { ...prev, [index]: true };
           }
-        }
+          return prev;
+        });
+      } else {
+        setHotelRoomTypeCustom((prev) => {
+          if (prev[index]) {
+            setValue(`hotels.${index}.roomTypeCustom`, '');
+            return { ...prev, [index]: false };
+          }
+          return prev;
+        });
       }
     });
-
-    return () => subscription.unsubscribe();
-  }, [watch, setValue]);
+  }, [hotels, setValue]);
 
   // Sync inclusions and exclusions with form
   useEffect(() => {
@@ -287,20 +323,6 @@ export default function CreateItinerary() {
       replaceHotels(newHotels);
     }
   }, [numberOfHotels, replaceHotels, watch]);
-
-  // Generate new Travel ID
-  const handleGenerateNewTravelId = async () => {
-    setIsGeneratingId(true);
-    try {
-      const newId = await generateNewTravelId();
-      setValue('travelId', newId);
-      toast.success('New Travel ID generated!');
-    } catch (error) {
-      toast.error('Failed to generate Travel ID');
-    } finally {
-      setIsGeneratingId(false);
-    }
-  };
 
   // Handle bulk inclusions paste
   const handleBulkInclusionsPaste = () => {
@@ -473,22 +495,15 @@ export default function CreateItinerary() {
         })),
       };
 
-      const result = await createItinerary(finalData);
-      toast.success(`Itinerary created! Travel ID: ${result.travelId}`, { duration: 5000 });
-
-      // Copy Travel ID to clipboard
-      navigator.clipboard.writeText(result.travelId);
-      toast.success('Travel ID copied to clipboard!');
-
-      // Open in new tab
-      window.open(`/itinerary/view/${result.travelId}`, '_blank');
+      await updateItinerary(itinerary.travelId, finalData);
+      toast.success('Itinerary updated successfully!');
 
       // Redirect to list
       setTimeout(() => {
         router.push('/admin/itinerary/itinerary-list');
       }, 1500);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to create itinerary');
+      toast.error(error instanceof Error ? error.message : 'Failed to update itinerary');
     } finally {
       setIsSubmitting(false);
     }
@@ -502,39 +517,29 @@ export default function CreateItinerary() {
   return (
     <div className="container mx-auto p-6">
       <div className="bg-foreground rounded-lg shadow-lg p-8">
-        <h1 className="text-3xl font-bold mb-8 bg-linear-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-          Create Itinerary
-        </h1>
+        <div className="flex items-center gap-4 mb-8">
+          <Link href="/admin/itinerary/itinerary-list">
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <h1 className="text-3xl font-bold bg-linear-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+            Edit Itinerary
+          </h1>
+        </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
-          {/* Travel ID Section */}
+          {/* Travel ID Section - READ ONLY */}
           <div className="p-6 bg-linear-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg border-2 border-purple-200 dark:border-purple-700">
-            <label className={labelClassName}>
-              Travel ID <span className="text-red-500">*</span>
-            </label>
-            <div className="flex gap-2">
-              <input
-                {...register('travelId')}
-                type="text"
-                placeholder="TRL2411202516110001"
-                className={`${inputClassName} font-mono text-lg font-bold`}
-                disabled={isSubmitting}
-              />
-              <button
-                type="button"
-                onClick={handleGenerateNewTravelId}
-                disabled={isSubmitting || isGeneratingId}
-                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition flex items-center gap-2 disabled:opacity-50 whitespace-nowrap"
-                title="Generate New Travel ID"
-              >
-                <RefreshCw className={`h-5 w-5 ${isGeneratingId ? 'animate-spin' : ''}`} />
-                Generate
-              </button>
-            </div>
-            {errors.travelId && <p className={errorClassName}>{errors.travelId.message}</p>}
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-              Format: TRL + Date (DDMMYYYY) + Time (HHMM) + Random (0001-9999)
-            </p>
+            <label className={labelClassName}>Travel ID (Read Only)</label>
+            <input
+              {...register('travelId')}
+              type="text"
+              className={`${inputClassName} font-mono text-lg font-bold bg-gray-100 dark:bg-gray-800 cursor-not-allowed`}
+              disabled
+              readOnly
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">Travel ID cannot be changed after creation</p>
           </div>
 
           {/* Client Details */}
@@ -1122,21 +1127,18 @@ export default function CreateItinerary() {
 
           {/* Submit Button */}
           <div className="border-t-2 border-purple-200 dark:border-purple-800 pt-6 flex gap-4 justify-end">
-            <button
-              type="button"
-              onClick={() => router.back()}
-              disabled={isSubmitting}
-              className="py-4 px-10 bg-gray-500 rounded-lg font-semibold text-white hover:bg-gray-600 transition-colors disabled:opacity-50"
-            >
-              Cancel
-            </button>
-            <button
+            <Link href="/admin/itinerary/itinerary-list">
+              <Button type="button" variant="outline" disabled={isSubmitting}>
+                Cancel
+              </Button>
+            </Link>
+            <Button
               type="submit"
               disabled={isSubmitting}
-              className="py-4 px-10 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-lg font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transform hover:scale-105"
+              className="bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 hover:opacity-90"
             >
-              {isSubmitting ? 'Creating Itinerary...' : 'Generate Itinerary'}
-            </button>
+              {isSubmitting ? 'Updating Itinerary...' : 'Update Itinerary'}
+            </Button>
           </div>
         </form>
       </div>

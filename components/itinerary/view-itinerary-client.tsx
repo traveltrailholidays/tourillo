@@ -2,12 +2,22 @@
 
 import React, { useCallback, useState } from 'react';
 import { Noto_Sans } from 'next/font/google';
-import { FaPhoneAlt, FaRegArrowAltCircleRight, FaCheck, FaHotel, FaSuitcase } from 'react-icons/fa';
+import {
+  FaPhoneAlt,
+  FaRegArrowAltCircleRight,
+  FaCheck,
+  FaHotel,
+  FaSuitcase,
+  FaEnvelope,
+  FaIdCard,
+} from 'react-icons/fa';
 import { RxCrossCircled } from 'react-icons/rx';
 import { MdRateReview } from 'react-icons/md';
 import { AiFillThunderbolt } from 'react-icons/ai';
 import Image from 'next/image';
 import Link from 'next/link';
+import type { ItineraryData } from '@/lib/actions/itinerary-actions';
+import LogoFull from '../logo-full';
 
 const notoSans = Noto_Sans({
   subsets: ['latin'],
@@ -23,54 +33,14 @@ interface BulletPointsProps {
 
 const BulletPoints: React.FC<BulletPointsProps> = ({ icon: Icon, text, size, color }) => {
   return (
-    <div className="mt-3 ml-7 flex gap-2">
-      <div className="mt-[4px]">
-        <Icon color={color || '#22C55E'} size={size || 16} />
+    <div className="mt-2 ml-7 flex gap-2 print-avoid-break">
+      <div className="mt-1 shrink-0">
+        <Icon color={color || '#334155'} size={size || 14} />
       </div>
-      <span>{text}</span>
+      <span className="text-sm leading-relaxed text-gray-700">{text}</span>
     </div>
   );
 };
-
-interface DayInfo {
-  dayNumber: number;
-  summary: string;
-  imageSrc: string;
-  description: string;
-}
-
-interface HotelInfo {
-  placeName: string;
-  placeDescription: string;
-  hotelName: string;
-  roomType: string;
-  hotelDescription: string;
-}
-
-interface InclusionExclusion {
-  value: string;
-}
-
-interface ItineraryData {
-  id: string;
-  travelId: string;
-  clientName: string;
-  packageTitle: string;
-  numberOfDays: number;
-  numberOfNights: number;
-  numberOfHotels: number;
-  tripAdvisorName: string;
-  tripAdvisorNumber: string;
-  cabs: string;
-  flights: string;
-  quotePrice: number;
-  pricePerPerson: number;
-  days: DayInfo[];
-  hotels: HotelInfo[];
-  inclusions: InclusionExclusion[];
-  exclusions: InclusionExclusion[];
-  createdAt: string;
-}
 
 interface ViewItineraryClientProps {
   itinerary: ItineraryData;
@@ -87,20 +57,133 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
     }, 100);
   }, []);
 
+  const formatPrice = (amount: number) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+  };
+
   return (
     <>
       <style jsx global>{`
         @media print {
           @page {
             size: A4;
-            margin: 0;
+            margin: 12mm 10mm 12mm 10mm;
           }
-          body {
+
+          * {
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
+            color-adjust: exact;
           }
+
+          body {
+            margin: 0;
+            padding: 0;
+          }
+
           .print-hide {
             display: none !important;
+          }
+
+          .print-avoid-break {
+            page-break-inside: avoid;
+            break-inside: avoid;
+            page-break-after: auto;
+            break-after: auto;
+          }
+
+          .print-section {
+            page-break-inside: avoid;
+            break-inside: avoid;
+            orphans: 3;
+            widows: 3;
+          }
+
+          .print-allow-break-before {
+            page-break-before: auto;
+            break-before: auto;
+          }
+
+          .print-force-break-before {
+            page-break-before: always;
+            break-before: page;
+          }
+
+          h1,
+          h2,
+          h3,
+          h4,
+          h5,
+          h6 {
+            page-break-after: avoid;
+            break-after: avoid;
+            page-break-inside: avoid;
+            break-inside: avoid;
+            orphans: 4;
+            widows: 4;
+          }
+
+          p,
+          div,
+          li {
+            orphans: 3;
+            widows: 3;
+          }
+
+          img {
+            page-break-inside: avoid;
+            break-inside: avoid;
+            page-break-before: auto;
+            break-before: auto;
+            page-break-after: auto;
+            break-after: auto;
+          }
+
+          .print-compact {
+            padding-top: 8px !important;
+            padding-bottom: 8px !important;
+            margin-top: 0 !important;
+            margin-bottom: 8px !important;
+          }
+
+          .print-compact-gap {
+            gap: 8px !important;
+          }
+
+          .print-small-text {
+            font-size: 10px !important;
+            line-height: 1.35 !important;
+          }
+
+          .print-small-text h2,
+          .print-small-text h3 {
+            font-size: 14px !important;
+            margin-bottom: 4px !important;
+          }
+
+          .print-keep-with-next {
+            page-break-after: avoid;
+            break-after: avoid;
+          }
+
+          .print-smart-section {
+            page-break-inside: auto;
+            break-inside: auto;
+            orphans: 2;
+            widows: 2;
           }
         }
       `}</style>
@@ -108,90 +191,146 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
       <div className={`w-full flex justify-center items-center ${notoSans.className} bg-white text-black`}>
         <div className="max-w-[894px] w-full">
           <div id="itinerary-content" className="bg-white">
-            <header className="bg-slate-900 text-white w-full flex p-3 justify-between items-center">
-              <div className="relative h-9 w-72 select-none">
-                <Image
-                  src="/logo/logoItinerary.png"
-                  alt="Travel Trail Holidays Logo"
-                  fill
-                  quality={100}
-                  className="object-contain"
-                  priority
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full w-10 h-10 flex justify-center items-center text-white">
-                  <FaPhoneAlt size={16} />
-                </div>
-                <div>
-                  <div>
-                    <span className="font-semibold text-xs">Call Us</span>
+            {/* Header + Travel ID - Keep together */}
+            <div className="print-avoid-break">
+              {/* Header */}
+              <header className="bg-slate-800 text-white w-full flex p-4 justify-between items-center border-b-4 border-slate-600">
+                <LogoFull />
+                <div className="flex items-center gap-3">
+                  <div className="bg-slate-700 rounded-lg w-10 h-10 flex justify-center items-center text-white">
+                    <FaPhoneAlt size={16} />
                   </div>
                   <div>
-                    <span className="font-semibold text-sm">+91 9625992025</span>
-                  </div>
-                </div>
-              </div>
-            </header>
-
-            <div className="w-full flex flex-col gap-10">
-              <div className="bg-sky-50">
-                <div className="px-5 py-5 flex flex-col gap-1 w-full">
-                  <span>Dear {itinerary.clientName},</span>
-                  <span>Greeting from Travel Trail Holidays!🌍</span>
-                  <span>
-                    We&apos;re thrilled to present you with a selection of incredible holiday packages tailored just for
-                    you by Travel Trail Holidays, one of the most trusted names in travel!✨
-                  </span>
-                  <div className="flex gap-10 items-center mt-5">
-                    <div className="flex items-center gap-2 font-semibold">
-                      <FaSuitcase size={20} />
-                      500+ Trip sold
+                    <div>
+                      <span className="font-semibold text-xs text-gray-300">Call Us</span>
                     </div>
-                    <div className="flex items-center gap-2 font-semibold">
-                      <MdRateReview size={22} />
+                    <div>
+                      <span className="font-semibold text-sm">+91 9625992025</span>
+                    </div>
+                  </div>
+                </div>
+              </header>
+
+              {/* Travel ID & Date Section */}
+              <div className="px-5 py-3 bg-gray-50 border-b-2 border-gray-200">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-start gap-2">
+                    <div>
+                      <span className="text-xs text-gray-500 uppercase tracking-wide">Travel ID</span>
+                      <p className="font-mono font-bold text-slate-700 text-lg">{itinerary.travelId}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xs text-gray-500 uppercase tracking-wide">Generated On</span>
+                    <p className="font-semibold text-slate-700">{formatDate(itinerary.createdAt)}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="w-full flex flex-col">
+              {/* Introduction Section */}
+              <div className="print-section">
+                <div className="px-5 py-4 flex flex-col gap-2 w-full border-b border-gray-200">
+                  <span className="text-base text-gray-800">
+                    Dear <span className="font-semibold capitalize text-slate-800">{itinerary.clientName}</span>,
+                  </span>
+                  <span className="text-gray-700">Greetings from Tourillo!</span>
+                  <span className="text-gray-700">
+                    We&apos;re pleased to present you with a carefully curated holiday package tailored to your
+                    preferences by Tourillo, your trusted travel partner.
+                  </span>
+
+                  {/* Client Contact Information */}
+                  <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200 print-avoid-break">
+                    <h3 className="font-semibold text-base mb-3 text-slate-800 print-keep-with-next">
+                      Client Information
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="flex items-center gap-2">
+                        <FaPhoneAlt className="text-slate-600" size={14} />
+                        <div>
+                          <span className="text-xs text-gray-500 uppercase">Contact Number</span>
+                          <p className="font-semibold text-slate-800 text-sm">{itinerary.clientPhone}</p>
+                        </div>
+                      </div>
+                      {itinerary.clientEmail && (
+                        <div className="flex items-center gap-2">
+                          <FaEnvelope className="text-slate-600" size={14} />
+                          <div>
+                            <span className="text-xs text-gray-500 uppercase">Email Address</span>
+                            <p className="font-semibold text-slate-800 text-sm">{itinerary.clientEmail}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-8 items-center mt-4 print-avoid-break text-gray-600">
+                    <div className="flex items-center gap-2 font-medium text-sm">
+                      <FaSuitcase size={14} className="text-slate-600" />
+                      500+ Trips
+                    </div>
+                    <div className="flex items-center gap-2 font-medium text-sm">
+                      <MdRateReview size={14} className="text-slate-600" />
                       350+ Reviews
                     </div>
-                    <div className="flex items-center gap-1 font-semibold">
-                      <AiFillThunderbolt size={22} />
-                      100% Super reviews
+                    <div className="flex items-center gap-2 font-medium text-sm">
+                      <AiFillThunderbolt size={14} className="text-slate-600" />
+                      100% Satisfaction
                     </div>
                   </div>
-                  <div className="mt-10 flex flex-col gap-1">
-                    <span className="font-semibold text-xl">{itinerary.packageTitle}</span>
-                    <span className="font-semibold">
-                      {itinerary.numberOfNights}N/{itinerary.numberOfDays}D
+
+                  <div className="mt-6 flex flex-col gap-1 print-avoid-break">
+                    <span className="font-bold text-2xl text-slate-800">{itinerary.packageTitle}</span>
+                    <span className="font-medium text-base text-gray-600">
+                      {itinerary.numberOfNights} Nights / {itinerary.numberOfDays} Days
                     </span>
                   </div>
-                  <div className="mt-4 text-lg flex gap-2">
-                    <span className="font-semibold">Quoted price:</span>
-                    <span>₹{itinerary.quotePrice}</span>
-                  </div>
-                  <div className="mt-1 text-lg flex gap-2">
-                    <span className="font-semibold">Price per person:</span>
-                    <span>₹{itinerary.pricePerPerson}</span>
+
+                  <div className="mt-4 p-4 bg-slate-50 rounded-lg border border-slate-200 print-avoid-break">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <span className="text-xs text-gray-500 uppercase tracking-wide">Total Package Price</span>
+                        <p className="text-xl font-bold text-slate-800">{formatPrice(itinerary.quotePrice)}</p>
+                      </div>
+                      <div>
+                        <span className="text-xs text-gray-500 uppercase tracking-wide">Price Per Person</span>
+                        <p className="text-xl font-bold text-slate-800">{formatPrice(itinerary.pricePerPerson)}</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="px-5 py-5">
-                <span className="text-3xl font-bold">Hotel Summary</span>
-                <div className="h-[2px] w-full bg-gray-300 mt-2"></div>
-                <div className="mt-7 flex flex-col gap-7">
-                  {itinerary.hotels.map((hotel: HotelInfo, index: number) => (
-                    <div key={index}>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl font-semibold">{hotel.placeName}:</span>
-                        <span className="text-xl">{hotel.placeDescription}</span>
+              {/* Hotel Summary */}
+              <div className="px-5 py-4 print-compact print-allow-break-before border-b border-gray-200">
+                <h2 className="text-xl font-bold text-slate-800 print-keep-with-next">Hotel Summary</h2>
+                {/* <div className="h-0.5 w-full bg-gray-300 mt-2 mb-4"></div> */}
+                <div className="flex flex-col gap-4 print-compact-gap">
+                  {itinerary.hotels.map((hotel, index) => (
+                    <div
+                      key={index}
+                      className="border border-gray-300 rounded-lg p-4 hover:shadow-md transition print-avoid-break bg-white"
+                    >
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-base font-bold text-slate-800">{hotel.placeName}</span>
+                        <span className="text-gray-400">•</span>
+                        <span className="text-sm text-gray-600">{hotel.placeDescription}</span>
                       </div>
-                      <div className="flex gap-10 items-center p-5">
-                        <FaHotel size={100} color="#FACC15" />
-                        <div className="flex flex-col gap-1">
-                          <span className="bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text font-semibold text-lg">
-                            {hotel.hotelName}
-                          </span>
-                          <span className="text-lg">Room Type: {hotel.roomType}</span>
-                          <span className="text-lg">{hotel.hotelDescription}</span>
+                      <div className="flex gap-4 items-start">
+                        <div className="shrink-0">
+                          <FaHotel size={40} className="text-gray-400" />
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <span className="font-semibold text-base text-slate-800">{hotel.hotelName}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-medium text-gray-500">Room Type:</span>
+                            <span className="text-xs font-semibold text-slate-700 bg-gray-100 px-3 py-1 rounded border border-gray-300">
+                              {hotel.roomType}
+                            </span>
+                          </div>
+                          <p className="text-gray-600 text-xs leading-relaxed">{hotel.hotelDescription}</p>
                         </div>
                       </div>
                     </div>
@@ -199,317 +338,356 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
                 </div>
               </div>
 
-              <div className="px-5">
-                <span className="text-3xl font-bold">Flights</span>
-                <div className="h-[2px] w-full bg-gray-300 mt-2"></div>
-                <div className="mt-3">
-                  <span className="text-lg">{itinerary.flights}</span>
+              {/* Flights */}
+              <div className="px-5 py-4 print-compact print-avoid-break border-b border-gray-200">
+                <h2 className="text-xl font-bold text-slate-800 print-keep-with-next mb-4">Flight Details</h2>
+                {/* <div className="h-0.5 w-full bg-gray-300 mt-2 mb-3"></div> */}
+                <div className="p-4 bg-gray-50 rounded-lg border border-gray-300">
+                  <span className="text-sm text-gray-700">{itinerary.flights}</span>
                 </div>
               </div>
 
-              <div className="px-5">
-                <span className="text-3xl font-bold">Cabs</span>
-                <div className="h-[2px] w-full bg-gray-300 mt-2"></div>
-                <div className="mt-3">
-                  <span className="text-lg">{itinerary.cabs}</span>
+              {/* Cabs */}
+              <div className="px-5 py-4 print-compact print-avoid-break border-b border-gray-200">
+                <h2 className="text-xl font-bold text-slate-800 print-keep-with-next mb-4">Transportation</h2>
+                {/* <div className="h-0.5 w-full bg-gray-300 mt-2 mb-3"></div> */}
+                <div className="p-4 bg-gray-50 rounded-lg border border-gray-300">
+                  <span className="text-sm text-gray-700">{itinerary.cabs}</span>
                 </div>
               </div>
 
-              <div className="px-5">
-                <span className="text-3xl font-bold">Itinerary</span>
-                <div className="h-[2px] w-full bg-gray-300 mt-2"></div>
-                <div className="mt-7 flex flex-col gap-9">
-                  {itinerary.days.map((day: DayInfo, index: number) => (
-                    <div key={index}>
-                      <div className="flex gap-2">
-                        <span className="text-xl font-semibold min-w-[70px]">Day {index + 1}:</span>
-                        <span className="text-xl">{day.summary}</span>
+              {/* Itinerary */}
+              <div className="px-5 py-4 print-compact print-allow-break-before border-b border-gray-200">
+                <h2 className="text-xl font-bold text-slate-800 print-keep-with-next mb-4">Detailed Itinerary</h2>
+                {/* <div className="h-0.5 w-full bg-gray-300 mt-2 mb-4"></div> */}
+                <div className="flex flex-col gap-4 print-compact-gap">
+                  {itinerary.days.map((day, index) => (
+                    <div
+                      key={index}
+                      className="border border-gray-300 rounded-lg p-4 hover:shadow-md transition print-avoid-break bg-white"
+                    >
+                      <div className="flex gap-3 items-start mb-3">
+                        <div className="bg-slate-700 text-white font-bold text-sm px-4 py-1.5 rounded">
+                          Day {day.dayNumber}
+                        </div>
+                        <span className="text-base font-semibold text-slate-800 mt-0.5">{day.summary}</span>
                       </div>
-                      <div className="relative w-full h-80 mt-2">
-                        <Image src={day.imageSrc} alt={`Day ${index + 1}`} fill className="object-cover" priority />
-                      </div>
-                      <p className="mt-2">{day.description}</p>
+                      {day.imageSrc && (
+                        <div className="relative w-full h-48 mt-3 rounded-lg overflow-hidden border border-gray-300 print-avoid-break">
+                          <Image
+                            src={day.imageSrc}
+                            alt={`Day ${day.dayNumber}`}
+                            fill
+                            className="object-cover"
+                            priority={index === 0}
+                            unoptimized
+                          />
+                        </div>
+                      )}
+                      <p className="mt-3 text-xs leading-relaxed text-gray-700 whitespace-pre-line">
+                        {day.description}
+                      </p>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="px-5 flex gap-10">
+              {/* Inclusions & Exclusions */}
+              <div className="px-5 py-4 flex gap-8 print-compact print-allow-break-before print-smart-section border-b border-gray-200">
                 <div className="w-1/2">
-                  <span className="text-3xl font-bold">Inclusions</span>
-                  <div className="h-[2px] w-full bg-gray-300 mt-2"></div>
-                  <div className="mt-3 flex flex-col gap-2">
-                    {itinerary.inclusions.map((inclusion: InclusionExclusion, index: number) => (
-                      <BulletPoints key={index} icon={FaCheck} size={16} color="#22C55E" text={inclusion.value} />
+                  <h2 className="text-lg font-bold text-slate-800 print-keep-with-next mb-4">What's Included</h2>
+                  {/* <div className="h-0.5 w-full bg-gray-300 mt-2 mb-3"></div> */}
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-300">
+                    {itinerary.inclusions.map((inclusion, index) => (
+                      <BulletPoints key={index} icon={FaCheck} size={12} color="#475569" text={inclusion} />
                     ))}
                   </div>
                 </div>
                 <div className="w-1/2">
-                  <span className="text-3xl font-bold">Exclusions</span>
-                  <div className="h-[2px] w-full bg-gray-300 mt-2"></div>
-                  <div className="mt-3 flex flex-col gap-2">
-                    {itinerary.exclusions.map((exclusion: InclusionExclusion, index: number) => (
-                      <BulletPoints
-                        key={index}
-                        icon={RxCrossCircled}
-                        size={16}
-                        color="#EF4444"
-                        text={exclusion.value}
-                      />
+                  <h2 className="text-lg font-bold text-slate-800 print-keep-with-next mb-4">What's Excluded</h2>
+                  {/* <div className="h-0.5 w-full bg-gray-300 mt-2 mb-3"></div> */}
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-300">
+                    {itinerary.exclusions.map((exclusion, index) => (
+                      <BulletPoints key={index} icon={RxCrossCircled} size={12} color="#64748b" text={exclusion} />
                     ))}
                   </div>
                 </div>
               </div>
 
-              <div className="px-5 mt-5">
-                <span className="text-3xl font-bold">Payment Process</span>
-                <div className="h-[2px] w-full bg-gray-300 mt-2"></div>
-                <div className="mt-3">
-                  <div className="text-lg">Following mode of payments are available:</div>
-                  <div className="mt-7 w-full flex gap-10 justify-between">
-                    <div className="w-1/2">
-                      <span className="text-xl uppercase font-semibold">1. Pay in account</span>
-                      <div className="ml-6 flex flex-col gap-1 mt-3">
-                        <span>Bank Name: IndusInd Bank</span>
-                        <span>Account Name: Travel Trail Holidays Private Limited</span>
-                        <span>Account Number: 259625992025</span>
-                        <span>IFSC Code: INDB0000735</span>
-                        <span>Account Type: Current</span>
+              {/* Payment Process */}
+              <div className="px-5 py-4 print-compact print-allow-break-before border-b border-gray-200">
+                <h2 className="text-xl font-bold text-slate-800 print-keep-with-next mb-4">Payment Information</h2>
+                {/* <div className="h-0.5 w-full bg-gray-300 mt-2 mb-3"></div> */}
+                <div className="text-sm mb-4 font-medium text-gray-700">Available payment methods:</div>
+                <div className="w-full flex gap-6 justify-between print-compact-gap">
+                  <div className="w-1/2 bg-gray-50 p-4 rounded-lg border border-gray-300 print-avoid-break">
+                    <span className="text-base font-bold text-slate-800">1. Bank Transfer</span>
+                    <div className="ml-4 flex flex-col gap-1.5 mt-3 text-xs text-gray-700">
+                      <div>
+                        <span className="font-semibold">Bank:</span> IndusInd Bank
+                      </div>
+                      <div>
+                        <span className="font-semibold">Account:</span> Tourillo Private Limited
+                      </div>
+                      <div>
+                        <span className="font-semibold">Number:</span> 259625992025
+                      </div>
+                      <div>
+                        <span className="font-semibold">IFSC:</span> INDB0000735
+                      </div>
+                      <div>
+                        <span className="font-semibold">Type:</span> Current
                       </div>
                     </div>
-                    <div className="w-1/2">
-                      <span className="text-xl uppercase font-semibold">2. Pay by UPI</span>
-                      <div className="ml-6 flex flex-col gap-1 mt-3">
-                        <span>Merchant: Travel Trail Holidays Private Limited</span>
-                        <span>UPI ID: 9625992025@upi</span>
-                        <span>UPI No: 9625992025</span>
-                        <Image src="/payments/upi.jpg" alt="UPI QR" width={200} height={200} />
-                        <Image
-                          src="/payments/pay.jpg"
-                          alt="Payment Options"
-                          width={250}
-                          height={100}
-                          quality={100}
-                          className="w-[250px]"
-                        />
+                  </div>
+                  <div className="w-1/2 bg-gray-50 p-4 rounded-lg border border-gray-300 print-avoid-break">
+                    <span className="text-base font-bold text-slate-800">2. UPI Payment</span>
+                    <div className="ml-4 flex flex-col gap-1.5 mt-3 text-xs text-gray-700">
+                      <div>
+                        <span className="font-semibold">Merchant:</span> Tourillo Pvt Ltd
+                      </div>
+                      <div>
+                        <span className="font-semibold">UPI ID:</span> 9625992025@upi
+                      </div>
+                      <div>
+                        <span className="font-semibold">Number:</span> 9625992025
+                      </div>
+                      <div className="relative w-[120px] h-[120px] mt-2 border border-gray-300 rounded overflow-hidden print-avoid-break">
+                        <Image src="/images/payment/upi.webp" alt="UPI QR" fill className="object-contain" />
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="px-5 py-12 flex flex-col gap-5 font-medium text-lg">
-                <span>
-                  In case you&apos;d want to customize this quote/ itinerary or if its price doesn&apos;t fit your
-                  budget, then kindly let the agent know about it directly at 9953276022.
-                </span>
-                <span>
-                  If you need further support, please reply to this email or call us on +91{' '}
-                  {itinerary.tripAdvisorNumber}. Your Trip Advisor is{' '}
-                  <span className="font-bold">{itinerary.tripAdvisorName}</span>.
-                </span>
-              </div>
-            </div>
-
-            <div className="px-5 py-7 bg-gray-100">
-              <div>
-                <div>
-                  <span className="text-2xl font-bold">Payment Policy:</span>
-                  <div className="h-[2px] w-full bg-gray-400 mt-2"></div>
+              {/* Contact Information */}
+              <div className="px-5 py-4 print-compact print-avoid-break border-b border-gray-200">
+                <div className="px-4 py-4 bg-gray-50 rounded-lg border border-gray-300">
+                  <div className="flex flex-col gap-3 font-medium text-xs text-gray-700">
+                    <div className="flex items-start gap-3">
+                      <div className="bg-slate-700 text-white p-1.5 rounded mt-0.5 shrink-0">
+                        <FaPhoneAlt size={11} />
+                      </div>
+                      <p>
+                        For any customization requests or budget adjustments, please contact us at{' '}
+                        <span className="font-bold text-slate-800">{itinerary.clientPhone}</span>
+                        {itinerary.clientEmail && (
+                          <>
+                            {' '}
+                            or email <span className="font-bold text-slate-800">{itinerary.clientEmail}</span>
+                          </>
+                        )}
+                        .
+                      </p>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="bg-slate-700 text-white p-1.5 rounded mt-0.5 shrink-0">
+                        <FaEnvelope size={11} />
+                      </div>
+                      <p>
+                        For support, contact{' '}
+                        <span className="font-bold text-slate-800">+91 {itinerary.tripAdvisorNumber}</span>. Your
+                        dedicated Trip Advisor is{' '}
+                        <span className="font-bold text-slate-800">{itinerary.tripAdvisorName}</span>.
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <BulletPoints
-                  icon={FaRegArrowAltCircleRight}
-                  size={16}
-                  color="#22C55E"
-                  text="50% payment at the time of booking"
-                />
-                <BulletPoints
-                  icon={FaRegArrowAltCircleRight}
-                  size={16}
-                  color="#22C55E"
-                  text="Remaining payment Before 7 Days check in."
-                />
-              </div>
-
-              <div className="mt-10">
-                <div>
-                  <span className="text-2xl font-bold">Cancellation Policy:</span>
-                  <div className="h-[2px] w-full bg-gray-400 mt-2"></div>
-                </div>
-                <BulletPoints
-                  icon={FaRegArrowAltCircleRight}
-                  size={16}
-                  color="#22C55E"
-                  text="Before 30 Days from the date of commencement = 35% Cancellation Charges of Total Amount (Total trip cost)."
-                />
-                <BulletPoints
-                  icon={FaRegArrowAltCircleRight}
-                  size={16}
-                  color="#22C55E"
-                  text="Before 30-15 Days from the date of Commencement = 50% Cancellation Charges of Total Amount (Total trip cost)."
-                />
-                <BulletPoints
-                  icon={FaRegArrowAltCircleRight}
-                  size={16}
-                  color="#22C55E"
-                  text="Before 15 Days from the date of Commencement = 75% Cancellation Charges of Total Amount (Total trip cost )."
-                />
-                <BulletPoints
-                  icon={FaRegArrowAltCircleRight}
-                  size={16}
-                  color="#22C55E"
-                  text="Before 14 days or less from the date of Commencement = 100% Cancellation Charges will be applicable (Total trip cost)."
-                />
-                <BulletPoints
-                  icon={FaRegArrowAltCircleRight}
-                  size={16}
-                  color="#22C55E"
-                  text="In Case passenger is no show at the time of departure, 100% of tour cost shall be detected."
-                />
-                <BulletPoints
-                  icon={FaRegArrowAltCircleRight}
-                  size={16}
-                  color="#22C55E"
-                  text="Even If Trip is cancelled on the same day of date booking then (10% + GST) of the total trip cost will be deducted /applicable as cancellation Charges."
-                />
               </div>
 
-              <div className="mt-10">
-                <div>
-                  <span className="text-2xl font-bold">Child Policy:</span>
-                  <div className="h-[2px] w-full bg-gray-400 mt-2"></div>
-                </div>
-                <BulletPoints
-                  icon={FaRegArrowAltCircleRight}
-                  size={16}
-                  color="#22C55E"
-                  text="Children over 12 years or abode will be charged as adults , relevant docs need to be produced at the time of check in the hotel."
-                />
-                <BulletPoints
-                  icon={FaRegArrowAltCircleRight}
-                  size={16}
-                  color="#22C55E"
-                  text="In Case of Group travel infant will be charged the half of the adult's transport cost."
-                />
-                <BulletPoints
-                  icon={FaRegArrowAltCircleRight}
-                  size={16}
-                  color="#22C55E"
-                  text="Till 5-year-old FREE with no extra bed. 6-12 years 50% of the adult cost & 12 and above full charges will be applicable."
-                />
-              </div>
+              {/* Policies Section */}
+              <div className="px-5 py-4 print-compact print-force-break-before">
+                <div className="px-4 py-5 bg-gray-50 print-small-text rounded-lg border border-gray-300">
+                  {/* Payment Policy */}
+                  <div className="print-avoid-break">
+                    <h3 className="text-base font-bold text-slate-800 print-keep-with-next">Payment Policy</h3>
+                    <div className="h-0.5 w-full bg-gray-300 mt-1 mb-2"></div>
+                    <BulletPoints
+                      icon={FaRegArrowAltCircleRight}
+                      size={11}
+                      color="#475569"
+                      text="50% payment required at the time of booking"
+                    />
+                    <BulletPoints
+                      icon={FaRegArrowAltCircleRight}
+                      size={11}
+                      color="#475569"
+                      text="Remaining balance due 7 days before check-in"
+                    />
+                  </div>
 
-              <div className="mt-10">
-                <div>
-                  <span className="text-2xl font-bold">Terms & Condition:</span>
-                  <div className="h-[2px] w-full bg-gray-400 mt-2"></div>
-                </div>
-                <BulletPoints
-                  icon={FaRegArrowAltCircleRight}
-                  size={16}
-                  color="#22C55E"
-                  text="In case of unavailability in the listed hotels, arrangement for an alternate accommodation will be made in a hotel of similar standard."
-                />
-                <BulletPoints
-                  icon={FaRegArrowAltCircleRight}
-                  size={16}
-                  color="#22C55E"
-                  text="The itinerary is fixed and cannot be modified. (Itinerary will be executed as per the route not as per the day plan) Transportation shall be provided as per the itinerary and will not be at disposal."
-                />
-                <BulletPoints
-                  icon={FaRegArrowAltCircleRight}
-                  size={16}
-                  color="#22C55E"
-                  text="In case your package needs to be cancelled due to any natural calamity, weather conditions etc. Travel Trail Holidays shall strive to give you the maximum possible refund subject to the agreement made with our trade partners/vendors."
-                />
-                <BulletPoints
-                  icon={FaRegArrowAltCircleRight}
-                  size={16}
-                  color="#22C55E"
-                  text="Travel Trail Holidays reserves the right to modify the itinerary at any point due to reasons including, but not limited to: Force Majeure events, strikes, fairs, festivals, weather conditions, traffic problems, overbooking of hotels/flights, cancellation/re-routing of flights, or closure of/entry restrictions at a place of visit. While we will do our best to make suitable alternate arrangements, we will not be held liable for any refunds or compensation claims arising from this. Costs incurred due to the listed reasons will be borne by the client."
-                />
-                <BulletPoints
-                  icon={FaRegArrowAltCircleRight}
-                  size={16}
-                  color="#22C55E"
-                  text="Places mentioned for sightseeing in the itinerary may not be accessible with the vehicle assigned for your trip. Some locations may require special vehicles or permits to visit, and any associated costs will need to be borne by the traveler. Please consult with TripAdvisor before finalizing your trip."
-                />
-                <BulletPoints
-                  icon={FaRegArrowAltCircleRight}
-                  size={16}
-                  color="#22C55E"
-                  text="Weather Conditions and Costs: In case of weather conditions causing guests/clients to be stuck on the way or at sightseeing places, the cost of evacuation will be borne by the client. Additionally, costs for deviation and extension of ticket validity are not included."
-                />
-                <BulletPoints
-                  icon={FaRegArrowAltCircleRight}
-                  size={16}
-                  color="#22C55E"
-                  text="Cancellations and Disputes: For queries regarding cancellations and refunds, please refer to our Cancellation Policy. Disputes, if any, shall be subject to the exclusive jurisdiction of the courts in New Delhi."
-                />
-                <BulletPoints
-                  icon={FaRegArrowAltCircleRight}
-                  size={16}
-                  color="#22C55E"
-                  text="Additional Costs and Flight Changes: Any costs arising from natural or political strikes, calamities (e.g., landslides, roadblocks) will be borne directly by the client on the spot. In case of flight rescheduling or cancellation, changes to Travel Trail Holidays bookings cannot be amended."
-                />
-                <BulletPoints
-                  icon={FaRegArrowAltCircleRight}
-                  size={16}
-                  color="#22C55E"
-                  text="It is the responsibility of each traveler to carry a personal first aid kit during the journey. The first aid kit should include basic medical supplies such as bandages, antiseptic wipes, pain relievers, and any personal medications required. Please carry your first aid kit on your journey"
-                />
-              </div>
+                  {/* Cancellation Policy */}
+                  <div className="mt-5 print-smart-section">
+                    <h3 className="text-base font-bold text-slate-800 print-keep-with-next">Cancellation Policy</h3>
+                    <div className="h-0.5 w-full bg-gray-300 mt-1 mb-2"></div>
+                    <BulletPoints
+                      icon={FaRegArrowAltCircleRight}
+                      size={11}
+                      color="#475569"
+                      text="30+ days before commencement: 35% cancellation charges"
+                    />
+                    <BulletPoints
+                      icon={FaRegArrowAltCircleRight}
+                      size={11}
+                      color="#475569"
+                      text="15-30 days before commencement: 50% cancellation charges"
+                    />
+                    <BulletPoints
+                      icon={FaRegArrowAltCircleRight}
+                      size={11}
+                      color="#475569"
+                      text="Less than 15 days: 75% cancellation charges"
+                    />
+                    <BulletPoints
+                      icon={FaRegArrowAltCircleRight}
+                      size={11}
+                      color="#475569"
+                      text="Less than 14 days or no-show: 100% cancellation charges"
+                    />
+                    <BulletPoints
+                      icon={FaRegArrowAltCircleRight}
+                      size={11}
+                      color="#475569"
+                      text="Same-day cancellation: 10% + GST charges applicable"
+                    />
+                  </div>
 
-              <div className="mt-10">
-                <div>
-                  <span className="text-2xl font-bold">Transport Terms (if applicable):</span>
-                  <div className="h-[2px] w-full bg-gray-400 mt-2"></div>
+                  {/* Child Policy */}
+                  <div className="mt-5 print-smart-section">
+                    <h3 className="text-base font-bold text-slate-800 print-keep-with-next">Child Policy</h3>
+                    <div className="h-0.5 w-full bg-gray-300 mt-1 mb-2"></div>
+                    <BulletPoints
+                      icon={FaRegArrowAltCircleRight}
+                      size={11}
+                      color="#475569"
+                      text="Children 12+ years: Charged as adults (ID proof required)"
+                    />
+                    <BulletPoints
+                      icon={FaRegArrowAltCircleRight}
+                      size={11}
+                      color="#475569"
+                      text="Group travel infants: 50% of adult transport cost"
+                    />
+                    <BulletPoints
+                      icon={FaRegArrowAltCircleRight}
+                      size={11}
+                      color="#475569"
+                      text="0-5 years: Free (no extra bed); 6-12 years: 50% adult cost; 12+ years: Full charges"
+                    />
+                  </div>
+
+                  {/* Terms & Conditions */}
+                  <div className="mt-5 print-smart-section">
+                    <h3 className="text-base font-bold text-slate-800 print-keep-with-next">Terms & Conditions</h3>
+                    <div className="h-0.5 w-full bg-gray-300 mt-1 mb-2"></div>
+                    <BulletPoints
+                      icon={FaRegArrowAltCircleRight}
+                      size={11}
+                      color="#475569"
+                      text="Alternative accommodation of similar standard will be arranged if listed hotels are unavailable."
+                    />
+                    <BulletPoints
+                      icon={FaRegArrowAltCircleRight}
+                      size={11}
+                      color="#475569"
+                      text="Itinerary is fixed and executed per route. Transportation provided as per schedule."
+                    />
+                    <BulletPoints
+                      icon={FaRegArrowAltCircleRight}
+                      size={11}
+                      color="#475569"
+                      text="Maximum refund will be attempted for natural calamity cancellations, subject to vendor agreements."
+                    />
+                    <BulletPoints
+                      icon={FaRegArrowAltCircleRight}
+                      size={11}
+                      color="#475569"
+                      text="Tourillo reserves the right to modify itineraries due to force majeure, weather, strikes, or other uncontrollable circumstances."
+                    />
+                    <BulletPoints
+                      icon={FaRegArrowAltCircleRight}
+                      size={11}
+                      color="#475569"
+                      text="Some sightseeing locations may require special permits or vehicles. Additional costs borne by traveler."
+                    />
+                    <BulletPoints
+                      icon={FaRegArrowAltCircleRight}
+                      size={11}
+                      color="#475569"
+                      text="Weather-related evacuation costs and ticket deviation charges not included."
+                    />
+                    <BulletPoints
+                      icon={FaRegArrowAltCircleRight}
+                      size={11}
+                      color="#475569"
+                      text="Disputes subject to exclusive jurisdiction of courts in New Delhi."
+                    />
+                    <BulletPoints
+                      icon={FaRegArrowAltCircleRight}
+                      size={11}
+                      color="#475569"
+                      text="Costs from natural/political strikes or calamities borne by client. Flight booking changes cannot be amended."
+                    />
+                    <BulletPoints
+                      icon={FaRegArrowAltCircleRight}
+                      size={11}
+                      color="#475569"
+                      text="Travelers must carry personal first aid kits with basic medical supplies."
+                    />
+                  </div>
+
+                  {/* Transport Terms */}
+                  <div className="mt-5 print-smart-section">
+                    <h3 className="text-base font-bold text-slate-800 print-keep-with-next">Transport Terms</h3>
+                    <div className="h-0.5 w-full bg-gray-300 mt-1 mb-2"></div>
+                    <BulletPoints
+                      icon={FaRegArrowAltCircleRight}
+                      size={11}
+                      color="#475569"
+                      text="Replacement vehicle provided within 5 hours for mechanical issues. Additional costs borne by user."
+                    />
+                    <BulletPoints
+                      icon={FaRegArrowAltCircleRight}
+                      size={11}
+                      color="#475569"
+                      text="AC may not function in hilly areas. Night charges apply for arrivals after 10 PM."
+                    />
+                    <BulletPoints
+                      icon={FaRegArrowAltCircleRight}
+                      size={11}
+                      color="#475569"
+                      text="Sightseeing hours: 10 AM - 5 PM. Extensions: ₹300/hour."
+                    />
+                    <BulletPoints
+                      icon={FaRegArrowAltCircleRight}
+                      size={11}
+                      color="#475569"
+                      text="Additional sightseeing available at extra cost. Discuss with Trip Advisor."
+                    />
+                    <BulletPoints
+                      icon={FaRegArrowAltCircleRight}
+                      size={11}
+                      color="#475569"
+                      text="Tourillo reserves the right to terminate trips for payment delays."
+                    />
+                  </div>
                 </div>
-                <BulletPoints
-                  icon={FaRegArrowAltCircleRight}
-                  size={16}
-                  color="#22C55E"
-                  text="In case of any mechanical issues or road accidents involving the car during your trip, Travel Trail Holidays will provide a replacement or alternate vehicle arrangements within 5 hours from the time the incident is reported. If additional costs are incurred, they will be borne by the user."
-                />
-                <BulletPoints
-                  icon={FaRegArrowAltCircleRight}
-                  size={16}
-                  color="#22C55E"
-                  text="In case you are traveling in hilly areas, the air conditioning may not work. Additionally, if your vehicle reaches the destination of your trip after 10 PM, night charges will apply."
-                />
-                <BulletPoints
-                  icon={FaRegArrowAltCircleRight}
-                  size={16}
-                  color="#22C55E"
-                  text="Sightseeing hours are from 10 AM to 5 PM only. Exceeding these hours will incur an additional cost of INR 300 per hour."
-                />
-                <BulletPoints
-                  icon={FaRegArrowAltCircleRight}
-                  size={16}
-                  color="#22C55E"
-                  text="Any additional sightseeing not covered in the itinerary can be arranged at an extra cost. This should be discussed with the trip advisor."
-                />
-                <BulletPoints
-                  icon={FaRegArrowAltCircleRight}
-                  size={16}
-                  color="#22C55E"
-                  text="Travel Trail Holidays reserves the right to terminate your trip at any point in time if payment is delayed."
-                />
               </div>
             </div>
           </div>
 
+          {/* Action Buttons */}
           {showButtons && (
             <div className="my-20 flex gap-4 justify-center print-hide">
               <button
                 onClick={handlePrint}
-                className="py-3 px-8 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-lg font-semibold text-white hover:opacity-90 transition-opacity shadow-lg"
+                className="py-3 px-8 bg-slate-800 rounded-lg font-semibold text-white hover:bg-slate-700 transition-colors shadow-lg"
               >
                 Print / Save as PDF
               </button>
 
-              <Link href={`/admin/itinerary/edit/${itinerary.id}`}>
-                <button className="py-3 px-8 bg-green-600 rounded-lg font-semibold text-white hover:bg-green-700 transition-colors shadow-lg">
+              <Link href={`/admin/itinerary/edit-itinerary/${itinerary.travelId}`}>
+                <button className="py-3 px-8 bg-slate-600 rounded-lg font-semibold text-white hover:bg-slate-500 transition-colors shadow-lg">
                   Edit Itinerary
                 </button>
               </Link>
