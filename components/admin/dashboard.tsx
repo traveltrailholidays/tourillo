@@ -131,7 +131,7 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
   const StatCard = ({ icon: Icon, label, value, sublabel, color, link }: StatCardProps) => (
     <Link href={link} className="group">
       <div
-        className={`relative bg-linear-to-br from-foreground to-foreground/95 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border-l-4 overflow-hidden ${color} group-hover:scale-[1.02]`}
+        className={`relative bg-linear-to-br from-foreground to-foreground/95 rounded-sm shadow transition-all duration-300 p-6 border-l-4 overflow-hidden ${color}`}
       >
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-5">
@@ -173,13 +173,13 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
 
         {/* Date Range Filter */}
         <div className="flex flex-col gap-2">
-          <div className="flex gap-1 bg-foreground rounded-xl p-1.5 shadow-lg border border-gray-200 dark:border-gray-700">
+          <div className="flex gap-1 bg-foreground rounded-sm p-1.5 border-2">
             {(['today', '7d', '30d', '90d', 'all', 'custom'] as const).map((range) => (
               <button
                 key={range}
                 onClick={() => handleDateRangeChange(range)}
                 disabled={isPending}
-                className={`px-3 sm:px-4 py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 disabled:opacity-50 whitespace-nowrap ${
+                className={`px-3 sm:px-4 py-2.5 rounded-sm cursor-pointer text-xs sm:text-sm font-semibold transition-all duration-200 disabled:opacity-50 whitespace-nowrap ${
                   dateRange === range
                     ? 'bg-linear-to-r from-purple-600 to-pink-600 text-white shadow-md'
                     : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
@@ -197,17 +197,20 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
 
           {/* Custom Date Range Display */}
           {dateRange === 'custom' && customStartDate && customEndDate && (
-            <div className="flex items-center gap-2 bg-purple-100 dark:bg-purple-900/30 px-3 py-2 rounded-lg text-xs font-medium text-purple-700 dark:text-purple-300">
-              <Calendar className="h-3 w-3" />
-              <span>
-                {format(new Date(customStartDate), 'MMM dd, yyyy')} - {format(new Date(customEndDate), 'MMM dd, yyyy')}
-              </span>
-              <button
-                onClick={handleCustomDateClear}
-                className="ml-1 hover:bg-purple-200 dark:hover:bg-purple-800 rounded p-0.5"
-              >
-                <X className="h-3 w-3" />
-              </button>
+            <div className="flex justify-end items-center">
+              <div className="flex items-center gap-2 bg-purple-100 dark:bg-purple-900/30 px-3 py-2 rounded-sm text-xs font-medium text-purple-700 dark:text-purple-300 w-fit">
+                <Calendar className="h-3 w-3" />
+                <span>
+                  {format(new Date(customStartDate), 'MMM dd, yyyy')} -{' '}
+                  {format(new Date(customEndDate), 'MMM dd, yyyy')}
+                </span>
+                <button
+                  onClick={handleCustomDateClear}
+                  className="ml-3 hover:bg-purple-200 dark:hover:bg-purple-800 rounded p-0.5"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -216,12 +219,12 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
       {/* Custom Date Picker Modal */}
       {showCustomDatePicker && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-foreground rounded-xl shadow-2xl p-6 max-w-md w-full border border-gray-200 dark:border-gray-700">
+          <div className="bg-foreground rounded-sm shadow p-6 max-w-md w-full border border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white">Select Custom Date Range</h3>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">Select Date Range</h3>
               <button
                 onClick={() => setShowCustomDatePicker(false)}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                className="p-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 rounded-sm transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -235,7 +238,7 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
                   value={customStartDate}
                   onChange={(e) => setCustomStartDate(e.target.value)}
                   max={new Date().toISOString().split('T')[0]}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-background"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-background"
                 />
               </div>
 
@@ -246,23 +249,23 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
                   value={customEndDate}
                   onChange={(e) => setCustomEndDate(e.target.value)}
                   max={new Date().toISOString().split('T')[0]}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-background"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-background"
                 />
               </div>
 
               <div className="flex gap-3 pt-4">
                 <button
-                  onClick={handleCustomDateApply}
-                  disabled={isPending}
-                  className="flex-1 px-4 py-3 bg-linear-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all disabled:opacity-50"
-                >
-                  Apply
-                </button>
-                <button
                   onClick={() => setShowCustomDatePicker(false)}
-                  className="px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-semibold rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  className="w-1/2 px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-semibold rounded-sm cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 >
                   Cancel
+                </button>
+                <button
+                  onClick={handleCustomDateApply}
+                  disabled={isPending}
+                  className="w-1/2 px-4 py-3 bg-linear-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-sm cursor-pointer hover:from-purple-700 hover:to-pink-700 transition-all disabled:opacity-50"
+                >
+                  Apply
                 </button>
               </div>
             </div>
@@ -308,7 +311,7 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Monthly Trends */}
-        <div className="bg-foreground rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+        <div className="bg-foreground rounded-sm p-6 border-2">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
               <TrendingUp className="h-5 w-5 text-purple-600" />
@@ -369,7 +372,7 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
         </div>
 
         {/* Packages by Category */}
-        <div className="bg-foreground rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+        <div className="bg-foreground rounded-sm p-6 border-2">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
               <Package className="h-5 w-5 text-purple-600" />
@@ -419,7 +422,7 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
       </div>
 
       {/* Blogs by Category */}
-      <div className="bg-foreground rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+      <div className="bg-foreground rounded-sm p-6 border-2">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
             <FileText className="h-5 w-5 text-blue-600" />
@@ -456,7 +459,7 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
       {/* Recent Activity Tables - keeping the same as before */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Packages */}
-        <div className="bg-foreground rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+        <div className="bg-foreground rounded-sm p-6 border-2">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
@@ -477,7 +480,7 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
               stats.recentPackages.map((pkg) => (
                 <div
                   key={pkg.id}
-                  className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-600"
+                  className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-600"
                 >
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold truncate text-gray-900 dark:text-white">{pkg.title}</p>
@@ -501,7 +504,7 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
         </div>
 
         {/* Recent Blogs */}
-        <div className="bg-foreground rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+        <div className="bg-foreground rounded-sm p-6 border-2">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
@@ -522,7 +525,7 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
               stats.recentBlogs.map((blog) => (
                 <div
                   key={blog.id}
-                  className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-600"
+                  className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-600"
                 >
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold truncate text-gray-900 dark:text-white">{blog.title}</p>
@@ -550,7 +553,7 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
         </div>
 
         {/* Recent Contacts */}
-        <div className="bg-foreground rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+        <div className="bg-foreground rounded-sm p-6 border-2">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
@@ -571,7 +574,7 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
               stats.recentContacts.map((contact) => (
                 <div
                   key={contact.id}
-                  className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-600"
+                  className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-600"
                 >
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold truncate text-gray-900 dark:text-white">{contact.name}</p>
@@ -597,7 +600,7 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
         </div>
 
         {/* Recent Quote Requests */}
-        <div className="bg-foreground rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+        <div className="bg-foreground rounded-sm p-6 border-2">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
@@ -618,7 +621,7 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
               stats.recentQuotes.map((quote) => (
                 <div
                   key={quote.id}
-                  className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-600"
+                  className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-600"
                 >
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold truncate text-gray-900 dark:text-white">{quote.name}</p>

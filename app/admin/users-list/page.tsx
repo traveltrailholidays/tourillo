@@ -1,9 +1,15 @@
 import { getAllUsers } from '@/lib/actions/user-actions';
 import UserList from '@/components/admin/user-list';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Users List',
+  description:
+    'View and manage all registered users in the Tourillo admin panel. Access user details, account status, and activity information to efficiently oversee your platform community.',
+};
 
 export default async function UsersPage() {
   const users = await getAllUsers();
-
   return (
     <div className="container mx-auto p-6">
       <div className="mb-6">

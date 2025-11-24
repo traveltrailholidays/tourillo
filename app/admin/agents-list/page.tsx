@@ -1,5 +1,13 @@
-import { getAllAgents } from '@/lib/actions/user-actions';
 import UserList from '@/components/admin/user-list';
+
+import type { Metadata } from 'next';
+import { getAllAgents } from '@/lib/actions/user-actions';
+
+export const metadata: Metadata = {
+  title: 'Agents List',
+  description:
+    'View and manage all registered agents in the Tourillo admin panel. Access agent profiles, account status, and activity insights to efficiently oversee your network of travel agents.',
+};
 
 export default async function AgentsPage() {
   const agents = await getAllAgents();

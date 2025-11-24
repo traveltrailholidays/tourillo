@@ -1,5 +1,13 @@
-import { getAllAdmins } from '@/lib/actions/user-actions';
 import UserList from '@/components/admin/user-list';
+
+import { getAllAdmins } from '@/lib/actions/user-actions';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Admin List',
+  description:
+    'View and manage all administrators in the Tourillo admin panel. Access admin profiles, roles, and account status to efficiently oversee platform management.',
+};
 
 export default async function AdminsPage() {
   const admins = await getAllAdmins();

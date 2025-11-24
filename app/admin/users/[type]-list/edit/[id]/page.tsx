@@ -1,8 +1,14 @@
-import { getUserById } from '@/lib/actions/user-actions';
-import UserEditForm from '@/components/admin/user-edit-form';
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { getUserById } from '@/lib/actions/user-actions';
+
+import UserEditForm from '@/components/admin/user-edit-form';
+
+export const metadata: Metadata = {
+  title: 'Edit Users',
+  description:
+    'Edit and manage user information within the Tourillo admin panel. Update account details, modify permissions, and maintain accurate user records with ease.',
+};
 
 interface PageProps {
   params: Promise<{

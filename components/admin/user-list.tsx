@@ -165,19 +165,31 @@ export const UserList: React.FC<UserListProps> = ({ users, userType }) => {
                 <TableCell className="text-sm">{formatDate(user.createdAt)}</TableCell>
                 <TableCell className="flex gap-2">
                   <Link href={`/admin/users/${userType}s-list/edit/${user.id}`}>
-                    <Button size="icon" variant="ghost" title="Edit">
+                    <Button size="icon" variant="ghost" title="Edit" className="cursor-pointer">
                       <Pencil className="h-4 w-4 text-purple-600" />
                     </Button>
                   </Link>
 
                   {!user.isActive ? (
-                    <Button size="icon" variant="ghost" onClick={() => handleReactivate(user.id)} title="Reactivate">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleReactivate(user.id)}
+                      title="Reactivate"
+                      className="cursor-pointer"
+                    >
                       <UserCheck className="h-4 w-4 text-green-600" />
                     </Button>
                   ) : (
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button size="icon" variant="ghost" onClick={() => setDeleteId(user.id)} title="Delete">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => setDeleteId(user.id)}
+                          title="Delete"
+                          className="cursor-pointer"
+                        >
                           <Trash2 className="h-4 w-4 text-red-600" />
                         </Button>
                       </DialogTrigger>
