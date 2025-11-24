@@ -32,6 +32,7 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
   const [imagePreview, setImagePreview] = useState<string | null>(initialData?.imageSrc || null);
   const [removeImage, setRemoveImage] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [compressedImageFile, setCompressedImageFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -58,7 +59,6 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
 
   const watchedFields = watch();
 
-  // Set initial category on mount if it exists
   useEffect(() => {
     if (initialData?.category) {
       setValue('category', initialData.category);
@@ -73,6 +73,92 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
       }
     }
     return undefined;
+  };
+
+  // Client-side image compression function
+  const compressImage = async (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+
+      reader.onload = (event) => {
+        const img = new window.Image();
+        img.src = event.target?.result as string;
+
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+
+          if (!ctx) {
+            reject(new Error('Could not get canvas context'));
+            return;
+          }
+
+          // Calculate new dimensions (max 1920x1080)
+          let width = img.width;
+          let height = img.height;
+          const maxWidth = 1920;
+          const maxHeight = 1080;
+
+          if (width > maxWidth || height > maxHeight) {
+            const ratio = Math.min(maxWidth / width, maxHeight / height);
+            width = Math.floor(width * ratio);
+            height = Math.floor(height * ratio);
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          // Draw image on canvas
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Start with high quality
+          let quality = 0.85;
+
+          const tryCompress = () => {
+            canvas.toBlob(
+              (blob) => {
+                if (!blob) {
+                  reject(new Error('Compression failed'));
+                  return;
+                }
+
+                const sizeInMB = blob.size / (1024 * 1024);
+
+                // If under 1MB, we're done
+                if (sizeInMB < 1 || quality <= 0.3) {
+                  const compressedFile = new File([blob], file.name, {
+                    type: 'image/jpeg',
+                    lastModified: Date.now(),
+                  });
+
+                  console.log(
+                    `Original: ${(file.size / (1024 * 1024)).toFixed(2)}MB → Compressed: ${sizeInMB.toFixed(2)}MB`
+                  );
+                  resolve(compressedFile);
+                } else {
+                  // Reduce quality and try again
+                  quality -= 0.1;
+                  tryCompress();
+                }
+              },
+              'image/jpeg',
+              quality
+            );
+          };
+
+          tryCompress();
+        };
+
+        img.onerror = () => {
+          reject(new Error('Failed to load image'));
+        };
+      };
+
+      reader.onerror = () => {
+        reject(new Error('Failed to read file'));
+      };
+    });
   };
 
   const onSubmit = async (data: FieldValues) => {
@@ -93,10 +179,9 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
       formData.append('discount', data.discount.toString());
       formData.append('itinary', JSON.stringify(data.itinary));
 
-      // Add image file if selected
-      const imageFile = fileInputRef.current?.files?.[0];
-      if (imageFile) {
-        formData.append('image', imageFile);
+      // Add compressed image file if available
+      if (compressedImageFile) {
+        formData.append('image', compressedImageFile);
       }
 
       // Add remove image flag
@@ -115,6 +200,7 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
       reset();
       setImagePreview(null);
       setRemoveImage(false);
+      setCompressedImageFile(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -131,11 +217,12 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
     processFile(file);
   };
 
-  const processFile = (file: File | undefined) => {
+  const processFile = async (file: File | undefined) => {
     if (!file) return;
 
-    if (file.size > 10000000) {
-      toast.error('Image must be less than 10MB');
+    // Check file size (max 100MB)
+    if (file.size > 100 * 1024 * 1024) {
+      toast.error('Image must be less than 100MB');
       return;
     }
 
@@ -144,12 +231,36 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setImagePreview(event.target?.result as string);
-      setRemoveImage(false);
-    };
-    reader.readAsDataURL(file);
+    const originalSizeInMB = file.size / (1024 * 1024);
+
+    // Show loading toast for compression
+    const loadingToastId = toast.loading(`Compressing image (${originalSizeInMB.toFixed(2)}MB)...`);
+
+    try {
+      // Compress image on client-side
+      const compressed = await compressImage(file);
+      const compressedSizeInMB = compressed.size / (1024 * 1024);
+
+      toast.dismiss(loadingToastId);
+      toast.success(`Image compressed: ${originalSizeInMB.toFixed(2)}MB → ${compressedSizeInMB.toFixed(2)}MB`, {
+        duration: 3000,
+      });
+
+      // Store compressed file
+      setCompressedImageFile(compressed);
+
+      // Create preview from compressed image
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setImagePreview(event.target?.result as string);
+        setRemoveImage(false);
+      };
+      reader.readAsDataURL(compressed);
+    } catch (error) {
+      toast.dismiss(loadingToastId);
+      toast.error('Failed to compress image. Please try another image.');
+      console.error('Compression error:', error);
+    }
   };
 
   const handleDrag = (e: React.DragEvent) => {
@@ -170,18 +281,13 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
       processFile(file);
-
-      if (fileInputRef.current) {
-        const dataTransfer = new DataTransfer();
-        dataTransfer.items.add(file);
-        fileInputRef.current.files = dataTransfer.files;
-      }
     }
   };
 
   const handleRemoveImage = () => {
     setImagePreview(null);
     setRemoveImage(true);
+    setCompressedImageFile(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -194,7 +300,6 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
     setValue('days', numDays);
     setValue('nights', numNights);
 
-    // Adjust itinerary array
     const currentItinary = watchedFields.itinary;
     const newItinary = Array(numDays)
       .fill('')
@@ -212,12 +317,10 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
     const newItinary = currentItinary.filter((_: string, i: number) => i !== index);
     setValue('itinary', newItinary);
 
-    // Update days and nights
     setValue('days', newItinary.length);
     setValue('nights', Math.max(0, newItinary.length - 1));
   };
 
-  // Helper function to check if category is selected (case-insensitive)
   const isCategorySelected = (categoryLabel: string): boolean => {
     return watchedFields.category?.toLowerCase() === categoryLabel.toLowerCase();
   };
@@ -360,7 +463,8 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
                   <p className="text-gray-600 dark:text-gray-400 mb-2 font-medium">
                     {dragActive ? 'Drop image here' : 'Click to upload or drag and drop'}
                   </p>
-                  <p className="text-sm text-gray-500">JPEG, PNG, or WebP (max 10MB)</p>
+                  <p className="text-sm text-gray-500">JPEG, PNG, or WebP (max 100MB)</p>
+                  <p className="text-xs text-gray-400 mt-1">Images will be automatically compressed</p>
                 </div>
               </div>
             )}
@@ -502,7 +606,7 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
             <button
               type="submit"
               disabled={isLoading}
-              className="flex items-center px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+              className="flex items-center px-8 py-3 bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
             >
               <Save className="h-5 w-5 mr-2" />
               {isLoading

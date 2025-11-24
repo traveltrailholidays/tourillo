@@ -55,6 +55,7 @@ export async function createListing(formData: FormData) {
     const imageFile = formData.get('image') as File;
 
     if (imageFile && imageFile.size > 0) {
+      console.log(`Processing image upload: ${imageFile.size} bytes`);
       const imageFormData = new FormData();
       imageFormData.append('file', imageFile);
 
@@ -63,6 +64,7 @@ export async function createListing(formData: FormData) {
         throw new Error(uploadResult.error || 'Image upload failed');
       }
       imageSrc = uploadResult.imagePath || '';
+      console.log(`Image uploaded successfully: ${imageSrc}`);
     }
 
     // Parse itinerary array
@@ -70,22 +72,62 @@ export async function createListing(formData: FormData) {
     let itinary: string[] = [];
 
     try {
-      itinary = JSON.parse(itinaryString);
+      itinary = JSON.parse(itinaryString || '[]');
     } catch {
       itinary = [];
     }
 
+    // Get form values with null checks
+    const title = formData.get('title');
+    const description = formData.get('description');
+    const category = formData.get('category');
+    const location = formData.get('location');
+    const price = formData.get('price');
+    const days = formData.get('days');
+    const nights = formData.get('nights');
+    const rating = formData.get('rating');
+    const discount = formData.get('discount');
+
+    // DEBUG: Log all field values
+    console.log('FormData fields:', {
+      title: title ? 'present' : 'NULL',
+      description: description ? 'present' : 'NULL',
+      category: category ? 'present' : 'NULL',
+      location: location ? 'present' : 'NULL',
+      price: price ? 'present' : 'NULL',
+      days: days ? 'present' : 'NULL',
+      nights: nights ? 'present' : 'NULL',
+      rating: rating ? 'present' : 'NULL',
+      discount: discount ? 'present' : 'NULL',
+    });
+
+    // Check if any required field is null
+    if (!title || !description || !category || !location || !price || !days || !nights) {
+      const missingFields = [];
+      if (!title) missingFields.push('title');
+      if (!description) missingFields.push('description');
+      if (!category) missingFields.push('category');
+      if (!location) missingFields.push('location');
+      if (!price) missingFields.push('price');
+      if (!days) missingFields.push('days');
+      if (!nights) missingFields.push('nights');
+
+      throw new Error(
+        `Missing required fields: ${missingFields.join(', ')}. This may be due to file size exceeding server limits.`
+      );
+    }
+
     // Validate listing data
     const rawData = {
-      title: formData.get('title') as string,
-      description: formData.get('description') as string,
-      category: (formData.get('category') as string).toLowerCase(),
-      location: formData.get('location') as string,
-      price: Number(formData.get('price')),
-      days: Number(formData.get('days')),
-      nights: Number(formData.get('nights')),
-      rating: Number(formData.get('rating')),
-      discount: Number(formData.get('discount')),
+      title: title as string,
+      description: description as string,
+      category: (category as string).toLowerCase(),
+      location: location as string,
+      price: Number(price),
+      days: Number(days),
+      nights: Number(nights),
+      rating: rating ? Number(rating) : 0,
+      discount: discount ? Number(discount) : 0,
       itinary,
     };
 
@@ -106,6 +148,7 @@ export async function createListing(formData: FormData) {
       listing,
     };
   } catch (error) {
+    console.error('Create listing error:', error);
     if (error instanceof z.ZodError) {
       throw new Error('Invalid form data: ' + formatZodError(error));
     }

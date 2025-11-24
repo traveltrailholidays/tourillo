@@ -1,9 +1,9 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  allowedDevOrigins: ['http://82.25.110.29:3000', 'https://tourillo.com'],
+  allowedDevOrigins: ['*'],
   images: {
-    unoptimized: true, // Disable Next.js image optimization
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
@@ -14,6 +14,12 @@ const nextConfig: NextConfig = {
         hostname: 'tourillo.com',
       },
     ],
+  },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '3mb', // Reduced since we compress on client
+      allowedOrigins: ['*'],
+    },
   },
   // output: 'standalone',
 };

@@ -159,7 +159,7 @@ const BlogForm: React.FC<BlogFormProps> = ({ initialData, onCancel }) => {
     <div className="mx-auto p-6">
       <div className="bg-foreground rounded-lg shadow-lg p-8">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+          <h1 className="text-2xl font-bold bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
             {isEditMode ? 'Edit Blog Post' : 'Create New Blog Post'}
           </h1>
           {onCancel && (
@@ -438,7 +438,7 @@ const BlogForm: React.FC<BlogFormProps> = ({ initialData, onCancel }) => {
             <button
               type="submit"
               disabled={isPending}
-              className="flex items-center px-6 py-3 bg-gradient-to-r from-indigo-500 hover:from-indigo-500/90 via-purple-500 hover:via-purple-500/90 to-pink-500 hover:to-pink-500/90 text-white font-medium rounded-xs transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center px-6 py-3 bg-linear-to-r from-indigo-500 hover:from-indigo-500/90 via-purple-500 hover:via-purple-500/90 to-pink-500 hover:to-pink-500/90 text-white font-medium rounded-xs transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save className="h-4 w-4 mr-2" />
               {isPending ? (isEditMode ? 'Updating...' : 'Creating...') : isEditMode ? 'Update Post' : 'Create Post'}

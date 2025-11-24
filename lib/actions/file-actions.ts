@@ -6,12 +6,12 @@ import sharp from 'sharp';
 import { v4 as uuid } from 'uuid';
 import { z } from 'zod';
 
-// File validation schema
+// File validation schema - smaller limit since client compresses
 const imageSchema = z.object({
   file: z
     .instanceof(File)
     .refine((file) => file.size > 0, 'Image is required')
-    .refine((file) => file.size <= 10000000, 'Image must be less than 10MB')
+    .refine((file) => file.size <= 5000000, 'Image must be less than 5MB after compression')
     .refine(
       (file) => ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'].includes(file.type),
       'Image must be JPEG, PNG, or WebP format'
@@ -22,20 +22,17 @@ type ImageUploadResult = {
   success: boolean;
   imagePath?: string;
   error?: string;
+  originalSize?: string;
+  finalSize?: string;
 };
 
-// Helper function to format Zod errors
 function formatZodError(error: z.ZodError): string {
   return error.issues.map((issue) => issue.message).join(', ');
 }
 
-// Ensure upload directory exists
 async function ensureUploadDir() {
-  // CHANGED: Use absolute path that matches Nginx configuration
   const uploadDir =
-    process.env.NODE_ENV === 'production'
-      ? '/var/www/app/uploads' // Production path
-      : path.join(process.cwd(), 'public', 'uploads'); // Local dev path
+    process.env.NODE_ENV === 'production' ? '/var/www/app/uploads' : path.join(process.cwd(), 'public', 'uploads');
 
   try {
     await fs.access(uploadDir);
@@ -45,7 +42,7 @@ async function ensureUploadDir() {
   return uploadDir;
 }
 
-// Upload and compress image
+// Upload image - minimal server-side processing since client compresses
 export async function uploadBlogImage(formData: FormData): Promise<ImageUploadResult> {
   try {
     const file = formData.get('file') as File;
@@ -66,40 +63,36 @@ export async function uploadBlogImage(formData: FormData): Promise<ImageUploadRe
       };
     }
 
-    // Ensure upload directory exists
     const uploadDir = await ensureUploadDir();
-
-    // Generate unique filename
     const fileName = `${uuid()}.jpg`;
     const filePath = path.join(uploadDir, fileName);
 
-    // Convert file to buffer
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Process and compress image with Sharp
-    const compressedBuffer = await sharp(buffer)
-      .normalize()
-      .resize(1200, 800, {
-        fit: 'inside',
-        withoutEnlargement: true,
-      })
+    const originalSizeInMB = buffer.length / (1024 * 1024);
+    console.log(`Received compressed file: ${originalSizeInMB.toFixed(2)}MB`);
+
+    // Light optimization to ensure consistent format
+    const optimizedBuffer = await sharp(buffer)
       .jpeg({
-        quality: 85,
+        quality: 90,
         progressive: true,
-        mozjpeg: true,
       })
       .toBuffer();
 
-    // Save compressed image
-    await fs.writeFile(filePath, compressedBuffer);
+    const finalSizeInMB = optimizedBuffer.length / (1024 * 1024);
+    console.log(`Final optimized size: ${finalSizeInMB.toFixed(2)}MB`);
 
-    // CHANGED: Return /uploads/ path for both dev and production
+    await fs.writeFile(filePath, optimizedBuffer);
+
     const relativePath = `/uploads/${fileName}`;
 
     return {
       success: true,
       imagePath: relativePath,
+      originalSize: `${originalSizeInMB.toFixed(2)}MB`,
+      finalSize: `${finalSizeInMB.toFixed(2)}MB`,
     };
   } catch (error) {
     console.error('Image upload error:', error);
@@ -113,15 +106,11 @@ export async function uploadBlogImage(formData: FormData): Promise<ImageUploadRe
 // Delete image file
 export async function deleteBlogImage(imagePath: string): Promise<boolean> {
   try {
-    // CHANGED: Handle /uploads/ path
     if (!imagePath.startsWith('/uploads/')) {
       return false;
     }
 
-    // Extract filename from path
     const fileName = path.basename(imagePath);
-
-    // Determine full path based on environment
     const uploadDir =
       process.env.NODE_ENV === 'production' ? '/var/www/app/uploads' : path.join(process.cwd(), 'public', 'uploads');
 
