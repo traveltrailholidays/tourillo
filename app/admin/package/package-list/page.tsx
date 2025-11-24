@@ -1,7 +1,13 @@
-import { getAllListings } from '@/lib/actions/listing-actions';
 import PackageList from '@/components/package-list';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { getAllListings } from '@/lib/actions/listing-actions';
+
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Package List',
+  description:
+    'View and manage all travel packages in the Tourillo admin panel. Access package details, pricing, destinations, and itineraries to efficiently oversee and update your platform’s offerings.',
+};
 
 const page = async () => {
   const listings = await getAllListings();
@@ -12,14 +18,10 @@ const page = async () => {
     createdAt: listing.createdAt.toISOString(),
   }));
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold mb-4">All Packages</h1>
-        <Link href="/admin/package/create-package">
-          <Button className="bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 text-white cursor-pointer rounded">
-            Create Package
-          </Button>
-        </Link>
+    <div className="container mx-auto p-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">All Packages</h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">Manage all packages</p>
       </div>
       <PackageList packages={packagesData} />
     </div>

@@ -226,11 +226,18 @@ export const UserList: React.FC<UserListProps> = ({ users, userType }) => {
                                 setDeleteId(null);
                                 setPermanentDelete(false);
                               }}
+                              className="cursor-pointer rounded-sm"
                             >
                               Cancel
                             </Button>
                           </DialogClose>
-                          <Button variant="destructive" onClick={handleDelete} disabled={isDeleting} type="button">
+                          <Button
+                            variant="destructive"
+                            onClick={handleDelete}
+                            disabled={isDeleting}
+                            type="button"
+                            className="cursor-pointer rounded-sm"
+                          >
                             {isDeleting ? 'Processing...' : permanentDelete ? 'Delete Permanently' : 'Deactivate'}
                           </Button>
                         </DialogFooter>

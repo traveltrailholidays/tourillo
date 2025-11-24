@@ -1,8 +1,13 @@
 import ListingForm from '@/components/listing-form';
 import { getListingById } from '@/lib/actions/listing-actions';
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Edit Package',
+  description:
+    'Modify existing travel packages in the Tourillo admin panel. Update package details, pricing, destinations, and itineraries to keep your offerings accurate and up-to-date.',
+};
 
 interface PageProps {
   params: Promise<{

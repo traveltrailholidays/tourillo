@@ -125,7 +125,7 @@ export const PackageList: React.FC<PackageListProps> = ({ packages }) => {
             {pageData.map((pkg) => (
               <TableRow key={pkg.id}>
                 <TableCell>
-                  <Link href={`/packages/${pkg.id}`} className="hover:underline capitalize font-medium">
+                  <Link href={`/packages/${pkg.id}`} className="hover:underline capitalize font-medium" target="_blank">
                     {pkg.title}
                   </Link>
                 </TableCell>
@@ -159,13 +159,19 @@ export const PackageList: React.FC<PackageListProps> = ({ packages }) => {
                 <TableCell className="text-sm">{formatDate(pkg.createdAt)}</TableCell>
                 <TableCell className="flex gap-2">
                   <Link href={`/admin/package/edit/${pkg.id}`}>
-                    <Button size="icon" variant="ghost" title="Edit">
+                    <Button size="icon" variant="ghost" title="Edit" className="cursor-pointer">
                       <Pencil className="h-4 w-4 text-purple-600" />
                     </Button>
                   </Link>
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button size="icon" variant="ghost" onClick={() => setDeleteId(pkg.id)} title="Delete">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => setDeleteId(pkg.id)}
+                        title="Delete"
+                        className="cursor-pointer"
+                      >
                         <Trash2 className="h-4 w-4 text-red-600" />
                       </Button>
                     </DialogTrigger>
@@ -178,11 +184,21 @@ export const PackageList: React.FC<PackageListProps> = ({ packages }) => {
                       </DialogHeader>
                       <DialogFooter>
                         <DialogClose asChild>
-                          <Button variant="secondary" onClick={() => setDeleteId(null)}>
+                          <Button
+                            variant="secondary"
+                            onClick={() => setDeleteId(null)}
+                            className="cursor-pointer rounded-sm"
+                          >
                             Cancel
                           </Button>
                         </DialogClose>
-                        <Button variant="destructive" onClick={handleDelete} disabled={isDeleting} type="button">
+                        <Button
+                          variant="destructive"
+                          onClick={handleDelete}
+                          disabled={isDeleting}
+                          type="button"
+                          className="cursor-pointer rounded-sm"
+                        >
                           {isDeleting ? 'Deleting...' : 'Delete'}
                         </Button>
                       </DialogFooter>
@@ -199,7 +215,7 @@ export const PackageList: React.FC<PackageListProps> = ({ packages }) => {
       <div className="lg:hidden space-y-3">
         {pageData.length === 0 && <div className="text-center py-8 text-sm">No packages found.</div>}
         {pageData.map((pkg) => (
-          <div key={pkg.id} className="rounded-lg border p-4 space-y-3 bg-background">
+          <div key={pkg.id} className="rounded-sm border p-4 space-y-3 bg-background">
             {/* Header */}
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
@@ -221,7 +237,7 @@ export const PackageList: React.FC<PackageListProps> = ({ packages }) => {
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="h-8 w-8"
+                      className="h-8 w-8 cursor-pointer"
                       onClick={() => setDeleteId(pkg.id)}
                       title="Delete"
                     >
