@@ -6,6 +6,7 @@ import { Calendar, User, Clock, ArrowLeft } from 'lucide-react';
 import { Metadata } from 'next';
 import Container from '@/components/v1/container';
 import Section from '@/components/v1/section';
+import { Blog } from '@prisma/client'; // Import Prisma-generated type
 
 interface BlogDetailPageProps {
   params: Promise<{
@@ -44,7 +45,9 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
   }
 
   const relatedPosts = await getBlogsByCategory(blog.category);
-  const filteredRelatedPosts = relatedPosts.filter((post) => post.slug !== blog.slug && post.published).slice(0, 3);
+  const filteredRelatedPosts = relatedPosts
+    .filter((post: Blog) => post.slug !== blog.slug && post.published)
+    .slice(0, 3);
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
@@ -57,7 +60,6 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
   return (
     <Section>
       <Container className="min-h-screen bg-background w-full">
-        {/* Rest of your JSX remains the same */}
         <header className="border-b border-gray-200 dark:border-gray-800">
           <div className="container mx-auto px-4 py-4">
             <Link
@@ -108,7 +110,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
             </header>
 
             <div className="prose prose-lg dark:prose-invert max-w-none">
-              {blog.content.split('\n\n').map((paragraph, index) => {
+              {blog.content.split('\n\n').map((paragraph: string, index: number) => {
                 if (paragraph.startsWith('#')) {
                   const level = paragraph.match(/^#+/)?.[0].length || 1;
                   const text = paragraph.replace(/^#+\s+/, '');
@@ -188,7 +190,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
             <section className="mt-16 pt-12 border-t border-gray-200 dark:border-gray-800">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-8">Related Posts</h2>
               <div className="grid md:grid-cols-3 gap-6">
-                {filteredRelatedPosts.map((post) => (
+                {filteredRelatedPosts.map((post: Blog) => (
                   <Link key={post.id} href={`/blogs/${post.slug}`} className="group block">
                     {post.image && (
                       <div className="relative h-48 rounded-lg overflow-hidden mb-4">

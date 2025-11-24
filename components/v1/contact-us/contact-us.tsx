@@ -10,6 +10,7 @@ import Section from '../section';
 import GradientIcon from '../gradient-icon';
 import { MdMail } from 'react-icons/md';
 import { motion } from 'framer-motion';
+import { sendDynamicEmail } from '@/lib/actions/email-actions';
 
 const ContactUs = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -26,8 +27,11 @@ const ContactUs = () => {
     setIsSubmitting(true);
 
     try {
+      // Save to database first (critical operation)
       await createContact(formData);
-      toast.success('Message sent successfully! We will contact you soon.');
+
+      // Show success immediately - user doesn't wait for email
+      toast.success('Message received! We will contact you soon.');
 
       // Reset form
       setFormData({
@@ -36,6 +40,19 @@ const ContactUs = () => {
         phone: '',
         subject: '',
         message: '',
+      });
+
+      // Trigger email API in background (fire and forget)
+      fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          formType: 'contact',
+          data: formData,
+        }),
+      }).catch((err) => {
+        // Log error silently, don't show to user
+        console.error('Background email error:', err);
       });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to send message');

@@ -6,6 +6,7 @@ import { FaArrowRight } from 'react-icons/fa6';
 import toast from 'react-hot-toast';
 import DatePicker from './date-picker';
 import { createQuote } from '@/lib/actions/quote-actions';
+import { sendDynamicEmail } from '@/lib/actions/email-actions';
 
 interface QuoteFormProps {
   onClose?: () => void;
@@ -66,6 +67,7 @@ const QuoteForm = ({ onClose }: QuoteFormProps) => {
     setIsLoading(true);
 
     try {
+      // Save to database first (critical operation)
       await createQuote({
         destination: formData.destination,
         date: formData.date,
@@ -75,12 +77,36 @@ const QuoteForm = ({ onClose }: QuoteFormProps) => {
         phone: formData.phone,
       });
 
-      resetForm();
-      toast.success('Quote request sent successfully! We will contact you soon.');
+      // Show success immediately
+      toast.success('Quote request received! We will contact you soon.');
 
+      // Reset form
+      resetForm();
+
+      // Close modal if exists
       if (onClose) {
         onClose();
       }
+
+      // Trigger email API in background (fire and forget)
+      fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          formType: 'quote',
+          data: {
+            destination: formData.destination,
+            date: formData.date,
+            days: formData.days,
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+          },
+        }),
+      }).catch((err) => {
+        // Log error silently, don't show to user
+        console.error('Background email error:', err);
+      });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to submit quote request');
       console.error('Error submitting form:', error);
