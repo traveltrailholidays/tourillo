@@ -41,7 +41,7 @@ const PageHero: React.FC<PageHeroProps> = ({ imageUrl, headingText }) => {
           <span className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-white transition font-semibold leading-14">
             {headingText}
           </span>
-          <div className="max-w-40 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+          <div className="max-w-40 w-full h-1 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
         </div>
       </div>
     </Section>

@@ -134,7 +134,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
             h-8 w-8 sm:h-9 sm:w-9 rounded-xs text-xs sm:text-sm font-medium transition-all duration-200 flex items-center justify-center
             ${
               isSelected
-                ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white shadow'
+                ? 'bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 text-white shadow'
                 : isPast
                   ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
                   : isToday

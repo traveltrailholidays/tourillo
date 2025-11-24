@@ -48,15 +48,15 @@ const CategoryBox: React.FC<CategoryBoxProps> = ({ icon: Icon, label, selected }
         transform hover:scale-105
         ${
           selected
-            ? 'bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white font-bold'
-            : 'bg-foreground hover:bg-gradient-to-br hover:from-indigo-500/10 hover:via-purple-500/10 hover:to-pink-500/10'
+            ? 'bg-linear-to-br from-indigo-500 via-purple-500 to-pink-500 text-white font-bold'
+            : 'bg-foreground hover:bg-linear-to-br hover:from-indigo-500/10 hover:via-purple-500/10 hover:to-pink-500/10'
         }
       `}
     >
       {/* Gradient overlay for hover effect */}
       <div
         className={`
-        absolute inset-0 bg-gradient-to-br from-indigo-500/0 via-purple-500/0 to-pink-500/0 
+        absolute inset-0 bg-linear-to-br from-indigo-500/0 via-purple-500/0 to-pink-500/0 
         transition-all duration-300 ease-in-out rounded-sm
         ${!selected ? 'group-hover:from-indigo-500/5 group-hover:via-purple-500/5 group-hover:to-pink-500/5' : ''}
       `}

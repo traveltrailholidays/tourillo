@@ -45,9 +45,9 @@ const NumberCounter: React.FC<NumberCounterProps> = ({ end, duration, isAnimatin
   }, [end, duration, isAnimating]);
 
   return (
-    <div className="relative text-5xl font-bold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text select-none">
+    <div className="relative text-5xl font-bold bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text select-none">
       {count.toLocaleString()}
-      <span className="text-4xl absolute top-0 -right-6 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">
+      <span className="text-4xl absolute top-0 -right-6 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">
         +
       </span>
     </div>
@@ -91,7 +91,7 @@ const HomeStats = () => {
   ];
 
   return (
-    <Section className="py-20 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
+    <Section className="py-20 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500">
       <Container className="w-full">
         <div ref={componentRef} className="flex flex-wrap justify-around gap-6">
           {data.map((item, index) => (

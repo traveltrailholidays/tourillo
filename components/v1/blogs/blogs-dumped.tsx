@@ -64,7 +64,7 @@ const Blogs = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full px-4 py-3 pl-10 pr-4 text-base lg:text-lg bg-white text-gray-900 rounded-l-xs focus:outline-none transition-all duration-200 placeholder:text-gray-500 font-medium border-r-0 h-10"
               />
-              <div className="flex items-center justify-center text-white bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 px-4 rounded-r-xs hover:shadow-lg transition-all duration-200 cursor-pointer h-10 min-w-[48px]">
+              <div className="flex items-center justify-center text-white bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 px-4 rounded-r-xs hover:shadow-lg transition-all duration-200 cursor-pointer h-10 min-w-[48px]">
                 <IoSearch size={20} className="lg:w-6 lg:h-6" />
               </div>
             </div>
@@ -78,7 +78,7 @@ const Blogs = () => {
                 className={`flex items-center justify-center w-10 lg:w-12 h-10 lg:h-10 rounded-xs transition-all duration-200 hover:shadow-lg hover:scale-105 ${
                   currentIndex === 0
                     ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                    : 'cursor-pointer bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white hover:shadow-purple-500/25'
+                    : 'cursor-pointer bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 text-white hover:shadow-purple-500/25'
                 }`}
               >
                 <IoChevronBack size={18} />
@@ -93,8 +93,8 @@ const Blogs = () => {
                       onClick={() => setActiveCategory(category)}
                       className={`px-3 py-2 lg:px-4 lg:py-2 text-xs lg:text-sm font-medium rounded-xs cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 whitespace-nowrap flex-shrink-0 h-10 lg:h-10 min-w-[80px] lg:min-w-[100px] flex items-center justify-center ${
                         category === activeCategory
-                          ? 'text-white bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 shadow-md shadow-purple-500/25'
-                          : 'bg-gray-700 text-gray-300 hover:bg-gradient-to-r hover:from-indigo-500 hover:via-purple-500 hover:to-pink-500 hover:text-white hover:shadow-purple-500/25'
+                          ? 'text-white bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 shadow-md shadow-purple-500/25'
+                          : 'bg-gray-700 text-gray-300 hover:bg-linear-to-r hover:from-indigo-500 hover:via-purple-500 hover:to-pink-500 hover:text-white hover:shadow-purple-500/25'
                       }`}
                     >
                       {category}
@@ -110,7 +110,7 @@ const Blogs = () => {
                 className={`flex items-center justify-center w-10 lg:w-12 h-10 lg:h-10 rounded-xs transition-all duration-200 hover:shadow-lg hover:scale-105 ${
                   currentIndex >= maxIndex
                     ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                    : 'cursor-pointer bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white hover:shadow-purple-500/25'
+                    : 'cursor-pointer bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 text-white hover:shadow-purple-500/25'
                 }`}
               >
                 <IoChevronForward size={18} />
@@ -127,7 +127,7 @@ const Blogs = () => {
                   onClick={() => setCurrentIndex(index)}
                   className={`w-2 h-2 rounded-full transition-all duration-200 ${
                     index === currentIndex
-                      ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500'
+                      ? 'bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500'
                       : 'bg-gray-600 hover:bg-gray-500'
                   }`}
                 />

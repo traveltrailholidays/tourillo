@@ -50,7 +50,7 @@ const Payments = () => {
                     initial={{ scale: 0, rotate: -180 }}
                     animate={{ scale: 1, rotate: 0 }}
                     transition={{ duration: 0.8, delay: 0.4, type: 'spring', stiffness: 200 }}
-                    className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white rounded-full w-16 h-16 flex justify-center items-center text-custom-txd"
+                    className="bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 text-white rounded-full w-16 h-16 flex justify-center items-center text-custom-txd"
                   >
                     <FaPhoneAlt size={24} />
                   </motion.div>

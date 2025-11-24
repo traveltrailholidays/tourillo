@@ -258,7 +258,7 @@ export function AppSidebar() {
               <button
                 onClick={handleLogoutConfirm}
                 disabled={isLoggingOut}
-                className="bg-gradient-to-r from-indigo-500 hover:from-indigo-500/90 via-purple-500 hover:via-purple-500/90 to-pink-500 hover:to-pink-500/90 px-3 py-2 rounded-xs cursor-pointer font-semibold text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="bg-linear-to-r from-indigo-500 hover:from-indigo-500/90 via-purple-500 hover:via-purple-500/90 to-pink-500 hover:to-pink-500/90 px-3 py-2 rounded-xs cursor-pointer font-semibold text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {isLoggingOut && <LoadingSpinner />}
                 {isLoggingOut ? 'Logging out...' : 'Logout'}

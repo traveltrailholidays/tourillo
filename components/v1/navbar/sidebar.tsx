@@ -159,7 +159,7 @@ const LogoutModal = React.memo<{
           <button
             onClick={onConfirm}
             disabled={isLoading}
-            className="bg-gradient-to-r from-indigo-500 hover:from-indigo-500/90 via-purple-500 hover:via-purple-500/90 to-pink-500 hover:to-pink-500/90 px-3 py-2 rounded-xs cursor-pointer font-semibold text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="bg-linear-to-r from-indigo-500 hover:from-indigo-500/90 via-purple-500 hover:via-purple-500/90 to-pink-500 hover:to-pink-500/90 px-3 py-2 rounded-xs cursor-pointer font-semibold text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {isLoading && <LoadingSpinner />}
             {isLoading ? 'Logging out...' : 'Logout'}
@@ -288,7 +288,7 @@ const SideBar: React.FC<SideBarProps> = ({ onClose, isOpen }) => {
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
-              <div className={`flex-shrink-0 h-16 bg-foreground flex items-center px-4 relative z-10 justify-end`}>
+              <div className={`shrink-0 h-16 bg-foreground flex items-center px-4 relative z-10 justify-end`}>
                 <motion.button
                   initial={{ opacity: 0, rotate: -90 }}
                   animate={{ opacity: 1, rotate: 0 }}
@@ -349,7 +349,7 @@ const SideBar: React.FC<SideBarProps> = ({ onClose, isOpen }) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
-                className="flex-shrink-0 w-full p-6 border-t border-background bg-foreground flex flex-col gap-2"
+                className="shrink-0 w-full p-6 border-t border-background bg-foreground flex flex-col gap-2"
               >
                 <ThemeSwitch />
 

@@ -16,7 +16,7 @@ const BlogsSearch = () => {
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full px-4 py-3 pl-10 pr-4 text-base lg:text-lg bg-white text-gray-900 rounded-l-xs focus:outline-none transition-all duration-200 placeholder:text-gray-500 font-medium border-r-0 h-10"
         />
-        <div className="flex items-center justify-center text-white bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 px-4 rounded-r-xs hover:shadow-lg transition-all duration-200 cursor-pointer h-10 min-w-[48px]">
+        <div className="flex items-center justify-center text-white bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 px-4 rounded-r-xs hover:shadow-lg transition-all duration-200 cursor-pointer h-10 min-w-[48px]">
           <IoSearch size={20} className="lg:w-6 lg:h-6" />
         </div>
       </div>

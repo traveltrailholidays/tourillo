@@ -41,7 +41,7 @@ const AboutUs = () => {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center justify-center px-4 py-2 mb-6 text-lg font-medium text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text border-2 border-transparent rounded-full relative"
+            className="inline-flex items-center justify-center px-4 py-2 mb-6 text-lg font-medium text-transparent bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text border-2 border-transparent rounded-full relative"
           >
             <span className="relative z-10 bg-border text-theme-text px-4 py-2 rounded-full">Welcome To</span>
           </motion.div>
@@ -53,7 +53,7 @@ const AboutUs = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-4xl md:text-5xl font-bold mb-8"
           >
-            <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
               Tourillo Pvt Ltd.
             </span>
           </motion.h2>
@@ -94,7 +94,7 @@ const AboutUs = () => {
                   whileInView={{ scale: 1, rotate: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.8, type: 'spring', stiffness: 200 }}
-                  className="mx-auto w-20 h-20 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center mb-6"
+                  className="mx-auto w-20 h-20 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center mb-6"
                 >
                   <Target className="h-10 w-10 text-white" />
                 </motion.div>
@@ -121,7 +121,7 @@ const AboutUs = () => {
                   whileInView={{ scale: 1, rotate: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.8, delay: 0.2, type: 'spring', stiffness: 200 }}
-                  className="mx-auto w-20 h-20 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center mb-6"
+                  className="mx-auto w-20 h-20 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center mb-6"
                 >
                   <Globe className="h-10 w-10 text-white" />
                 </motion.div>
@@ -175,7 +175,7 @@ const AboutUs = () => {
                   whileInView={{ scale: 1, rotate: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.7, type: 'spring', stiffness: 180 }}
-                  className="mx-auto w-16 h-16 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center mb-4"
+                  className="mx-auto w-16 h-16 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center mb-4"
                 >
                   <Users className="h-8 w-8 text-white" />
                 </motion.div>
@@ -201,7 +201,7 @@ const AboutUs = () => {
                   whileInView={{ scale: 1, rotate: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.7, delay: 0.1, type: 'spring', stiffness: 180 }}
-                  className="mx-auto w-16 h-16 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center mb-4"
+                  className="mx-auto w-16 h-16 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center mb-4"
                 >
                   <Compass className="h-8 w-8 text-white" />
                 </motion.div>
@@ -227,7 +227,7 @@ const AboutUs = () => {
                   whileInView={{ scale: 1, rotate: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.7, delay: 0.2, type: 'spring', stiffness: 180 }}
-                  className="mx-auto w-16 h-16 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center mb-4"
+                  className="mx-auto w-16 h-16 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center mb-4"
                 >
                   <Award className="h-8 w-8 text-white" />
                 </motion.div>
@@ -253,7 +253,7 @@ const AboutUs = () => {
                   whileInView={{ scale: 1, rotate: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.7, delay: 0.3, type: 'spring', stiffness: 180 }}
-                  className="mx-auto w-16 h-16 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center mb-4"
+                  className="mx-auto w-16 h-16 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center mb-4"
                 >
                   <Leaf className="h-8 w-8 text-white" />
                 </motion.div>

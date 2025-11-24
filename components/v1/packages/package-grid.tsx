@@ -22,7 +22,7 @@ const PackageGrid: React.FC<PackageGridProps> = ({ packages, title, emptyMessage
         <p className="text-gray-500 dark:text-gray-400 text-lg">{emptyMessage}</p>
         <Link
           href="/packages"
-          className="mt-5 bg-gradient-to-r from-indigo-500 hover:from-indigo-500/90 via-purple-500 hover:via-purple-500/90 to-pink-500 hover:to-pink-500/90 w-fit px-3 py-2 rounded text-white font-semibold flex gap-5 items-center"
+          className="mt-5 bg-linear-to-r from-indigo-500 hover:from-indigo-500/90 via-purple-500 hover:via-purple-500/90 to-pink-500 hover:to-pink-500/90 w-fit px-3 py-2 rounded text-white font-semibold flex gap-5 items-center"
         >
           Explore Packages <FaArrowRightLong />
         </Link>

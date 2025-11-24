@@ -179,7 +179,7 @@ const ContactUs = () => {
                     disabled={isSubmitting}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="bg-gradient-to-r from-indigo-500 hover:from-indigo-500/90 via-purple-500 hover:via-purple-500/90 to-pink-500 hover:to-pink-500/90 px-5 py-[7px] text-lg rounded-xs cursor-pointer font-semibold text-white lg:flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-linear-to-r from-indigo-500 hover:from-indigo-500/90 via-purple-500 hover:via-purple-500/90 to-pink-500 hover:to-pink-500/90 px-5 py-[7px] text-lg rounded-xs cursor-pointer font-semibold text-white lg:flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isSubmitting ? 'Sending...' : 'Submit'}
                   </motion.button>
@@ -212,7 +212,7 @@ const ContactUs = () => {
                 <div className="space-y-4 mb-6">
                   <div className="flex items-start space-x-3">
                     <svg
-                      className="w-5 h-5 text-violet-400 flex-shrink-0 mt-0.5"
+                      className="w-5 h-5 text-violet-400 shrink-0 mt-0.5"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -228,7 +228,7 @@ const ContactUs = () => {
                   </div>
                   <div className="flex items-start space-x-3">
                     <svg
-                      className="w-5 h-5 text-violet-400 flex-shrink-0 mt-0.5"
+                      className="w-5 h-5 text-violet-400 shrink-0 mt-0.5"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"

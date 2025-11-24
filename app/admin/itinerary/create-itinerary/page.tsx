@@ -259,7 +259,7 @@ export default function CreateItinerary() {
   return (
     <div className="container mx-auto p-6">
       <div className="bg-foreground rounded-lg shadow-lg p-8">
-        <h1 className="text-3xl font-bold mb-8 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+        <h1 className="text-3xl font-bold mb-8 bg-linear-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
           Create Itinerary
         </h1>
 
@@ -739,7 +739,7 @@ export default function CreateItinerary() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="py-4 px-10 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-lg font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transform hover:scale-105"
+              className="py-4 px-10 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-lg font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transform hover:scale-105"
             >
               {isSubmitting ? 'Creating Itinerary...' : 'Generate Itinerary'}
             </button>

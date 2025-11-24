@@ -36,7 +36,7 @@ const RelatedPosts: React.FC<RelatedPostsProps> = ({ posts }) => {
             <Link href={`/blogs/${post.slug}`} className="block">
               <div className="relative aspect-[16/10]">
                 <Image src={post.image || '/images/hero/hero01.jpg'} alt={post.title} fill className="object-cover" />
-                <span className="absolute top-2 left-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white text-xs font-semibold px-2 py-1 rounded">
+                <span className="absolute top-2 left-2 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 text-white text-xs font-semibold px-2 py-1 rounded">
                   {post.category}
                 </span>
               </div>

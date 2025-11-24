@@ -30,37 +30,37 @@ const NotFound = () => {
               <div className="flex flex-wrap gap-5 justify-center items-center">
                 <Link
                   href="/"
-                  className="bg-gradient-to-r from-indigo-500 hover:from-indigo-500/90 via-purple-500 hover:via-purple-500/90 to-pink-500 hover:to-pink-500/90 rounded text-white py-2 px-3 font-medium"
+                  className="bg-linear-to-r from-indigo-500 hover:from-indigo-500/90 via-purple-500 hover:via-purple-500/90 to-pink-500 hover:to-pink-500/90 rounded text-white py-2 px-3 font-medium"
                 >
                   Home
                 </Link>
                 <Link
                   href="/packages"
-                  className="bg-gradient-to-r from-indigo-500 hover:from-indigo-500/90 via-purple-500 hover:via-purple-500/90 to-pink-500 hover:to-pink-500/90 rounded text-white py-2 px-3 font-medium"
+                  className="bg-linear-to-r from-indigo-500 hover:from-indigo-500/90 via-purple-500 hover:via-purple-500/90 to-pink-500 hover:to-pink-500/90 rounded text-white py-2 px-3 font-medium"
                 >
                   Packages
                 </Link>
                 <Link
                   href="/blogs"
-                  className="bg-gradient-to-r from-indigo-500 hover:from-indigo-500/90 via-purple-500 hover:via-purple-500/90 to-pink-500 hover:to-pink-500/90 rounded text-white py-2 px-3 font-medium"
+                  className="bg-linear-to-r from-indigo-500 hover:from-indigo-500/90 via-purple-500 hover:via-purple-500/90 to-pink-500 hover:to-pink-500/90 rounded text-white py-2 px-3 font-medium"
                 >
                   Blogs
                 </Link>
                 <Link
                   href="/about-us"
-                  className="bg-gradient-to-r from-indigo-500 hover:from-indigo-500/90 via-purple-500 hover:via-purple-500/90 to-pink-500 hover:to-pink-500/90 rounded text-white py-2 px-3 font-medium"
+                  className="bg-linear-to-r from-indigo-500 hover:from-indigo-500/90 via-purple-500 hover:via-purple-500/90 to-pink-500 hover:to-pink-500/90 rounded text-white py-2 px-3 font-medium"
                 >
                   About Us
                 </Link>
                 <Link
                   href="/contact-us"
-                  className="bg-gradient-to-r from-indigo-500 hover:from-indigo-500/90 via-purple-500 hover:via-purple-500/90 to-pink-500 hover:to-pink-500/90 rounded text-white py-2 px-3 font-medium"
+                  className="bg-linear-to-r from-indigo-500 hover:from-indigo-500/90 via-purple-500 hover:via-purple-500/90 to-pink-500 hover:to-pink-500/90 rounded text-white py-2 px-3 font-medium"
                 >
                   Contact Us
                 </Link>
                 <Link
                   href="/payments"
-                  className="bg-gradient-to-r from-indigo-500 hover:from-indigo-500/90 via-purple-500 hover:via-purple-500/90 to-pink-500 hover:to-pink-500/90 rounded text-white py-2 px-3 font-medium"
+                  className="bg-linear-to-r from-indigo-500 hover:from-indigo-500/90 via-purple-500 hover:via-purple-500/90 to-pink-500 hover:to-pink-500/90 rounded text-white py-2 px-3 font-medium"
                 >
                   Payments
                 </Link>

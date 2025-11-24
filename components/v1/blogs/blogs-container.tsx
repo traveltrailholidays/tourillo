@@ -120,7 +120,7 @@ const BlogCard: React.FC<BlogCardProps> = ({ post, formatDate, cardVariants }) =
           onLoad={() => setImageLoaded(true)}
           priority={post.featured}
         />
-        <span className="absolute top-2 left-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white text-xs font-semibold px-3 py-1 rounded-xs">
+        <span className="absolute top-2 left-4 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 text-white text-xs font-semibold px-3 py-1 rounded-xs">
           {post.category}
         </span>
         {post.featured && (
@@ -146,7 +146,7 @@ const BlogCard: React.FC<BlogCardProps> = ({ post, formatDate, cardVariants }) =
         </div>
         <Link
           href={`/blogs/${post.slug}`}
-          className="block w-full font-medium text-sm px-4 py-2 rounded-xs text-white bg-gradient-to-r from-indigo-500 hover:from-indigo-500/90 via-purple-500 hover:via-purple-500/90 to-pink-500 hover:to-pink-500/90 cursor-pointer text-center transition-all duration-200"
+          className="block w-full font-medium text-sm px-4 py-2 rounded-xs text-white bg-linear-to-r from-indigo-500 hover:from-indigo-500/90 via-purple-500 hover:via-purple-500/90 to-pink-500 hover:to-pink-500/90 cursor-pointer text-center transition-all duration-200"
         >
           Read More
         </Link>

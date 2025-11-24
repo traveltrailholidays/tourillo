@@ -67,7 +67,7 @@ const InputBox: React.FC<InputBoxProps> = ({
         <div
           className={clsx(
             'absolute inset-0 transition-opacity duration-300 ease-in-out',
-            'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500',
+            'bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500',
             showGradient ? 'opacity-100' : 'opacity-0'
           )}
         />
@@ -162,7 +162,7 @@ const InputBox: React.FC<InputBoxProps> = ({
             className={clsx(
               'transition-all duration-300 ease-in-out cursor-text',
               isFocused || hasContent
-                ? 'font-semibold text-base bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500'
+                ? 'font-semibold text-base bg-clip-text text-transparent bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500'
                 : error
                   ? 'text-lg text-red-500 font-medium'
                   : 'text-lg text-theme-text/70'

@@ -21,7 +21,7 @@ const UpperNavbar: React.FC<UpperNavbarProps> = ({ className }) => {
   return (
     <Section
       id="upper-navbar"
-      className={`${className} bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white py-1 relative transition-all duration-300`}
+      className={`${className} bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 text-white py-1 relative transition-all duration-300`}
     >
       <Container className="text-center">
         <span className="text-sm font-semibold">{data.message}</span>

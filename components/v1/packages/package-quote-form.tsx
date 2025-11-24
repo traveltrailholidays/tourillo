@@ -74,7 +74,7 @@ const PackageQuoteForm: React.FC<PackageQuoteFormProps> = ({ packageTitle, price
   return (
     <div className="rounded overflow-hidden shadow-xl">
       {/* Price Header */}
-      <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 px-6 py-4">
+      <div className="bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 px-6 py-4">
         <div className="flex items-baseline gap-2">
           <span className="text-white text-4xl font-bold">{formatPrice(discountedPrice)}</span>
           <span className="text-white/80 text-sm">/ per person</span>
@@ -149,7 +149,7 @@ const PackageQuoteForm: React.FC<PackageQuoteFormProps> = ({ packageTitle, price
           <button
             type="submit"
             disabled={!isFormValid() || isLoading}
-            className="w-full bg-gradient-to-r from-indigo-500 hover:from-indigo-500/90 via-purple-500 hover:via-purple-500/90 to-pink-500 hover:to-pink-500/90 text-white py-3 rounded font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-linear-to-r from-indigo-500 hover:from-indigo-500/90 via-purple-500 hover:via-purple-500/90 to-pink-500 hover:to-pink-500/90 text-white py-3 rounded font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <span className="flex items-center justify-center gap-2">

@@ -120,7 +120,7 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
                 />
               </div>
               <div className="flex items-center gap-2">
-                <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full w-10 h-10 flex justify-center items-center text-white">
+                <div className="bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full w-10 h-10 flex justify-center items-center text-white">
                   <FaPhoneAlt size={16} />
                 </div>
                 <div>
@@ -187,7 +187,7 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
                       <div className="flex gap-10 items-center p-5">
                         <FaHotel size={100} color="#FACC15" />
                         <div className="flex flex-col gap-1">
-                          <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text font-semibold text-lg">
+                          <span className="bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text font-semibold text-lg">
                             {hotel.hotelName}
                           </span>
                           <span className="text-lg">Room Type: {hotel.roomType}</span>
@@ -503,7 +503,7 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
             <div className="my-20 flex gap-4 justify-center print-hide">
               <button
                 onClick={handlePrint}
-                className="py-3 px-8 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-lg font-semibold text-white hover:opacity-90 transition-opacity shadow-lg"
+                className="py-3 px-8 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-lg font-semibold text-white hover:opacity-90 transition-opacity shadow-lg"
               >
                 Print / Save as PDF
               </button>

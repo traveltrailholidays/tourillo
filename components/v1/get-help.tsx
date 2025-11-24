@@ -18,7 +18,7 @@ const GetHelp = () => {
         <div className={`text-[15px] mt-5`}>
           <div className={`flex items-center gap-5`}>
             <div
-              className={`bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full w-16 h-16 flex justify-center items-center`}
+              className={`bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full w-16 h-16 flex justify-center items-center`}
             >
               <FaPhoneAlt size={24} />
             </div>

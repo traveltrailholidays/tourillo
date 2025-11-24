@@ -76,7 +76,7 @@ const QuoteModal = ({ isOpen, onClose }: QuoteModalProps) => {
           <div className="flex flex-col gap-6 items-center justify-center w-full">
             <div className="flex flex-col gap-2 items-center text-center">
               <GradientIcon icon={MdOutlineSupportAgent} size={80} />
-              <h2 className="text-xl md:text-2xl font-semibold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">
+              <h2 className="text-xl md:text-2xl font-semibold bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">
                 Get a Custom Travel Quote
               </h2>
               <p className="text-gray-600 dark:text-gray-300 text-sm max-w-xl">

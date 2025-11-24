@@ -46,13 +46,13 @@ const SelectTheme = () => {
           >
             <button
               onClick={() => swiperRef.current?.slidePrev()}
-              className="group relative p-2 sm:p-3 transition-all duration-300 bg-gradient-to-r from-purple-500/60 to-indigo-500/60 dark:from-purple-500/30 dark:to-indigo-500/30 text-white rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center hover:from-purple-600/80 hover:to-indigo-600/80 dark:hover:from-purple-500/50 dark:hover:to-indigo-500/50 cursor-pointer shadow-lg hover:shadow-xl transform hover:scale-105"
+              className="group relative p-2 sm:p-3 transition-all duration-300 bg-linear-to-r from-purple-500/60 to-indigo-500/60 dark:from-purple-500/30 dark:to-indigo-500/30 text-white rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center hover:from-purple-600/80 hover:to-indigo-600/80 dark:hover:from-purple-500/50 dark:hover:to-indigo-500/50 cursor-pointer shadow-lg hover:shadow-xl transform hover:scale-105"
             >
               <FiChevronLeft size={20} strokeWidth={3} className="sm:w-6 sm:h-6" />
             </button>
             <button
               onClick={() => swiperRef.current?.slideNext()}
-              className="group relative p-2 sm:p-3 transition-all duration-300 bg-gradient-to-r from-purple-500/60 to-indigo-500/60 dark:from-purple-500/30 dark:to-indigo-500/30 text-white rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center hover:from-purple-600/80 hover:to-indigo-600/80 dark:hover:from-purple-500/50 dark:hover:to-indigo-500/50 cursor-pointer shadow-lg hover:shadow-xl transform hover:scale-105"
+              className="group relative p-2 sm:p-3 transition-all duration-300 bg-linear-to-r from-purple-500/60 to-indigo-500/60 dark:from-purple-500/30 dark:to-indigo-500/30 text-white rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center hover:from-purple-600/80 hover:to-indigo-600/80 dark:hover:from-purple-500/50 dark:hover:to-indigo-500/50 cursor-pointer shadow-lg hover:shadow-xl transform hover:scale-105"
             >
               <FiChevronRight size={20} strokeWidth={3} className="sm:w-6 sm:h-6" />
             </button>

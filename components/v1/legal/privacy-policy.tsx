@@ -37,7 +37,7 @@ const Privacy = () => {
           transition={{ duration: 0.5 }}
           className="w-full flex justify-center items-center"
         >
-          <span className="capitalize bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text w-fit text-2xl md:text-3xl font-bold">
+          <span className="capitalize bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text w-fit text-2xl md:text-3xl font-bold">
             Privacy Policy
           </span>
         </motion.div>

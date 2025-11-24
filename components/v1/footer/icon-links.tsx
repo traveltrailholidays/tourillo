@@ -36,7 +36,7 @@ const IconLink: React.FC<IconLinkProps> = ({ icon: Icon, activeIcon: ActiveIcon,
       <p
         className={`text-[10px] transition-colors duration-200 ${
           isActive
-            ? 'text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 font-semibold'
+            ? 'text-transparent bg-clip-text bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 font-semibold'
             : 'text-[#a3a3a3] group-hover:text-indigo-500'
         }`}
       >

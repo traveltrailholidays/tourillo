@@ -111,7 +111,7 @@ const Testimonials = () => {
           transition={{ duration: 0.6 }}
           className="w-full flex flex-col justify-center items-center gap-1 text-center"
         >
-          <span className="capitalize bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text w-fit text-2xl md:text-3xl font-bold">
+          <span className="capitalize bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text w-fit text-2xl md:text-3xl font-bold">
             Reviews & Testimonials
           </span>
           <span className="font-medium text-sm md:text-base lg:text-lg">
@@ -167,14 +167,14 @@ const Testimonials = () => {
           <button
             onClick={() => api?.scrollPrev()}
             disabled={!api}
-            className="group relative p-2 sm:p-3 transition-all duration-300 bg-gradient-to-r from-purple-500/60 to-indigo-500/60 dark:from-purple-500/30 dark:to-indigo-500/30 text-white rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center hover:from-purple-600/80 hover:to-indigo-600/80 dark:hover:from-purple-500/50 dark:hover:to-indigo-500/50 cursor-pointer shadow-lg hover:shadow-xl transform hover:scale-105"
+            className="group relative p-2 sm:p-3 transition-all duration-300 bg-linear-to-r from-purple-500/60 to-indigo-500/60 dark:from-purple-500/30 dark:to-indigo-500/30 text-white rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center hover:from-purple-600/80 hover:to-indigo-600/80 dark:hover:from-purple-500/50 dark:hover:to-indigo-500/50 cursor-pointer shadow-lg hover:shadow-xl transform hover:scale-105"
           >
             <FiChevronLeft size={24} strokeWidth={3} />
           </button>
           <button
             onClick={() => api?.scrollNext()}
             disabled={!api}
-            className="group relative p-2 sm:p-3 transition-all duration-300 bg-gradient-to-r from-purple-500/60 to-indigo-500/60 dark:from-purple-500/30 dark:to-indigo-500/30 text-white rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center hover:from-purple-600/80 hover:to-indigo-600/80 dark:hover:from-purple-500/50 dark:hover:to-indigo-500/50 cursor-pointer shadow-lg hover:shadow-xl transform hover:scale-105"
+            className="group relative p-2 sm:p-3 transition-all duration-300 bg-linear-to-r from-purple-500/60 to-indigo-500/60 dark:from-purple-500/30 dark:to-indigo-500/30 text-white rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center hover:from-purple-600/80 hover:to-indigo-600/80 dark:hover:from-purple-500/50 dark:hover:to-indigo-500/50 cursor-pointer shadow-lg hover:shadow-xl transform hover:scale-105"
           >
             <FiChevronRight size={24} strokeWidth={3} />
           </button>

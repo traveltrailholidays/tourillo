@@ -184,7 +184,7 @@ const QuoteForm = ({ onClose }: QuoteFormProps) => {
             <div className="flex justify-end pt-2">
               <button
                 type="submit"
-                className={`py-2 px-5 cursor-pointer bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-xs font-medium w-fit flex items-center justify-center gap-3 text-white transition-all duration-300 ${
+                className={`py-2 px-5 cursor-pointer bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-xs font-medium w-fit flex items-center justify-center gap-3 text-white transition-all duration-300 ${
                   isStep1Valid()
                     ? 'hover:from-indigo-500/90 hover:via-purple-500/90 hover:to-pink-500/90'
                     : 'opacity-50 cursor-not-allowed'
@@ -268,7 +268,7 @@ const QuoteForm = ({ onClose }: QuoteFormProps) => {
               </button>
               <button
                 type="submit"
-                className={`w-full max-w-1/2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-xs text-white py-2 px-4 transition duration-300 ${
+                className={`w-full max-w-1/2 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-xs text-white py-2 px-4 transition duration-300 ${
                   isStep2Valid() && !isLoading ? 'hover:shadow-lg' : 'opacity-50 cursor-not-allowed'
                 }`}
                 disabled={!isStep2Valid() || isLoading}
