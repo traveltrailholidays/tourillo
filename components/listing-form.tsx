@@ -476,7 +476,9 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
                 }`}
               >
                 <div className="flex flex-col items-center">
-                  <ImageIcon className={`h-10 w-10 sm:h-12 sm:w-12 mb-4 ${dragActive ? 'text-purple-500' : 'text-gray-400'}`} />
+                  <ImageIcon
+                    className={`h-10 w-10 sm:h-12 sm:w-12 mb-4 ${dragActive ? 'text-purple-500' : 'text-gray-400'}`}
+                  />
                   <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-2 font-medium">
                     {dragActive ? 'Drop image here' : 'Click to upload or drag and drop'}
                   </p>

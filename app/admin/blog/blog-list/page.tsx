@@ -1,8 +1,8 @@
+import Link from 'next/link';
+
 import { BlogList } from '@/components/admin/blog-list';
 import { Button } from '@/components/ui/button';
 import { getAllBlogs } from '@/lib/actions/blog-actions';
-import Link from 'next/link';
-import React from 'react';
 
 const page = async () => {
   const blogs = await getAllBlogs();

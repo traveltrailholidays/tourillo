@@ -218,7 +218,13 @@ export const PackageList: React.FC<PackageListProps> = ({ packages }) => {
                 </Link>
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setDeleteId(pkg.id)} title="Delete">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8"
+                      onClick={() => setDeleteId(pkg.id)}
+                      title="Delete"
+                    >
                       <Trash2 className="h-4 w-4 text-red-600" />
                     </Button>
                   </DialogTrigger>

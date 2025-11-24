@@ -20,7 +20,5 @@ export default async function EditUserPage({ params }: PageProps) {
     notFound();
   }
 
-  return (
-    <UserEditForm user={user} />
-  );
+  return <UserEditForm user={user} />;
 }

@@ -200,14 +200,14 @@ export const ContactList: React.FC<ContactListProps> = ({ contacts }) => {
 
       {/* Mobile Card View - Visible on tablets and below */}
       <div className="lg:hidden space-y-3">
-        {pageData.length === 0 && (
-          <div className="text-center py-8 text-sm">No contacts found.</div>
-        )}
+        {pageData.length === 0 && <div className="text-center py-8 text-sm">No contacts found.</div>}
         {pageData.map((contact) => (
           <div
             key={contact.id}
             className={`rounded-lg border p-4 space-y-3 ${
-              !contact.isRead ? 'bg-purple-50 dark:bg-purple-900/10 border-purple-200 dark:border-purple-800' : 'bg-background'
+              !contact.isRead
+                ? 'bg-purple-50 dark:bg-purple-900/10 border-purple-200 dark:border-purple-800'
+                : 'bg-background'
             }`}
           >
             {/* Header with status and actions */}
@@ -218,12 +218,16 @@ export const ContactList: React.FC<ContactListProps> = ({ contacts }) => {
                 ) : (
                   <Mail className="h-4 w-4 text-purple-600 shrink-0" />
                 )}
-                <span className={`text-base truncate ${!contact.isRead ? 'font-semibold' : ''}`}>
-                  {contact.name}
-                </span>
+                <span className={`text-base truncate ${!contact.isRead ? 'font-semibold' : ''}`}>{contact.name}</span>
               </div>
               <div className="flex gap-1 shrink-0">
-                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleViewContact(contact)} title="View">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8"
+                  onClick={() => handleViewContact(contact)}
+                  title="View"
+                >
                   <Eye className="h-4 w-4 text-blue-600" />
                 </Button>
                 <Button
@@ -241,7 +245,13 @@ export const ContactList: React.FC<ContactListProps> = ({ contacts }) => {
                 </Button>
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setDeleteId(contact.id)} title="Delete">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8"
+                      onClick={() => setDeleteId(contact.id)}
+                      title="Delete"
+                    >
                       <Trash2 className="h-4 w-4 text-red-600" />
                     </Button>
                   </DialogTrigger>
@@ -258,7 +268,13 @@ export const ContactList: React.FC<ContactListProps> = ({ contacts }) => {
                           Cancel
                         </Button>
                       </DialogClose>
-                      <Button variant="destructive" onClick={handleDelete} disabled={isDeleting} type="button" className="w-full sm:w-auto">
+                      <Button
+                        variant="destructive"
+                        onClick={handleDelete}
+                        disabled={isDeleting}
+                        type="button"
+                        className="w-full sm:w-auto"
+                      >
                         {isDeleting ? 'Deleting...' : 'Delete'}
                       </Button>
                     </DialogFooter>
@@ -350,7 +366,9 @@ export const ContactList: React.FC<ContactListProps> = ({ contacts }) => {
             </div>
             <DialogFooter>
               <DialogClose asChild>
-                <Button variant="secondary" className="w-full sm:w-auto">Close</Button>
+                <Button variant="secondary" className="w-full sm:w-auto">
+                  Close
+                </Button>
               </DialogClose>
             </DialogFooter>
           </DialogContent>

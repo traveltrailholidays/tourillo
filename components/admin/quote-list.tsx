@@ -201,14 +201,14 @@ export const QuoteList: React.FC<QuoteListProps> = ({ quotes }) => {
 
       {/* Mobile Card View - Visible on tablets and below */}
       <div className="lg:hidden space-y-3">
-        {pageData.length === 0 && (
-          <div className="text-center py-8 text-sm">No quote requests found.</div>
-        )}
+        {pageData.length === 0 && <div className="text-center py-8 text-sm">No quote requests found.</div>}
         {pageData.map((quote) => (
           <div
             key={quote.id}
             className={`rounded-lg border p-4 space-y-3 ${
-              !quote.isRead ? 'bg-purple-50 dark:bg-purple-900/10 border-purple-200 dark:border-purple-800' : 'bg-background'
+              !quote.isRead
+                ? 'bg-purple-50 dark:bg-purple-900/10 border-purple-200 dark:border-purple-800'
+                : 'bg-background'
             }`}
           >
             {/* Header with status and actions */}
@@ -219,12 +219,16 @@ export const QuoteList: React.FC<QuoteListProps> = ({ quotes }) => {
                 ) : (
                   <Mail className="h-4 w-4 text-purple-600 shrink-0" />
                 )}
-                <span className={`text-base truncate ${!quote.isRead ? 'font-semibold' : ''}`}>
-                  {quote.name}
-                </span>
+                <span className={`text-base truncate ${!quote.isRead ? 'font-semibold' : ''}`}>{quote.name}</span>
               </div>
               <div className="flex gap-1 shrink-0">
-                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleViewQuote(quote)} title="View">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8"
+                  onClick={() => handleViewQuote(quote)}
+                  title="View"
+                >
                   <Eye className="h-4 w-4 text-blue-600" />
                 </Button>
                 <Button
@@ -242,7 +246,13 @@ export const QuoteList: React.FC<QuoteListProps> = ({ quotes }) => {
                 </Button>
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setDeleteId(quote.id)} title="Delete">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8"
+                      onClick={() => setDeleteId(quote.id)}
+                      title="Delete"
+                    >
                       <Trash2 className="h-4 w-4 text-red-600" />
                     </Button>
                   </DialogTrigger>
@@ -259,7 +269,13 @@ export const QuoteList: React.FC<QuoteListProps> = ({ quotes }) => {
                           Cancel
                         </Button>
                       </DialogClose>
-                      <Button variant="destructive" onClick={handleDelete} disabled={isDeleting} type="button" className="w-full sm:w-auto">
+                      <Button
+                        variant="destructive"
+                        onClick={handleDelete}
+                        disabled={isDeleting}
+                        type="button"
+                        className="w-full sm:w-auto"
+                      >
                         {isDeleting ? 'Deleting...' : 'Delete'}
                       </Button>
                     </DialogFooter>
@@ -363,7 +379,9 @@ export const QuoteList: React.FC<QuoteListProps> = ({ quotes }) => {
             </div>
             <DialogFooter>
               <DialogClose asChild>
-                <Button variant="secondary" className="w-full sm:w-auto">Close</Button>
+                <Button variant="secondary" className="w-full sm:w-auto">
+                  Close
+                </Button>
               </DialogClose>
             </DialogFooter>
           </DialogContent>
