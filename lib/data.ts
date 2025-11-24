@@ -64,6 +64,22 @@ const DATA = {
       ],
     },
     {
+      title: 'Voucher Management',
+      icon: Icon.Ticket,
+      children: [
+        {
+          title: 'Create Voucher',
+          url: '/admin/voucher/create-voucher',
+          icon: Icon.Plus,
+        },
+        {
+          title: 'All Vouchers',
+          url: '/admin/voucher/voucher-list',
+          icon: Icon.List,
+        },
+      ],
+    },
+    {
       title: 'Blogs Management',
       icon: Icon.MessagesSquare,
       children: [

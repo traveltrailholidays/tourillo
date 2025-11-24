@@ -109,15 +109,15 @@ model Blog {
 }
 
 model Contact {
-  id          String   @id @default(uuid())
-  name        String
-  email       String
-  phone       String
-  subject     String
-  message     String
-  isRead      Boolean  @default(false)
-  createdAt   DateTime @default(now()) @map("created_at")
-  
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  phone     String
+  subject   String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
   @@map("contacts")
 }
 
@@ -131,34 +131,50 @@ model Quote {
   phone       String
   isRead      Boolean  @default(false)
   createdAt   DateTime @default(now()) @map("created_at")
-  
+
   @@map("quotes")
 }
 
 model Itinerary {
-  id                   String   @id @default(uuid())
-  travelId             String   @unique @map("travel_id")
-  clientName           String   @map("client_name")
-  clientPhone          String   @map("client_phone")
-  clientEmail          String?  @map("client_email")
-  packageTitle         String   @map("package_title")
-  numberOfDays         Int      @map("number_of_days")
-  numberOfNights       Int      @map("number_of_nights")
-  numberOfHotels       Int      @map("number_of_hotels")
-  tripAdvisorName      String   @map("trip_advisor_name")
-  tripAdvisorNumber    String   @map("trip_advisor_number")
-  cabs                 String
-  flights              String
-  quotePrice           Int      @map("quote_price")
-  pricePerPerson       Int      @map("price_per_person")
-  days                 Json
-  hotels               Json
-  inclusions           Json
-  exclusions           Json
-  createdAt            DateTime @default(now()) @map("created_at")
-  updatedAt            DateTime @updatedAt @map("updated_at")
+  id                String    @id @default(uuid())
+  travelId          String    @unique @map("travel_id")
+  clientName        String    @map("client_name")
+  clientPhone       String    @map("client_phone")
+  clientEmail       String?   @map("client_email")
+  packageTitle      String    @map("package_title")
+  numberOfDays      Int       @map("number_of_days")
+  numberOfNights    Int       @map("number_of_nights")
+  numberOfHotels    Int       @map("number_of_hotels")
+  tripAdvisorName   String    @map("trip_advisor_name")
+  tripAdvisorNumber String    @map("trip_advisor_number")
+  cabs              String
+  flights           String
+  quotePrice        Int       @map("quote_price")
+  pricePerPerson    Int       @map("price_per_person")
+  days              Json
+  hotels            Json
+  inclusions        Json
+  exclusions        Json
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  vouchers          Voucher[] // Relation to vouchers
 
   @@map("itineraries")
 }
 
+model Voucher {
+  id           String   @id @default(uuid())
+  travelId     String   @unique @map("travel_id") // Make it unique, use as primary identifier
+  itinerary    Itinerary @relation(fields: [travelId], references: [travelId], onDelete: Cascade)
+  clientName   String   @map("client_name")
+  adultNo      Int      @map("adult_no")
+  childrenNo   Int      @map("children_no")
+  totalNights  Int      @map("total_nights")
+  hotelStays   Json     @map("hotel_stays")
+  cabDetails   String   @map("cab_details")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("vouchers")
+}
 
