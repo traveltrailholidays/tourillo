@@ -406,7 +406,7 @@ const BlogForm: React.FC<BlogFormProps> = ({ initialData, onCancel }) => {
                 isDisabled={isPending}
                 isClearable
                 placeholder="Select or create category..."
-                className="text-sm sm:text-base"
+                className="text-sm sm:text-base "
                 classNamePrefix="select"
                 styles={{
                   control: (base, state) => ({
@@ -423,11 +423,13 @@ const BlogForm: React.FC<BlogFormProps> = ({ initialData, onCancel }) => {
                     },
                     boxShadow: state.isFocused ? '0 0 0 2px rgba(168, 85, 247, 0.2)' : 'none',
                   }),
+
                   menu: (base) => ({
                     ...base,
                     backgroundColor: 'var(--background)',
                     zIndex: 50,
                   }),
+
                   option: (base, state) => ({
                     ...base,
                     backgroundColor: state.isSelected
@@ -435,37 +437,43 @@ const BlogForm: React.FC<BlogFormProps> = ({ initialData, onCancel }) => {
                       : state.isFocused
                         ? 'rgb(243 232 255)'
                         : 'var(--background)',
-                    color: state.isSelected ? 'white' : 'var(--foreground)',
+                    color: state.isSelected ? 'white' : '#000',
                     '&:active': {
                       backgroundColor: '#a855f7',
                     },
                   }),
+
                   singleValue: (base) => ({
                     ...base,
-                    color: 'var(--foreground)',
+                    color: '#000',
                   }),
+
                   input: (base) => ({
                     ...base,
-                    color: 'var(--foreground)',
+                    color: '#000',
                   }),
+
                   placeholder: (base) => ({
                     ...base,
-                    color: 'rgb(156 163 175)',
+                    color: '#000',
                   }),
+
                   multiValue: (base) => ({
                     ...base,
                     backgroundColor: 'rgb(243 232 255)',
                   }),
+
                   multiValueLabel: (base) => ({
                     ...base,
-                    color: 'rgb(107 33 168)',
+                    color: '#000',
                   }),
+
                   multiValueRemove: (base) => ({
                     ...base,
-                    color: 'rgb(107 33 168)',
+                    color: '#000',
                     '&:hover': {
                       backgroundColor: 'rgb(233 213 255)',
-                      color: 'rgb(107 33 168)',
+                      color: '#000',
                     },
                   }),
                 }}
