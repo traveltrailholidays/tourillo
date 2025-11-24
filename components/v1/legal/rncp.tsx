@@ -49,13 +49,13 @@ const Rncp = () => {
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4" />
                 <span>
-                  <strong>Effective Date:</strong> [DD/MM/YYYY]
+                  <strong>Effective Date:</strong> [01/12/2025]
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4" />
                 <span>
-                  <strong>Last Updated:</strong> [DD/MM/YYYY]
+                  <strong>Last Updated:</strong> [01/12/2025]
                 </span>
               </div>
             </div>

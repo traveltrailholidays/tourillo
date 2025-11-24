@@ -19,10 +19,7 @@ const Hero = () => {
       />
 
       {/* Dark overlay for dark mode */}
-      <div className="w-full md:w-[65%] 2xl:w-1/2 h-[400px] sm:h-[450px] md:h-[600px] object-cover select-none bg-black absolute opacity-50 dark:block hidden"></div>
-
-      {/* Light overlay for light mode */}
-      <div className="w-full md:w-[65%] 2xl:w-1/2 h-[400px] sm:h-[450px] md:h-[600px] object-cover select-none bg-white/50 absolute opacity-10 dark:hidden"></div>
+      <div className="w-full md:w-[65%] 2xl:w-1/2 h-[400px] sm:h-[450px] md:h-[600px] object-cover select-none bg-black md:bg-white/50 dark:bg-black absolute opacity-50"></div>
 
       {/* Content */}
       <div className="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 md:top-1/2 md:-translate-y-[40%] md:right-1/2 md:left-auto md:translate-x-7 xl:-translate-x-5 2xl:-translate-x-10 flex flex-col gap-5 lg:gap-10 px-4 md:px-0 md:items-start">
@@ -30,7 +27,7 @@ const Hero = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: 'easeOut' }}
-          className="heroTitle max-w-[580px] font-bold leading-tight text-gray-900 dark:text-gray-50 text-center md:text-left"
+          className="heroTitle max-w-[580px] font-bold leading-tight text-gray-50 md:text-gray-900 dark:text-gray-50 text-center md:text-left"
         >
           Discover the most engaging places
         </motion.h1>

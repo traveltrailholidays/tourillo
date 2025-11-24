@@ -152,8 +152,8 @@ const AboutUs = () => {
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-6">What Sets Us Apart</h2>
             <p className="text-lg max-w-6xl mx-auto leading-relaxed">
-              At Travel Trail Holidays, we craft journeys that go beyond the ordinary. With customized itineraries,
-              seasoned experts, dedicated service, and a commitment to responsible tourism.
+              At Tourillo, we craft journeys that go beyond the ordinary. With customized itineraries, seasoned experts,
+              dedicated service, and a commitment to responsible tourism.
             </p>
           </motion.div>
 

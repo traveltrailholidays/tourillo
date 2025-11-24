@@ -11,6 +11,7 @@ import { BsInfoCircle } from 'react-icons/bs';
 import { MdOutlineContactMail } from 'react-icons/md';
 import ThemeSwitch from '../theme-switch';
 import { useSession, signOut } from 'next-auth/react';
+import { Heart } from 'lucide-react';
 
 interface SideBarProps {
   onClose: () => void;
@@ -192,7 +193,7 @@ const SideBar: React.FC<SideBarProps> = ({ onClose, isOpen }) => {
       // { href: '/', text: 'Home', icon: RiHome4Line },
       { href: '/about-us', text: 'About Us', icon: BsInfoCircle },
       { href: '/contact-us', text: 'Contact Us', icon: MdOutlineContactMail },
-      { href: '/wishlist', text: 'Wishlist', icon: MdOutlineContactMail },
+      { href: '/wishlist', text: 'Wishlist', icon: Heart },
     ];
 
     const authenticatedOnlyLinks: NavLinkItem[] = [

@@ -165,12 +165,12 @@ export function AppSidebar() {
                             <span>{item.title}</span>
                           </div>
                           {isContactPage && unreadContactCount > 0 && (
-                            <span className="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center">
+                            <span className="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full min-w-5 text-center">
                               {unreadContactCount}
                             </span>
                           )}
                           {isQuotePage && unreadQuoteCount > 0 && (
-                            <span className="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center">
+                            <span className="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full min-w-5 text-center">
                               {unreadQuoteCount}
                             </span>
                           )}
