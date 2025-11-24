@@ -21,16 +21,6 @@ export default async function EditUserPage({ params }: PageProps) {
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <Link
-        href={`/admin/${type}`}
-        className="inline-flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 mb-6"
-      >
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Back to List
-      </Link>
-
-      <UserEditForm user={user} />
-    </div>
+    <UserEditForm user={user} />
   );
 }

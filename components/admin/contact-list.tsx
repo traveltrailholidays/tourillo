@@ -101,11 +101,11 @@ export const ContactList: React.FC<ContactListProps> = ({ contacts }) => {
   };
 
   return (
-    <div className="rounded bg-foreground p-6">
+    <div className="rounded bg-foreground p-3 sm:p-6">
       <div className="mb-4 flex items-center gap-2">
         <input
-          className="w-full md:max-w-xs px-3 py-2 rounded bg-background"
-          placeholder="Search by name, email, phone, or subject..."
+          className="w-full px-3 py-2 rounded bg-background text-sm md:text-base"
+          placeholder="Search contacts..."
           value={search}
           onChange={(e) => {
             setPage(1);
@@ -113,7 +113,9 @@ export const ContactList: React.FC<ContactListProps> = ({ contacts }) => {
           }}
         />
       </div>
-      <div className="overflow-x-auto">
+
+      {/* Desktop Table View - Hidden on mobile */}
+      <div className="hidden lg:block overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -195,8 +197,102 @@ export const ContactList: React.FC<ContactListProps> = ({ contacts }) => {
           </TableBody>
         </Table>
       </div>
-      <div className="flex justify-between items-center mt-4">
-        <span className="text-sm">
+
+      {/* Mobile Card View - Visible on tablets and below */}
+      <div className="lg:hidden space-y-3">
+        {pageData.length === 0 && (
+          <div className="text-center py-8 text-sm">No contacts found.</div>
+        )}
+        {pageData.map((contact) => (
+          <div
+            key={contact.id}
+            className={`rounded-lg border p-4 space-y-3 ${
+              !contact.isRead ? 'bg-purple-50 dark:bg-purple-900/10 border-purple-200 dark:border-purple-800' : 'bg-background'
+            }`}
+          >
+            {/* Header with status and actions */}
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                {contact.isRead ? (
+                  <MailOpen className="h-4 w-4 text-gray-400 shrink-0" />
+                ) : (
+                  <Mail className="h-4 w-4 text-purple-600 shrink-0" />
+                )}
+                <span className={`text-base truncate ${!contact.isRead ? 'font-semibold' : ''}`}>
+                  {contact.name}
+                </span>
+              </div>
+              <div className="flex gap-1 shrink-0">
+                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleViewContact(contact)} title="View">
+                  <Eye className="h-4 w-4 text-blue-600" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8"
+                  onClick={() => handleToggleRead(contact)}
+                  title={contact.isRead ? 'Mark as unread' : 'Mark as read'}
+                >
+                  {contact.isRead ? (
+                    <Mail className="h-4 w-4 text-gray-600" />
+                  ) : (
+                    <MailOpen className="h-4 w-4 text-purple-600" />
+                  )}
+                </Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setDeleteId(contact.id)} title="Delete">
+                      <Trash2 className="h-4 w-4 text-red-600" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-[95vw] sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Delete this contact?</DialogTitle>
+                      <DialogDescription>
+                        Are you sure you want to delete this contact message? This action cannot be undone.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="flex-col sm:flex-row gap-2">
+                      <DialogClose asChild>
+                        <Button variant="secondary" onClick={() => setDeleteId(null)} className="w-full sm:w-auto">
+                          Cancel
+                        </Button>
+                      </DialogClose>
+                      <Button variant="destructive" onClick={handleDelete} disabled={isDeleting} type="button" className="w-full sm:w-auto">
+                        {isDeleting ? 'Deleting...' : 'Delete'}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </div>
+
+            {/* Contact details */}
+            <div className="space-y-2 text-sm">
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                <span className="text-gray-500 dark:text-gray-400">Email:</span>
+                <span className="break-all">{contact.email}</span>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                <span className="text-gray-500 dark:text-gray-400">Phone:</span>
+                <span>{contact.phone}</span>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                <span className="text-gray-500 dark:text-gray-400">Subject:</span>
+                <span className="text-right sm:max-w-[60%] wrap-break-word">{contact.subject}</span>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                <span className="text-gray-500 dark:text-gray-400">Date:</span>
+                <span>{formatDate(contact.createdAt)}</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Pagination */}
+      <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-3">
+        <span className="text-xs sm:text-sm">
           Page {page} of {totalPages || 1}
         </span>
         <div className="flex gap-2">
@@ -216,22 +312,22 @@ export const ContactList: React.FC<ContactListProps> = ({ contacts }) => {
       {/* View Contact Dialog */}
       {viewContact && (
         <Dialog open={!!viewContact} onOpenChange={() => setViewContact(null)}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-[95vw] sm:max-w-2xl lg:max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Contact Message</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-semibold text-gray-500 dark:text-gray-400">Name</label>
-                  <p className="text-base">{viewContact.name}</p>
+                  <p className="text-base wrap-break-word">{viewContact.name}</p>
                 </div>
                 <div>
                   <label className="text-sm font-semibold text-gray-500 dark:text-gray-400">Email</label>
-                  <p className="text-base">{viewContact.email}</p>
+                  <p className="text-base break-all">{viewContact.email}</p>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-semibold text-gray-500 dark:text-gray-400">Phone</label>
                   <p className="text-base">{viewContact.phone}</p>
@@ -243,18 +339,18 @@ export const ContactList: React.FC<ContactListProps> = ({ contacts }) => {
               </div>
               <div>
                 <label className="text-sm font-semibold text-gray-500 dark:text-gray-400">Subject</label>
-                <p className="text-base">{viewContact.subject}</p>
+                <p className="text-base wrap-break-word">{viewContact.subject}</p>
               </div>
               <div>
                 <label className="text-sm font-semibold text-gray-500 dark:text-gray-400">Message</label>
-                <p className="text-base whitespace-pre-wrap bg-gray-50 dark:bg-gray-800 p-4 rounded">
+                <p className="text-sm sm:text-base whitespace-pre-wrap bg-gray-50 dark:bg-gray-800 p-4 rounded wrap-break-word">
                   {viewContact.message}
                 </p>
               </div>
             </div>
             <DialogFooter>
               <DialogClose asChild>
-                <Button variant="secondary">Close</Button>
+                <Button variant="secondary" className="w-full sm:w-auto">Close</Button>
               </DialogClose>
             </DialogFooter>
           </DialogContent>

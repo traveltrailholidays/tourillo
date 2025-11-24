@@ -67,7 +67,8 @@ const UserEditForm: React.FC<UserEditFormProps> = ({ user }) => {
   };
 
   return (
-    <div className="bg-foreground rounded-lg shadow-lg p-8 max-w-3xl">
+    <div className="mx-auto p-6">
+      <div className="bg-foreground rounded-lg shadow-lg p-8">
       <div className="flex items-center gap-4 mb-8">
         {user.image ? (
           <Image src={user.image} alt={user.name || 'User'} width={80} height={80} className="rounded-full" />
@@ -251,6 +252,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({ user }) => {
           </Button>
         </div>
       </form>
+    </div>
     </div>
   );
 };
