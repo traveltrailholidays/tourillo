@@ -5,6 +5,13 @@ import PackageGrid from '@/components/v1/packages/package-grid';
 import Container from '@/components/v1/container';
 import Section from '@/components/v1/section';
 import PageHero from '@/components/v1/page-hero';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Wishlist',
+  description:
+    'View and manage your saved trips and favorite destinations in the Tourillo wishlist. Easily revisit, compare, and plan the experiences you love for your next adventure.',
+};
 
 export default async function WishlistPage() {
   const session = await auth();

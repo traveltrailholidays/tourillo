@@ -38,26 +38,26 @@ const PaymentsAccordion = () => {
                 Pay in Account
               </AccordionTrigger>
               <AccordionContent>
-                <div className="mt-2 border-[0.125rem] rounded border-border">
+                <div className="mt-2 border-2 rounded border-border">
                   <div className="p-12">
                     <div className="text-violet-600 dark:text-violet-400 font-semibold text-[18px]">
                       <span>Pay the amount in below given account:</span>
                     </div>
                     <div className="text-[17px] mt-5 flex flex-col gap-2">
                       <div>
-                        <span className="font-[500]">Bank Name: </span>
+                        <span className="font-medium">Bank Name: </span>
                         <span>IndusInd Bank</span>
                       </div>
                       <div>
-                        <span className="font-[500]">Account No: </span>
+                        <span className="font-medium">Account No: </span>
                         <span>259625992025</span>
                       </div>
                       <div>
-                        <span className="font-[500]">Account Name: </span>
-                        <span>Tourillo Pvt Ltd. Private Limited</span>
+                        <span className="font-medium">Account Name: </span>
+                        <span>Travel Trail Holidays Pvt Ltd. Private Limited</span>
                       </div>
                       <div>
-                        <span className="font-[500]">IFSC Code: </span>
+                        <span className="font-medium">IFSC Code: </span>
                         <span>INDB0000735</span>
                       </div>
                     </div>
@@ -74,14 +74,14 @@ const PaymentsAccordion = () => {
                 Scan & Pay
               </AccordionTrigger>
               <AccordionContent>
-                <div className="mt-2 border-[0.125rem] rounded border-border">
+                <div className="mt-2 border-2 rounded border-border">
                   <div className="p-12 flex flex-col gap-5">
                     <div className="text-violet-600 dark:text-violet-400 font-semibold text-[18px]">
                       <span>Scan to pay with any BHIM UPI App:</span>
                     </div>
                     <Image src="/images/payment/upi.webp" alt="UPI QR Code" width={200} height={200} quality={100} />
                     <div className="flex flex-col gap-2 text-[16px] font-semibold">
-                      <span>Merchant: Tourillo Pvt Ltd.</span>
+                      <span>Merchant: Travel Trail Holidays Pvt Ltd.</span>
                       <span>UPI ID: 9625992025@upi</span>
                     </div>
                     <Image
@@ -105,7 +105,7 @@ const PaymentsAccordion = () => {
                 Payment Gateway
               </AccordionTrigger>
               <AccordionContent>
-                <div className="mt-2 border-[0.125rem] rounded border-border">
+                <div className="mt-2 border-2 rounded border-border">
                   <div className="p-12">
                     <div className="text-violet-600 dark:text-violet-400 font-semibold text-[18px]">
                       <span>Fill the below details and proceed for the payment:</span>

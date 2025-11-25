@@ -1,5 +1,11 @@
 import Packages from '@/components/v1/packages/packages';
-import React from 'react';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Packages',
+  description:
+    'Browse and manage all packages available in the Tourillo admin panel. Review package details, pricing, availability, and performance insights to efficiently maintain and optimize your platform’s offerings.',
+};
 
 interface PageProps {
   searchParams: Promise<{
