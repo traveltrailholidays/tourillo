@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { getUserById } from '@/lib/actions/user-actions';
 
 import UserEditForm from '@/components/admin/user-edit-form';
+import AdminOnlyWrapper from '@/components/admin-only-layout-wrapper';
 
 export const metadata: Metadata = {
   title: 'Edit Users',
@@ -26,5 +27,9 @@ export default async function EditUserPage({ params }: PageProps) {
     notFound();
   }
 
-  return <UserEditForm user={user} />;
+  return (
+    <AdminOnlyWrapper>
+      <UserEditForm user={user} />
+    </AdminOnlyWrapper>
+  );
 }

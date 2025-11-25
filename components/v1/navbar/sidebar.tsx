@@ -8,7 +8,7 @@ import { IoMdClose } from 'react-icons/io';
 import { AiOutlineUser } from 'react-icons/ai';
 import { RiLogoutCircleRLine } from 'react-icons/ri';
 import { BsInfoCircle } from 'react-icons/bs';
-import { MdOutlineContactMail } from 'react-icons/md';
+import { MdOutlineContactMail, MdDashboard } from 'react-icons/md';
 import ThemeSwitch from '../theme-switch';
 import { useSession, signOut } from 'next-auth/react';
 import { Heart } from 'lucide-react';
@@ -187,6 +187,14 @@ const SideBar: React.FC<SideBarProps> = ({ onClose, isOpen }) => {
     return status === 'authenticated' && !!session?.user && !session?.error;
   }, [status, session]);
 
+  // Check if user is admin or agent
+  const isAdminOrAgent = useMemo(() => {
+    if (!session?.user) return false;
+    // Assuming your session has isAdmin and role properties
+    // Adjust these property names based on your actual session structure
+    return (session.user as any)?.isAdmin === true || (session.user as any)?.isAgent === true;
+  }, [session]);
+
   // Navigation links configuration
   const navLinksConfig = useMemo(() => {
     const baseNavLinks: NavLinkItem[] = [
@@ -195,6 +203,11 @@ const SideBar: React.FC<SideBarProps> = ({ onClose, isOpen }) => {
       { href: '/contact-us', text: 'Contact Us', icon: MdOutlineContactMail },
       { href: '/wishlist', text: 'Wishlist', icon: Heart },
     ];
+
+    // Add dashboard link only for admin or agent users
+    if (isAdminOrAgent) {
+      baseNavLinks.push({ href: '/admin/dashboard', text: 'Dashboard', icon: MdDashboard });
+    }
 
     const authenticatedOnlyLinks: NavLinkItem[] = [
       // { href: '/profile', text: 'Profile', icon: AiOutlineUser }
@@ -208,12 +221,12 @@ const SideBar: React.FC<SideBarProps> = ({ onClose, isOpen }) => {
       };
     }
 
-    // For non-authenticated users, show only base links
+    // For non-authenticated users, show only base links (without dashboard)
     return {
-      smallScreen: baseNavLinks,
-      largeScreen: baseNavLinks,
+      smallScreen: baseNavLinks.filter((link) => link.text !== 'Dashboard'),
+      largeScreen: baseNavLinks.filter((link) => link.text !== 'Dashboard'),
     };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isAdminOrAgent]);
 
   // Event handlers
   const handleLogoutClick = useCallback(() => {
