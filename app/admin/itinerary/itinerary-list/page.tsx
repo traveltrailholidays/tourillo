@@ -3,6 +3,13 @@ import { getAllItineraries } from '@/lib/actions/itinerary-actions';
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Itinerary List',
+  description:
+    'View and manage all travel itineraries in the Tourillo admin panel. Access details, schedules, destinations, and activities to efficiently oversee and update your platform’s travel plans.',
+};
 
 export default async function ItineraryListPage() {
   const itineraries = await getAllItineraries();
@@ -15,7 +22,7 @@ export default async function ItineraryListPage() {
           <p className="text-gray-600 dark:text-gray-400">Manage all travel itineraries</p>
         </div>
         <Link href="/admin/itinerary/create-itinerary">
-          <Button className="flex items-center gap-2 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 hover:opacity-90 text-white">
+          <Button className="flex items-center gap-2 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 hover:opacity-90 text-white cursor-pointer">
             <Plus className="h-4 w-4" />
             Create Itinerary
           </Button>

@@ -1,6 +1,13 @@
 import EditItineraryForm from '@/components/admin/edit-itinerary-form';
 import { getItineraryByTravelId } from '@/lib/actions/itinerary-actions';
 import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Edit Itinerary',
+  description:
+    'Easily update and refine travel itineraries in the Tourillo admin panel. Modify destinations, schedules, activities, and other details to keep travel plans accurate and up-to-date.',
+};
 
 interface PageProps {
   params: Promise<{

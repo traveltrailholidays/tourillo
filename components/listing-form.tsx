@@ -8,6 +8,7 @@ import { Upload, Trash2, Minus, Image as ImageIcon, Save, X } from 'lucide-react
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import { Button } from './ui/button';
 
 interface ListingFormProps {
   initialData?: {
@@ -618,8 +619,8 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
           </div>
 
           {/* Submit Button */}
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-6 justify-end">
-            <button
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-end">
+            <Button
               type="submit"
               disabled={isLoading}
               className="flex items-center justify-center px-6 sm:px-8 py-3 bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-sm transition-all duration-200 transform disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none cursor-pointer"
@@ -632,17 +633,17 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
                 : initialData?.id
                   ? 'Update Package'
                   : 'Create Package'}
-            </button>
+            </Button>
 
             {onCancel && (
-              <button
+              <Button
                 type="button"
                 onClick={onCancel}
                 disabled={isLoading}
                 className="px-6 sm:px-8 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-semibold rounded-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
               >
                 Cancel
-              </button>
+              </Button>
             )}
           </div>
         </form>

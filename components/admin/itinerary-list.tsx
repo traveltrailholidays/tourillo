@@ -141,14 +141,14 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
   };
 
   return (
-    <div className="rounded-xl bg-foreground shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+    <div className="rounded-sm bg-foreground shadow-lg border border-gray-200 dark:border-gray-700 p-6">
       {/* Search and Stats */}
       <div className="mb-6 space-y-4">
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <div className="relative flex-1 max-w-md w-full">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg border-2 border-gray-300 dark:border-gray-600 bg-background focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
+              className="w-full pl-10 pr-4 py-2.5 rounded-sm border-2 border-gray-300 dark:border-gray-600 bg-background focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
               placeholder="Search by Travel ID, client name, phone, or package..."
               value={search}
               onChange={(e) => {
@@ -158,11 +158,11 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
             />
           </div>
           <div className="flex gap-4">
-            <div className="px-4 py-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+            <div className="px-4 py-2 bg-purple-100 dark:bg-purple-900/30 rounded-sm">
               <p className="text-xs text-gray-600 dark:text-gray-400">Total Itineraries</p>
               <p className="text-xl font-bold text-purple-600">{itineraries.length}</p>
             </div>
-            <div className="px-4 py-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+            <div className="px-4 py-2 bg-blue-100 dark:bg-blue-900/30 rounded-sm">
               <p className="text-xs text-gray-600 dark:text-gray-400">Filtered</p>
               <p className="text-xl font-bold text-blue-600">{filtered.length}</p>
             </div>
@@ -171,7 +171,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+      <div className="overflow-x-auto rounded-sm border border-gray-200 dark:border-gray-700">
         <Table>
           <TableHeader>
             <TableRow className="bg-gray-50 dark:bg-gray-800">
@@ -260,7 +260,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
                         size="sm"
                         variant="ghost"
                         title="Edit Itinerary"
-                        className="hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                        className="hover:bg-blue-100 dark:hover:bg-blue-900/30 cursor-pointer"
                       >
                         <Edit className="h-4 w-4 text-blue-600" />
                       </Button>
@@ -270,7 +270,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
                         size="sm"
                         variant="ghost"
                         title="Open Itinerary"
-                        className="hover:bg-green-100 dark:hover:bg-green-900/30"
+                        className="hover:bg-green-100 dark:hover:bg-green-900/30 cursor-pointer"
                       >
                         <Eye className="h-4 w-4 text-green-600" />
                       </Button>
@@ -282,7 +282,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
                         variant="ghost"
                         onClick={() => openDeleteDialog(itinerary.id)}
                         title="Delete (Admin Only)"
-                        className="hover:bg-red-100 dark:hover:bg-red-900/30"
+                        className="hover:bg-red-100 dark:hover:bg-red-900/30 cursor-pointer"
                       >
                         <Trash2 className="h-4 w-4 text-red-600" />
                       </Button>
