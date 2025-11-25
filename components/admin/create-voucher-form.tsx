@@ -8,6 +8,7 @@ import * as z from 'zod';
 import { createVoucher, getItineraryForVoucher } from '@/lib/actions/voucher-actions';
 import toast from 'react-hot-toast';
 import { Search, X, Calendar, Users, Hotel, Car } from 'lucide-react';
+import { Button } from '../ui/button';
 
 const VoucherSchema = z.object({
   travelId: z.string().min(1, 'Travel ID is required'),
@@ -192,20 +193,20 @@ export default function CreateVoucherForm({ itineraries }: CreateVoucherFormProp
   };
 
   const inputClassName =
-    'w-full p-3 border-2 border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200 bg-foreground';
+    'w-full p-3 border-2 border-gray-300 dark:border-gray-700 rounded-sm focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200 bg-foreground';
   const labelClassName = 'block text-sm font-semibold mb-2';
   const errorClassName = 'text-red-500 text-sm mt-1';
 
   return (
     <div className="container mx-auto p-6">
-      <div className="bg-foreground rounded-lg shadow-lg p-8">
-        <h1 className="text-3xl font-bold mb-8 bg-linear-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-          Create Travel Voucher
-        </h1>
-
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Create Voucher</h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">Easily generate vouchers for your travelers.</p>
+      </div>
+      <div className="bg-foreground rounded-sm shadow-lg p-6">
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
           {/* Travel ID Search Section */}
-          <div className="p-6 bg-linear-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg border-2 border-purple-200 dark:border-purple-700">
+          <div className="">
             <label className={labelClassName}>
               Select Travel ID <span className="text-red-500">*</span>
             </label>
@@ -228,7 +229,7 @@ export default function CreateVoucherForm({ itineraries }: CreateVoucherFormProp
                   <button
                     type="button"
                     onClick={handleClearSelection}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer"
                   >
                     <X className="h-5 w-5" />
                   </button>
@@ -237,7 +238,7 @@ export default function CreateVoucherForm({ itineraries }: CreateVoucherFormProp
 
               {/* Dropdown */}
               {showDropdown && !travelId && (
-                <div className="absolute z-50 w-full mt-2 bg-foreground border-2 border-purple-200 dark:border-purple-700 rounded-lg shadow-2xl max-h-96 overflow-y-auto">
+                <div className="absolute z-50 w-full mt-2 bg-foreground border-2 border-purple-200 dark:border-purple-700 rounded-sm shadow-2xl max-h-96 overflow-y-auto">
                   {filteredItineraries.length === 0 ? (
                     <div className="p-6 text-center">
                       <p className="text-gray-500 dark:text-gray-400">No itineraries found</p>
@@ -290,7 +291,7 @@ export default function CreateVoucherForm({ itineraries }: CreateVoucherFormProp
 
           {/* Selected Itinerary Details */}
           {selectedItinerary && (
-            <div className="p-6 bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border-2 border-blue-200 dark:border-blue-700">
+            <div className="p-6 bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-sm border-2 border-blue-200 dark:border-blue-700">
               <h3 className="font-semibold text-lg mb-4 text-blue-700 dark:text-blue-300 flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
                 Selected Itinerary Details
@@ -398,7 +399,7 @@ export default function CreateVoucherForm({ itineraries }: CreateVoucherFormProp
             {fields.map((field, index) => (
               <div
                 key={field.id}
-                className="mb-6 p-6 border-2 border-purple-200 dark:border-purple-800 rounded-lg bg-gray-50 dark:bg-gray-900"
+                className="mb-6 p-6 border-2 border-purple-200 dark:border-purple-800 rounded-sm bg-gray-50 dark:bg-gray-900"
               >
                 <h4 className="font-semibold text-lg mb-4 text-purple-600">Hotel {index + 1}</h4>
                 <div className="space-y-4">
@@ -510,21 +511,21 @@ export default function CreateVoucherForm({ itineraries }: CreateVoucherFormProp
 
           {/* Submit Button */}
           <div className="border-t-2 border-purple-200 dark:border-purple-800 pt-6 flex gap-4 justify-end">
-            <button
+            <Button
               type="button"
               onClick={() => router.back()}
               disabled={isSubmitting}
-              className="py-4 px-10 bg-gray-500 rounded-lg font-semibold text-white hover:bg-gray-600 transition-colors disabled:opacity-50"
+              className="py-4 px-10 bg-gray-500 rounded-sm font-semibold text-white hover:bg-gray-600 transition-colors disabled:opacity-50 cursor-pointer"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={isSubmitting}
-              className="py-4 px-10 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-lg font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transform hover:scale-105"
+              className="py-4 px-10 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-sm font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transform cursor-pointer"
             >
               {isSubmitting ? 'Creating Voucher...' : 'Create Voucher'}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

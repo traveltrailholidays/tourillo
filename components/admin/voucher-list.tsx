@@ -133,14 +133,14 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
   };
 
   return (
-    <div className="rounded-xl bg-foreground shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+    <div className="rounded-sm bg-foreground shadow-lg border border-gray-200 dark:border-gray-700 p-6">
       {/* Search and Stats */}
       <div className="mb-6 space-y-4">
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <div className="relative flex-1 max-w-md w-full">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg border-2 border-gray-300 dark:border-gray-600 bg-background focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
+              className="w-full pl-10 pr-4 py-2.5 rounded-sm border-2 border-gray-300 dark:border-gray-600 bg-background focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
               placeholder="Search by Travel ID, client name, phone, or package..."
               value={search}
               onChange={(e) => {
@@ -150,11 +150,11 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
             />
           </div>
           <div className="flex gap-4">
-            <div className="px-4 py-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+            <div className="px-4 py-2 bg-purple-100 dark:bg-purple-900/30 rounded-sm">
               <p className="text-xs text-gray-600 dark:text-gray-400">Total Vouchers</p>
               <p className="text-xl font-bold text-purple-600">{vouchers.length}</p>
             </div>
-            <div className="px-4 py-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+            <div className="px-4 py-2 bg-blue-100 dark:bg-blue-900/30 rounded-sm">
               <p className="text-xs text-gray-600 dark:text-gray-400">Filtered</p>
               <p className="text-xl font-bold text-blue-600">{filtered.length}</p>
             </div>
@@ -163,7 +163,7 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+      <div className="overflow-x-auto rounded-sm border border-gray-200 dark:border-gray-700">
         <Table>
           <TableHeader>
             <TableRow className="bg-gray-50 dark:bg-gray-800">
@@ -252,7 +252,7 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
                         size="sm"
                         variant="ghost"
                         title="Edit Voucher"
-                        className="hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                        className="hover:bg-blue-100 dark:hover:bg-blue-900/30 cursor-pointer"
                       >
                         <Edit className="h-4 w-4 text-blue-600" />
                       </Button>
@@ -262,7 +262,7 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
                         size="sm"
                         variant="ghost"
                         title="Open Voucher"
-                        className="hover:bg-green-100 dark:hover:bg-green-900/30"
+                        className="hover:bg-green-100 dark:hover:bg-green-900/30 cursor-pointer"
                       >
                         <Eye className="h-4 w-4 text-green-600" />
                       </Button>
@@ -274,7 +274,7 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
                         variant="ghost"
                         onClick={() => openDeleteDialog(voucher.id)}
                         title="Delete (Admin Only)"
-                        className="hover:bg-red-100 dark:hover:bg-red-900/30"
+                        className="hover:bg-red-100 dark:hover:bg-red-900/30 cursor-pointer"
                       >
                         <Trash2 className="h-4 w-4 text-red-600" />
                       </Button>
@@ -324,13 +324,13 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDeleteId(null)} disabled={isDeleting}>
+            <AlertDialogCancel onClick={() => setDeleteId(null)} disabled={isDeleting} className="cursor-pointer">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={isDeleting}
-              className="bg-linear-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-linear-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-white"
             >
               {isDeleting && (
                 <span className="mr-2">

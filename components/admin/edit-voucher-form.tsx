@@ -9,6 +9,7 @@ import { updateVoucher } from '@/lib/actions/voucher-actions';
 import type { VoucherData } from '@/lib/actions/voucher-actions';
 import toast from 'react-hot-toast';
 import { Calendar, Users, Hotel, Car } from 'lucide-react';
+import { Button } from '../ui/button';
 
 const VoucherSchema = z.object({
   travelId: z.string().min(1, 'Travel ID is required'),
@@ -115,20 +116,20 @@ export default function EditVoucherForm({ voucher, itineraries }: EditVoucherFor
   };
 
   const inputClassName =
-    'w-full p-3 border-2 border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200 bg-foreground';
+    'w-full p-3 border-2 border-gray-300 dark:border-gray-700 rounded-sm focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200 bg-foreground';
   const labelClassName = 'block text-sm font-semibold mb-2';
   const errorClassName = 'text-red-500 text-sm mt-1';
 
   return (
     <div className="container mx-auto p-6">
-      <div className="bg-foreground rounded-lg shadow-lg p-8">
-        <h1 className="text-3xl font-bold mb-8 bg-linear-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-          Edit Travel Voucher
-        </h1>
-
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Edit Voucher</h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">Edit vouchers quickly and efficiently</p>
+      </div>
+      <div className="bg-foreground rounded-sm shadow-lg p-6">
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
           {/* Travel ID Display */}
-          <div className="p-6 bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border-2 border-blue-200 dark:border-blue-700">
+          <div className="p-6 bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-sm border-2 border-blue-200 dark:border-blue-700">
             <h3 className="font-semibold text-lg mb-4 text-blue-700 dark:text-blue-300 flex items-center gap-2">
               <Calendar className="h-5 w-5" />
               Itinerary Information
@@ -219,7 +220,7 @@ export default function EditVoucherForm({ voucher, itineraries }: EditVoucherFor
             {fields.map((field, index) => (
               <div
                 key={field.id}
-                className="mb-6 p-6 border-2 border-purple-200 dark:border-purple-800 rounded-lg bg-gray-50 dark:bg-gray-900"
+                className="mb-6 p-6 border-2 border-purple-200 dark:border-purple-800 rounded-sm bg-gray-50 dark:bg-gray-900"
               >
                 <h4 className="font-semibold text-lg mb-4 text-purple-600">Hotel {index + 1}</h4>
                 <div className="space-y-4">
@@ -323,21 +324,21 @@ export default function EditVoucherForm({ voucher, itineraries }: EditVoucherFor
 
           {/* Submit Button */}
           <div className="border-t-2 border-purple-200 dark:border-purple-800 pt-6 flex gap-4 justify-end">
-            <button
+            <Button
               type="button"
               onClick={() => router.push('/admin/voucher/voucher-list')}
               disabled={isSubmitting}
-              className="py-4 px-10 bg-gray-500 rounded-lg font-semibold text-white hover:bg-gray-600 transition-colors disabled:opacity-50"
+              className="py-4 px-10 bg-gray-500 rounded-sm font-semibold text-white hover:bg-gray-600 transition-colors disabled:opacity-50 cursor-pointer"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={isSubmitting}
-              className="py-4 px-10 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-lg font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transform hover:scale-105"
+              className="py-4 px-10 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-sm font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transform cursor-pointer"
             >
               {isSubmitting ? 'Updating Voucher...' : 'Update Voucher'}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

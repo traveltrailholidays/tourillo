@@ -18,7 +18,7 @@ export default async function ItineraryListPage() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold mb-2 ">Itinerary Management</h1>
+          <h1 className="text-3xl font-bold mb-2 ">All Itinerary</h1>
           <p className="text-gray-600 dark:text-gray-400">Manage all travel itineraries</p>
         </div>
         <Link href="/admin/itinerary/create-itinerary">
