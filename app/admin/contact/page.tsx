@@ -1,6 +1,13 @@
 import { ContactList } from '@/components/admin/contact-list';
 import { getAllContacts, getUnreadContactCount } from '@/lib/actions/contact-actions';
 import { Mail } from 'lucide-react';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Contact Messages',
+  description:
+    'View and manage all contact messages in the Tourillo admin panel. Access sender details, message content, and inquiry information to efficiently respond to and handle customer communication.',
+};
 
 const page = async () => {
   const contacts = await getAllContacts();
@@ -13,7 +20,7 @@ const page = async () => {
           <h1 className="text-3xl font-bold mb-2">Contact Messages</h1>
           <p className="text-gray-600 dark:text-gray-400">Manage customer inquiries and messages</p>
         </div>
-        <div className="flex items-center gap-2 bg-purple-100 dark:bg-purple-900/20 px-4 py-2 rounded-lg">
+        <div className="flex items-center gap-2 bg-purple-100 dark:bg-purple-900/20 px-4 py-2 rounded-sm">
           <Mail className="h-5 w-5 text-purple-600 dark:text-purple-400" />
           <span className="font-semibold text-purple-600 dark:text-purple-400">{unreadCount} Unread</span>
         </div>

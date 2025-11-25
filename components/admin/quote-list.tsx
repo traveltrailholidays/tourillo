@@ -152,7 +152,13 @@ export const QuoteList: React.FC<QuoteListProps> = ({ quotes }) => {
                 <TableCell>{quote.days}</TableCell>
                 <TableCell>{formatDate(quote.createdAt)}</TableCell>
                 <TableCell className="flex gap-2">
-                  <Button size="icon" variant="ghost" onClick={() => handleViewQuote(quote)} title="View">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => handleViewQuote(quote)}
+                    title="View"
+                    className="cursor-pointer"
+                  >
                     <Eye className="h-4 w-4 text-blue-600" />
                   </Button>
                   <Button
@@ -160,6 +166,7 @@ export const QuoteList: React.FC<QuoteListProps> = ({ quotes }) => {
                     variant="ghost"
                     onClick={() => handleToggleRead(quote)}
                     title={quote.isRead ? 'Mark as unread' : 'Mark as read'}
+                    className="cursor-pointer"
                   >
                     {quote.isRead ? (
                       <Mail className="h-4 w-4 text-gray-600" />
@@ -169,7 +176,13 @@ export const QuoteList: React.FC<QuoteListProps> = ({ quotes }) => {
                   </Button>
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button size="icon" variant="ghost" onClick={() => setDeleteId(quote.id)} title="Delete">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => setDeleteId(quote.id)}
+                        title="Delete"
+                        className="cursor-pointer"
+                      >
                         <Trash2 className="h-4 w-4 text-red-600" />
                       </Button>
                     </DialogTrigger>
@@ -182,11 +195,17 @@ export const QuoteList: React.FC<QuoteListProps> = ({ quotes }) => {
                       </DialogHeader>
                       <DialogFooter>
                         <DialogClose asChild>
-                          <Button variant="secondary" onClick={() => setDeleteId(null)}>
+                          <Button variant="secondary" onClick={() => setDeleteId(null)} className="cursor-pointer">
                             Cancel
                           </Button>
                         </DialogClose>
-                        <Button variant="destructive" onClick={handleDelete} disabled={isDeleting} type="button">
+                        <Button
+                          variant="destructive"
+                          onClick={handleDelete}
+                          disabled={isDeleting}
+                          type="button"
+                          className="cursor-pointer"
+                        >
                           {isDeleting ? 'Deleting...' : 'Delete'}
                         </Button>
                       </DialogFooter>
@@ -205,7 +224,7 @@ export const QuoteList: React.FC<QuoteListProps> = ({ quotes }) => {
         {pageData.map((quote) => (
           <div
             key={quote.id}
-            className={`rounded-lg border p-4 space-y-3 ${
+            className={`rounded-sm border p-4 space-y-3 ${
               !quote.isRead
                 ? 'bg-purple-50 dark:bg-purple-900/10 border-purple-200 dark:border-purple-800'
                 : 'bg-background'
@@ -225,7 +244,7 @@ export const QuoteList: React.FC<QuoteListProps> = ({ quotes }) => {
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-8 w-8"
+                  className="h-8 w-8 cursor-pointer"
                   onClick={() => handleViewQuote(quote)}
                   title="View"
                 >
@@ -234,7 +253,7 @@ export const QuoteList: React.FC<QuoteListProps> = ({ quotes }) => {
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-8 w-8"
+                  className="h-8 w-8 cursor-pointer"
                   onClick={() => handleToggleRead(quote)}
                   title={quote.isRead ? 'Mark as unread' : 'Mark as read'}
                 >
@@ -249,7 +268,7 @@ export const QuoteList: React.FC<QuoteListProps> = ({ quotes }) => {
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="h-8 w-8"
+                      className="h-8 w-8 cursor-pointer"
                       onClick={() => setDeleteId(quote.id)}
                       title="Delete"
                     >
@@ -265,7 +284,11 @@ export const QuoteList: React.FC<QuoteListProps> = ({ quotes }) => {
                     </DialogHeader>
                     <DialogFooter className="flex-col sm:flex-row gap-2">
                       <DialogClose asChild>
-                        <Button variant="secondary" onClick={() => setDeleteId(null)} className="w-full sm:w-auto">
+                        <Button
+                          variant="secondary"
+                          onClick={() => setDeleteId(null)}
+                          className="w-full sm:w-auto cursor-pointer"
+                        >
                           Cancel
                         </Button>
                       </DialogClose>
@@ -379,7 +402,7 @@ export const QuoteList: React.FC<QuoteListProps> = ({ quotes }) => {
             </div>
             <DialogFooter>
               <DialogClose asChild>
-                <Button variant="secondary" className="w-full sm:w-auto">
+                <Button variant="secondary" className="w-full sm:w-auto cursor-pointer">
                   Close
                 </Button>
               </DialogClose>

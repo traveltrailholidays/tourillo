@@ -151,7 +151,13 @@ export const ContactList: React.FC<ContactListProps> = ({ contacts }) => {
                 <TableCell className="max-w-xs truncate">{contact.subject}</TableCell>
                 <TableCell>{formatDate(contact.createdAt)}</TableCell>
                 <TableCell className="flex gap-2">
-                  <Button size="icon" variant="ghost" onClick={() => handleViewContact(contact)} title="View">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => handleViewContact(contact)}
+                    title="View"
+                    className="cursor-pointer"
+                  >
                     <Eye className="h-4 w-4 text-blue-600" />
                   </Button>
                   <Button
@@ -159,6 +165,7 @@ export const ContactList: React.FC<ContactListProps> = ({ contacts }) => {
                     variant="ghost"
                     onClick={() => handleToggleRead(contact)}
                     title={contact.isRead ? 'Mark as unread' : 'Mark as read'}
+                    className="cursor-pointer"
                   >
                     {contact.isRead ? (
                       <Mail className="h-4 w-4 text-gray-600" />
@@ -168,7 +175,13 @@ export const ContactList: React.FC<ContactListProps> = ({ contacts }) => {
                   </Button>
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button size="icon" variant="ghost" onClick={() => setDeleteId(contact.id)} title="Delete">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => setDeleteId(contact.id)}
+                        title="Delete"
+                        className="cursor-pointer"
+                      >
                         <Trash2 className="h-4 w-4 text-red-600" />
                       </Button>
                     </DialogTrigger>
@@ -181,11 +194,17 @@ export const ContactList: React.FC<ContactListProps> = ({ contacts }) => {
                       </DialogHeader>
                       <DialogFooter>
                         <DialogClose asChild>
-                          <Button variant="secondary" onClick={() => setDeleteId(null)}>
+                          <Button variant="secondary" onClick={() => setDeleteId(null)} className="cursor-pointer">
                             Cancel
                           </Button>
                         </DialogClose>
-                        <Button variant="destructive" onClick={handleDelete} disabled={isDeleting} type="button">
+                        <Button
+                          variant="destructive"
+                          onClick={handleDelete}
+                          disabled={isDeleting}
+                          type="button"
+                          className="cursor-pointer"
+                        >
                           {isDeleting ? 'Deleting...' : 'Delete'}
                         </Button>
                       </DialogFooter>
@@ -204,7 +223,7 @@ export const ContactList: React.FC<ContactListProps> = ({ contacts }) => {
         {pageData.map((contact) => (
           <div
             key={contact.id}
-            className={`rounded-lg border p-4 space-y-3 ${
+            className={`rounded-sm border p-4 space-y-3 ${
               !contact.isRead
                 ? 'bg-purple-50 dark:bg-purple-900/10 border-purple-200 dark:border-purple-800'
                 : 'bg-background'
@@ -233,7 +252,7 @@ export const ContactList: React.FC<ContactListProps> = ({ contacts }) => {
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-8 w-8"
+                  className="h-8 w-8 cursor-pointer"
                   onClick={() => handleToggleRead(contact)}
                   title={contact.isRead ? 'Mark as unread' : 'Mark as read'}
                 >
@@ -366,7 +385,7 @@ export const ContactList: React.FC<ContactListProps> = ({ contacts }) => {
             </div>
             <DialogFooter>
               <DialogClose asChild>
-                <Button variant="secondary" className="w-full sm:w-auto">
+                <Button variant="secondary" className="w-full sm:w-auto cursor-pointer">
                   Close
                 </Button>
               </DialogClose>
