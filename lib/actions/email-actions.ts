@@ -141,10 +141,10 @@ export async function sendDynamicEmail({ formType, data, customSubject }: EmailO
       customSubject ||
       (data.subject ? `${data.subject} - ${formTitle} from ${userName}` : `New ${formTitle} from ${userName}`);
 
-    // Email options - ALWAYS send to diwakarjha554@gmail.com
+    // Email options - ALWAYS send to mytourillo@gmail.com
     const mailOptions = {
       from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
-      to: 'diwakarjha554@gmail.com',
+      to: 'mytourillo@gmail.com',
       replyTo: userEmail || process.env.EMAIL_FROM,
       subject: emailSubject,
       html: `
