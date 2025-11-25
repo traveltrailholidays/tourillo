@@ -1,4 +1,5 @@
 import CreateItinerary from '@/components/admin/create-itinerary';
+import { getAllItinerariesForClone } from '@/lib/actions/itinerary-actions';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -7,8 +8,9 @@ export const metadata: Metadata = {
     'Easily create new travel itineraries in the Tourillo admin panel. Add destinations, schedules, activities, and other details to design seamless journeys for your travelers.',
 };
 
-const page = () => {
-  return <CreateItinerary />;
+const page = async () => {
+  const itinerariesForClone = await getAllItinerariesForClone();
+  return <CreateItinerary itinerariesForClone={itinerariesForClone} />;
 };
 
 export default page;

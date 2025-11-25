@@ -266,3 +266,62 @@ export async function updateItinerary(travelId: string, data: z.infer<typeof iti
     throw new Error(error instanceof Error ? error.message : 'Failed to update itinerary');
   }
 }
+
+export async function getAllItinerariesForClone() {
+  try {
+    const itineraries = await prisma.itinerary.findMany({
+      select: {
+        travelId: true,
+        clientName: true,
+        packageTitle: true,
+        numberOfDays: true,
+        numberOfNights: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return itineraries;
+  } catch (error) {
+    console.error(error);
+    throw new Error('Failed to fetch itineraries');
+  }
+}
+
+// Get complete itinerary data for cloning
+export async function getItineraryForClone(travelId: string) {
+  try {
+    const itinerary = await prisma.itinerary.findUnique({
+      where: { travelId },
+    });
+
+    if (!itinerary) {
+      return null;
+    }
+
+    // Return all data except id, travelId, and timestamps
+    return {
+      clientName: itinerary.clientName,
+      clientPhone: itinerary.clientPhone,
+      clientEmail: itinerary.clientEmail,
+      packageTitle: itinerary.packageTitle,
+      numberOfDays: itinerary.numberOfDays,
+      numberOfNights: itinerary.numberOfNights,
+      numberOfHotels: itinerary.numberOfHotels,
+      tripAdvisorName: itinerary.tripAdvisorName,
+      tripAdvisorNumber: itinerary.tripAdvisorNumber,
+      cabs: itinerary.cabs,
+      flights: itinerary.flights,
+      quotePrice: itinerary.quotePrice,
+      pricePerPerson: itinerary.pricePerPerson,
+      days: itinerary.days as unknown as DayData[],
+      hotels: itinerary.hotels as unknown as HotelData[],
+      inclusions: itinerary.inclusions as unknown as string[],
+      exclusions: itinerary.exclusions as unknown as string[],
+    };
+  } catch (error) {
+    console.error(error);
+    throw new Error('Failed to fetch itinerary for cloning');
+  }
+}
