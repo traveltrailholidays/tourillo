@@ -69,7 +69,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, disa
         inline: true,
         allowBase64: true,
         HTMLAttributes: {
-          class: 'max-w-full h-auto rounded-lg my-4',
+          class: 'max-w-full h-auto rounded-sm my-4',
         },
       }),
     ],
@@ -142,7 +142,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, disa
   );
 
   if (!editor) {
-    return <div className="h-[350px] bg-gray-100 dark:bg-gray-800 animate-pulse rounded-lg" />;
+    return <div className="h-[350px] bg-gray-100 dark:bg-gray-800 animate-pulse rounded-sm" />;
   }
 
   const ToolbarButton = ({
@@ -191,7 +191,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, disa
   const highlightColors = ['#ffeb3b', '#4caf50', '#2196f3', '#ff9800', '#e91e63', '#9c27b0'];
 
   return (
-    <div className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-white dark:bg-gray-800">
+    <div className="border border-gray-300 dark:border-gray-600 rounded-sm overflow-hidden bg-white dark:bg-gray-800">
       {/* Toolbar */}
       <div className="bg-gray-50 dark:bg-gray-700 p-2 border-b border-gray-300 dark:border-gray-600 flex flex-wrap gap-1">
         {/* Text Formatting */}
@@ -322,7 +322,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, disa
               <Palette className="h-4 w-4" />
             </ToolbarButton>
             {showColorPicker && (
-              <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg p-2 z-50 grid grid-cols-7 gap-1">
+              <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-sm shadow-lg p-2 z-50 grid grid-cols-7 gap-1">
                 {textColors.map((color) => (
                   <button
                     key={color}
@@ -359,7 +359,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, disa
               <Highlighter className="h-4 w-4" />
             </ToolbarButton>
             {showHighlightPicker && (
-              <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg p-2 z-50 flex gap-1">
+              <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-sm shadow-lg p-2 z-50 flex gap-1">
                 {highlightColors.map((color) => (
                   <button
                     key={color}

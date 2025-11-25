@@ -9,11 +9,13 @@ import Image from 'next/image';
 import toast from 'react-hot-toast';
 import dynamic from 'next/dynamic';
 import CreatableSelect from 'react-select/creatable';
+import { Button } from '../ui/button';
+import { useDarkMode } from '@/hooks/useDarkMode'; // Import the hook
 
 // Dynamically import RichTextEditor to avoid SSR issues
 const RichTextEditor = dynamic(() => import('@/components/admin/rich-text-editor'), {
   ssr: false,
-  loading: () => <div className="h-[400px] bg-gray-100 dark:bg-gray-800 animate-pulse rounded-lg" />,
+  loading: () => <div className="h-[400px] bg-gray-100 dark:bg-gray-800 animate-pulse rounded-sm" />,
 });
 
 interface BlogFormProps {
@@ -47,6 +49,7 @@ const defaultCategoryOptions = [
 const BlogForm: React.FC<BlogFormProps> = ({ initialData, onCancel }) => {
   const router = useRouter();
   const isEditMode = !!initialData?.id;
+  const isDark = useDarkMode(); // Use dark mode hook
 
   // For create operations with useActionState
   const [createState, createFormAction, isCreating] = useActionState(createBlogWithState, {
@@ -315,15 +318,20 @@ const BlogForm: React.FC<BlogFormProps> = ({ initialData, onCancel }) => {
 
   return (
     <div className="mx-auto p-3 sm:p-6">
-      <div className="bg-foreground rounded-lg shadow-lg p-4 sm:p-8">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-            {isEditMode ? 'Edit Blog Post' : 'Create New Blog Post'}
-          </h1>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          {isEditMode ? 'Edit Blog Post' : 'Create Blog Post'}
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">
+          {isEditMode ? 'Easily edit and update your blog posts.' : 'Easily create and publish new blog posts'}
+        </p>
+      </div>
+      <div className="bg-foreground rounded-sm shadow-lg p-4 sm:p-6">
+        <div className="flex items-center justify-between">
           {onCancel && (
             <button
               onClick={onCancel}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-sm transition-colors"
             >
               <X className="h-5 w-5" />
             </button>
@@ -332,7 +340,7 @@ const BlogForm: React.FC<BlogFormProps> = ({ initialData, onCancel }) => {
 
         {/* Success Message */}
         {state.success && (
-          <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-green-700 dark:text-green-400 flex items-center">
+          <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-sm text-green-700 dark:text-green-400 flex items-center">
             <CheckCircle className="h-5 w-5 mr-2" />
             {isEditMode ? 'Blog post updated successfully!' : 'Blog post created successfully!'}
           </div>
@@ -359,7 +367,7 @@ const BlogForm: React.FC<BlogFormProps> = ({ initialData, onCancel }) => {
                 defaultValue={initialData?.title}
                 required
                 disabled={isPending}
-                className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-background disabled:opacity-50 ${
+                className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border rounded-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-background disabled:opacity-50 ${
                   getFieldError('title') ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-700'
                 }`}
                 placeholder="Enter blog title..."
@@ -381,7 +389,7 @@ const BlogForm: React.FC<BlogFormProps> = ({ initialData, onCancel }) => {
                 defaultValue={initialData?.excerpt}
                 required
                 disabled={isPending}
-                className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-background resize-none disabled:opacity-50 ${
+                className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border rounded-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-background resize-none disabled:opacity-50 ${
                   getFieldError('excerpt')
                     ? 'border-red-500 dark:border-red-500'
                     : 'border-gray-300 dark:border-gray-700'
@@ -393,7 +401,7 @@ const BlogForm: React.FC<BlogFormProps> = ({ initialData, onCancel }) => {
               )}
             </div>
 
-            {/* Category - Creatable Select */}
+            {/* Category - Theme-Aware Creatable Select */}
             <div>
               <label htmlFor="category" className="block text-sm font-medium mb-2">
                 Category *
@@ -406,27 +414,30 @@ const BlogForm: React.FC<BlogFormProps> = ({ initialData, onCancel }) => {
                 isDisabled={isPending}
                 isClearable
                 placeholder="Select or create category..."
-                className="text-sm sm:text-base "
+                className="text-sm sm:text-base"
                 classNamePrefix="select"
                 styles={{
                   control: (base, state) => ({
                     ...base,
                     minHeight: '44px',
-                    backgroundColor: 'var(--background)',
+                    backgroundColor: isDark ? '#000' : '#ffffff',
                     borderColor: getFieldError('category')
                       ? '#ef4444'
                       : state.isFocused
                         ? '#a855f7'
-                        : 'rgb(209 213 219)',
+                        : isDark
+                          ? '#374151'
+                          : '#d1d5db',
                     '&:hover': {
-                      borderColor: state.isFocused ? '#a855f7' : 'rgb(156 163 175)',
+                      borderColor: state.isFocused ? '#a855f7' : isDark ? '#4b5563' : '#9ca3af',
                     },
                     boxShadow: state.isFocused ? '0 0 0 2px rgba(168, 85, 247, 0.2)' : 'none',
                   }),
 
                   menu: (base) => ({
                     ...base,
-                    backgroundColor: 'var(--background)',
+                    backgroundColor: isDark ? '#000' : '#ffffff',
+                    border: isDark ? '1px solid #374151' : '1px solid #e5e7eb',
                     zIndex: 50,
                   }),
 
@@ -435,9 +446,13 @@ const BlogForm: React.FC<BlogFormProps> = ({ initialData, onCancel }) => {
                     backgroundColor: state.isSelected
                       ? '#a855f7'
                       : state.isFocused
-                        ? 'rgb(243 232 255)'
-                        : 'var(--background)',
-                    color: state.isSelected ? 'white' : '#000',
+                        ? isDark
+                          ? '#374151'
+                          : '#f3e8ff'
+                        : isDark
+                          ? '#000'
+                          : '#ffffff',
+                    color: state.isSelected ? '#ffffff' : isDark ? '#f9fafb' : '#111827',
                     '&:active': {
                       backgroundColor: '#a855f7',
                     },
@@ -445,36 +460,57 @@ const BlogForm: React.FC<BlogFormProps> = ({ initialData, onCancel }) => {
 
                   singleValue: (base) => ({
                     ...base,
-                    color: '#000',
+                    color: isDark ? '#f9fafb' : '#111827',
                   }),
 
                   input: (base) => ({
                     ...base,
-                    color: '#000',
+                    color: isDark ? '#f9fafb' : '#111827',
                   }),
 
                   placeholder: (base) => ({
                     ...base,
-                    color: '#000',
+                    color: isDark ? '#9ca3af' : '#6b7280',
                   }),
 
                   multiValue: (base) => ({
                     ...base,
-                    backgroundColor: 'rgb(243 232 255)',
+                    backgroundColor: isDark ? '#374151' : '#f3e8ff',
                   }),
 
                   multiValueLabel: (base) => ({
                     ...base,
-                    color: '#000',
+                    color: isDark ? '#f9fafb' : '#111827',
                   }),
 
                   multiValueRemove: (base) => ({
                     ...base,
-                    color: '#000',
+                    color: isDark ? '#f9fafb' : '#111827',
                     '&:hover': {
-                      backgroundColor: 'rgb(233 213 255)',
-                      color: '#000',
+                      backgroundColor: isDark ? '#4b5563' : '#e9d5ff',
+                      color: isDark ? '#ffffff' : '#111827',
                     },
+                  }),
+
+                  dropdownIndicator: (base) => ({
+                    ...base,
+                    color: isDark ? '#9ca3af' : '#6b7280',
+                    '&:hover': {
+                      color: isDark ? '#d1d5db' : '#374151',
+                    },
+                  }),
+
+                  clearIndicator: (base) => ({
+                    ...base,
+                    color: isDark ? '#9ca3af' : '#6b7280',
+                    '&:hover': {
+                      color: isDark ? '#d1d5db' : '#374151',
+                    },
+                  }),
+
+                  indicatorSeparator: (base) => ({
+                    ...base,
+                    backgroundColor: isDark ? '#374151' : '#d1d5db',
                   }),
                 }}
                 theme={(theme) => ({
@@ -482,22 +518,22 @@ const BlogForm: React.FC<BlogFormProps> = ({ initialData, onCancel }) => {
                   colors: {
                     ...theme.colors,
                     primary: '#a855f7',
-                    primary25: 'rgb(243 232 255)',
-                    primary50: 'rgb(233 213 255)',
-                    primary75: 'rgb(216 180 254)',
+                    primary25: isDark ? '#374151' : '#f3e8ff',
+                    primary50: isDark ? '#4b5563' : '#e9d5ff',
+                    primary75: isDark ? '#6b7280' : '#d8b4fe',
                     danger: '#ef4444',
-                    dangerLight: 'rgb(254 226 226)',
-                    neutral0: 'var(--background)',
-                    neutral5: 'rgb(249 250 251)',
-                    neutral10: 'rgb(243 244 246)',
-                    neutral20: 'rgb(229 231 235)',
-                    neutral30: 'rgb(209 213 219)',
-                    neutral40: 'rgb(156 163 175)',
-                    neutral50: 'rgb(107 114 128)',
-                    neutral60: 'rgb(75 85 99)',
-                    neutral70: 'rgb(55 65 81)',
-                    neutral80: 'var(--foreground)',
-                    neutral90: 'var(--foreground)',
+                    dangerLight: isDark ? '#7f1d1d' : '#fee2e2',
+                    neutral0: isDark ? '#000' : '#ffffff',
+                    neutral5: isDark ? '#000' : '#f9fafb',
+                    neutral10: isDark ? '#374151' : '#f3f4f6',
+                    neutral20: isDark ? '#4b5563' : '#e5e7eb',
+                    neutral30: isDark ? '#6b7280' : '#d1d5db',
+                    neutral40: isDark ? '#9ca3af' : '#9ca3af',
+                    neutral50: isDark ? '#d1d5db' : '#6b7280',
+                    neutral60: isDark ? '#e5e7eb' : '#4b5563',
+                    neutral70: isDark ? '#f3f4f6' : '#374151',
+                    neutral80: isDark ? '#f9fafb' : '#000',
+                    neutral90: isDark ? '#ffffff' : '#111827',
                   },
                 })}
               />
@@ -518,7 +554,7 @@ const BlogForm: React.FC<BlogFormProps> = ({ initialData, onCancel }) => {
                 defaultValue={initialData?.author}
                 required
                 disabled={isPending}
-                className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-background disabled:opacity-50 ${
+                className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border rounded-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-background disabled:opacity-50 ${
                   getFieldError('author')
                     ? 'border-red-500 dark:border-red-500'
                     : 'border-gray-300 dark:border-gray-700'
@@ -542,7 +578,7 @@ const BlogForm: React.FC<BlogFormProps> = ({ initialData, onCancel }) => {
                 defaultValue={initialData?.readTime}
                 required
                 disabled={isPending}
-                className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-background disabled:opacity-50 ${
+                className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border rounded-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-background disabled:opacity-50 ${
                   getFieldError('readTime')
                     ? 'border-red-500 dark:border-red-500'
                     : 'border-gray-300 dark:border-gray-700'
@@ -569,10 +605,10 @@ const BlogForm: React.FC<BlogFormProps> = ({ initialData, onCancel }) => {
                   alt="Preview"
                   width={400}
                   height={250}
-                  className="rounded-lg object-cover border-2 border-gray-200 dark:border-gray-700 w-full max-w-md h-48 sm:h-64"
+                  className="rounded-sm object-cover border-2 border-gray-200 dark:border-gray-700 w-full max-w-md h-48 sm:h-64"
                   unoptimized={!hasExistingImage}
                 />
-                <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg flex items-center justify-center max-w-md">
+                <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-sm flex items-center justify-center max-w-md">
                   <div className="flex gap-2">
                     <button
                       type="button"
@@ -602,7 +638,7 @@ const BlogForm: React.FC<BlogFormProps> = ({ initialData, onCancel }) => {
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
                 onDrop={handleDrop}
-                className={`border-2 border-dashed rounded-lg p-6 sm:p-8 text-center transition-all duration-200 ${
+                className={`border-2 border-dashed rounded-sm p-6 sm:p-8 text-center transition-all duration-200 ${
                   isPending ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                 } ${
                   dragActive
@@ -681,25 +717,25 @@ const BlogForm: React.FC<BlogFormProps> = ({ initialData, onCancel }) => {
           </div>
 
           {/* Submit Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-6">
-            <button
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-end">
+            <Button
               type="submit"
               disabled={isPending}
-              className="flex items-center justify-center px-6 py-3 bg-linear-to-r from-indigo-500 hover:from-indigo-600 via-purple-500 hover:via-purple-600 to-pink-500 hover:to-pink-600 text-white font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+              className="flex items-center justify-center px-6 py-3 bg-linear-to-r from-indigo-500 hover:from-indigo-600 via-purple-500 hover:via-purple-600 to-pink-500 hover:to-pink-600 text-white font-medium rounded-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg cursor-pointer"
             >
               <Save className="h-4 w-4 mr-2" />
               {isPending ? (isEditMode ? 'Updating...' : 'Creating...') : isEditMode ? 'Update Post' : 'Create Post'}
-            </button>
+            </Button>
 
             {onCancel && (
-              <button
+              <Button
                 type="button"
                 onClick={onCancel}
                 disabled={isPending}
-                className="px-6 py-3 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+                className="px-6 py-3 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50 cursor-pointer"
               >
                 Cancel
-              </button>
+              </Button>
             )}
           </div>
         </form>

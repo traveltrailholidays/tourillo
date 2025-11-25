@@ -116,7 +116,7 @@ export const BlogList: React.FC<BlogListProps> = ({ blogs }) => {
             {pageData.map((blog) => (
               <TableRow key={blog.id}>
                 <TableCell>
-                  <Link href={`/blogs/${blog.slug}`} className="hover:underline capitalize font-medium">
+                  <Link href={`/blogs/${blog.slug}`} className="hover:underline capitalize font-medium" target="_blank">
                     {blog.title}
                   </Link>
                 </TableCell>
@@ -153,13 +153,19 @@ export const BlogList: React.FC<BlogListProps> = ({ blogs }) => {
                 <TableCell className="text-sm">{formatDate(blog.createdAt)}</TableCell>
                 <TableCell className="flex gap-2">
                   <Link href={`/admin/blog/edit/${blog.id}`}>
-                    <Button size="icon" variant="ghost" title="Edit">
+                    <Button size="icon" variant="ghost" title="Edit" className="cursor-pointer">
                       <Pencil className="h-4 w-4 text-purple-600" />
                     </Button>
                   </Link>
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button size="icon" variant="ghost" onClick={() => setDeleteId(blog.id)} title="Delete">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => setDeleteId(blog.id)}
+                        title="Delete"
+                        className="cursor-pointer"
+                      >
                         <Trash2 className="h-4 w-4 text-red-600" />
                       </Button>
                     </DialogTrigger>
@@ -172,11 +178,17 @@ export const BlogList: React.FC<BlogListProps> = ({ blogs }) => {
                       </DialogHeader>
                       <DialogFooter>
                         <DialogClose asChild>
-                          <Button variant="secondary" onClick={() => setDeleteId(null)}>
+                          <Button variant="secondary" onClick={() => setDeleteId(null)} className="cursor-pointer">
                             Cancel
                           </Button>
                         </DialogClose>
-                        <Button variant="destructive" onClick={handleDelete} disabled={isDeleting} type="button">
+                        <Button
+                          variant="destructive"
+                          onClick={handleDelete}
+                          disabled={isDeleting}
+                          type="button"
+                          className="cursor-pointer"
+                        >
                           {isDeleting ? 'Deleting...' : 'Delete'}
                         </Button>
                       </DialogFooter>
