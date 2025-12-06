@@ -144,9 +144,7 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
                     lastModified: Date.now(),
                   });
 
-                  console.log(
-                    `Original: ${(file.size / (1024 * 1024)).toFixed(2)}MB → Compressed: ${sizeInMB.toFixed(2)}MB`
-                  );
+                  // console.log(`Original: ${(file.size / (1024 * 1024)).toFixed(2)}MB → Compressed: ${sizeInMB.toFixed(2)}MB`);
                   resolve(compressedFile);
                 } else {
                   // Reduce quality and try again

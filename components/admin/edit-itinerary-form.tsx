@@ -65,9 +65,7 @@ const compressImage = async (file: File): Promise<File> => {
                   lastModified: Date.now(),
                 });
 
-                console.log(
-                  `Original: ${(file.size / (1024 * 1024)).toFixed(2)}MB → Compressed: ${sizeInMB.toFixed(2)}MB`
-                );
+                // console.log(`Original: ${(file.size / (1024 * 1024)).toFixed(2)}MB → Compressed: ${sizeInMB.toFixed(2)}MB`);
                 resolve(compressedFile);
               } else {
                 quality -= 0.1;

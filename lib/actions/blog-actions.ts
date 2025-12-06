@@ -253,7 +253,7 @@ export async function getAllBlogs() {
       },
     });
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     throw new Error('Failed to fetch blogs');
   }
 }
@@ -283,7 +283,7 @@ export async function getPublishedBlogs() {
       },
     });
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     throw new Error('Failed to fetch published blogs');
   }
 }
@@ -311,7 +311,7 @@ export async function getBlogBySlug(slug: string) {
       where: { slug },
     });
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     throw new Error('Failed to fetch blog');
   }
 }
@@ -329,7 +329,7 @@ export async function getBlogsByCategory(category: string) {
       },
     });
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     throw new Error('Failed to fetch blogs by category');
   }
 }
@@ -347,7 +347,7 @@ export async function getFeaturedBlogs() {
       },
     });
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     throw new Error('Failed to fetch featured blogs');
   }
 }

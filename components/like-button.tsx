@@ -69,7 +69,7 @@ export default function LikeButton({
     } catch (error) {
       setIsLiked(!isLiked); // Revert on error
       toast.error('Something went wrong');
-      console.log(error);
+      // console.log(error);
     } finally {
       setIsLoading(false);
     }

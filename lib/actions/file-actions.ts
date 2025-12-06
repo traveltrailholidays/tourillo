@@ -71,7 +71,7 @@ export async function uploadBlogImage(formData: FormData): Promise<ImageUploadRe
     const buffer = Buffer.from(arrayBuffer);
 
     const originalSizeInMB = buffer.length / (1024 * 1024);
-    console.log(`Received compressed file: ${originalSizeInMB.toFixed(2)}MB`);
+    // console.log(`Received compressed file: ${originalSizeInMB.toFixed(2)}MB`);
 
     // Light optimization to ensure consistent format
     const optimizedBuffer = await sharp(buffer)
@@ -82,7 +82,7 @@ export async function uploadBlogImage(formData: FormData): Promise<ImageUploadRe
       .toBuffer();
 
     const finalSizeInMB = optimizedBuffer.length / (1024 * 1024);
-    console.log(`Final optimized size: ${finalSizeInMB.toFixed(2)}MB`);
+    // console.log(`Final optimized size: ${finalSizeInMB.toFixed(2)}MB`);
 
     await fs.writeFile(filePath, optimizedBuffer);
 
@@ -117,7 +117,7 @@ export async function deleteBlogImage(imagePath: string): Promise<boolean> {
     const fullPath = path.join(uploadDir, fileName);
 
     await fs.unlink(fullPath);
-    console.log('Image deleted successfully:', fullPath);
+    // console.log('Image deleted successfully:', fullPath);
     return true;
   } catch (error) {
     console.error('Error deleting image:', error);

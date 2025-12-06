@@ -34,7 +34,7 @@ export const authConfig = {
           await prisma.session.deleteMany({
             where: { userId: message.token.sub },
           });
-          console.log(`Sessions cleaned up for user: ${message.token.sub}`);
+          // // console.log(`Sessions cleaned up for user: ${message.token.sub}`);
         } catch (error) {
           console.error('Error cleaning up sessions:', error);
         }
@@ -42,7 +42,7 @@ export const authConfig = {
     },
     async signIn(message) {
       if (message.user?.id && message.user?.email) {
-        console.log(`User ${message.user.email} signed in with ${message.account?.provider}`);
+        // console.log(`User ${message.user.email} signed in with ${message.account?.provider}`);
 
         try {
           await prisma.user.update({
@@ -82,7 +82,7 @@ export const authConfig = {
             }
 
             // If user doesn't exist, allow them to sign up (Auth.js will create the user)
-            console.log(`New user signing up: ${user.email}`);
+            // console.log(`New user signing up: ${user.email}`);
             return true;
           } catch (error) {
             console.error('Error during sign in validation:', error);
@@ -191,7 +191,7 @@ export const authConfig = {
           return Response.redirect(loginUrl);
         }
         if (!auth?.user?.isAdmin) {
-          console.log(auth);
+          // console.log(auth);
           // return Response.redirect(new URL('/', nextUrl))
         }
         return true;

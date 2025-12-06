@@ -40,7 +40,7 @@ export async function invalidateUserSessions(userId: string) {
       where: { userId },
     });
 
-    console.log(`Invalidated ${deletedSessions.count} sessions for user: ${userId}`);
+    // console.log(`Invalidated ${deletedSessions.count} sessions for user: ${userId}`);
     return deletedSessions.count;
   } catch (error) {
     console.error(`Failed to invalidate sessions for user ${userId}:`, error);
@@ -67,7 +67,7 @@ export async function deactivateUser(userId: string) {
       });
     });
 
-    console.log(`User ${userId} deactivated and sessions cleared`);
+    // console.log(`User ${userId} deactivated and sessions cleared`);
   } catch (error) {
     console.error(`Failed to deactivate user ${userId}:`, error);
     throw error;
@@ -81,7 +81,7 @@ export async function deleteUser(userId: string) {
       where: { id: userId },
     });
 
-    console.log(`User ${userId} deleted successfully`);
+    // console.log(`User ${userId} deleted successfully`);
   } catch (error) {
     console.error(`Failed to delete user ${userId}:`, error);
     throw error;
@@ -99,7 +99,7 @@ export async function reactivateUser(userId: string) {
       },
     });
 
-    console.log(`User ${userId} reactivated successfully`);
+    // console.log(`User ${userId} reactivated successfully`);
     return user;
   } catch (error) {
     console.error(`Failed to reactivate user ${userId}:`, error);

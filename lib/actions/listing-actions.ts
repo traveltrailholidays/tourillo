@@ -55,7 +55,7 @@ export async function createListing(formData: FormData) {
     const imageFile = formData.get('image') as File;
 
     if (imageFile && imageFile.size > 0) {
-      console.log(`Processing image upload: ${imageFile.size} bytes`);
+      // console.log(`Processing image upload: ${imageFile.size} bytes`);
       const imageFormData = new FormData();
       imageFormData.append('file', imageFile);
 
@@ -64,7 +64,7 @@ export async function createListing(formData: FormData) {
         throw new Error(uploadResult.error || 'Image upload failed');
       }
       imageSrc = uploadResult.imagePath || '';
-      console.log(`Image uploaded successfully: ${imageSrc}`);
+      // console.log(`Image uploaded successfully: ${imageSrc}`);
     }
 
     // Parse itinerary array
@@ -274,7 +274,7 @@ export async function getAllListings() {
       },
     });
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     throw new Error('Failed to fetch listings');
   }
 }
@@ -290,7 +290,7 @@ export async function getAllListingsForTable() {
       createdAt: listing.createdAt.toISOString(),
     }));
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     throw new Error('Failed to fetch listings for table');
   }
 }
@@ -323,7 +323,7 @@ export async function getPublicListings(category?: string) {
 
     return listings.map(toSafeListing);
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     throw new Error('Failed to fetch public listings');
   }
 }
@@ -347,7 +347,7 @@ export async function searchListings(query: string) {
 
     return listings.map(toSafeListing);
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     throw new Error('Failed to search listings');
   }
 }
@@ -378,7 +378,7 @@ export async function getFeaturedListings() {
       totalCount,
     };
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     throw new Error('Failed to fetch featured listings');
   }
 }
@@ -419,7 +419,7 @@ export async function getWeekendListings() {
       totalCount,
     };
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     throw new Error('Failed to fetch weekend listings');
   }
 }
@@ -441,7 +441,7 @@ export async function getDiscountedListings() {
 
     return listings.map(toSafeListing);
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     throw new Error('Failed to fetch discounted listings');
   }
 }
@@ -458,7 +458,7 @@ export async function getCategories() {
 
     return categories.map((cat) => cat.category);
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     throw new Error('Failed to fetch categories');
   }
 }

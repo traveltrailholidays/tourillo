@@ -18,7 +18,7 @@ transporter.verify((error, success) => {
   if (error) {
     console.error('SMTP connection error:', error);
   } else {
-    console.log('SMTP server is ready to send emails');
+    // console.log('SMTP server is ready to send emails');
   }
 });
 
@@ -183,7 +183,7 @@ Received: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
     // Send email
     const info = await transporter.sendMail(mailOptions);
 
-    console.log(`${formTitle} email sent successfully:`, info.messageId);
+    // console.log(`${formTitle} email sent successfully:`, info.messageId);
 
     return {
       success: true,
