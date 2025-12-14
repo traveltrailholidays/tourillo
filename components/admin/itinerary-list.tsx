@@ -19,6 +19,8 @@ import {
   FileText,
   Sheet,
   File,
+  CalendarIcon,
+  X,
 } from 'lucide-react';
 import { deleteItinerary } from '@/lib/actions/itinerary-actions';
 import {
@@ -38,6 +40,14 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/auth.store';
@@ -72,6 +82,14 @@ const formatDate = (dateString: string): string => {
   return `${day}/${month}/${year} ${hours}:${minutes}`;
 };
 
+// Format date for input field (YYYY-MM-DD)
+const formatDateForInput = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 // Format price
 const formatPrice = (amount: number) => {
   return new Intl.NumberFormat('en-IN', {
@@ -102,6 +120,14 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+
+  // ✅ Date Range Filter States
+  const [showDateRangeDialog, setShowDateRangeDialog] = useState(false);
+  const [exportType, setExportType] = useState<'csv' | 'excel' | 'pdf'>('csv');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [applyDateFilter, setApplyDateFilter] = useState(false);
+
   const { user } = useAuthStore();
   const PAGE_SIZE = 10;
 
@@ -125,13 +151,16 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
     };
   }, [itineraries]);
 
+  // ✅ Filter by company, search, and date range
   const filtered = useMemo(() => {
     let result = itineraries;
 
+    // Apply company filter
     if (companyFilter !== 'ALL') {
       result = result.filter((i) => i.company === companyFilter);
     }
 
+    // Apply search filter
     if (search.trim()) {
       result = result.filter((i) =>
         [i.travelId, i.clientName, i.clientPhone, i.packageTitle].some((v) =>
@@ -140,16 +169,46 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
       );
     }
 
+    // Apply date range filter (for display only, not export)
+    if (applyDateFilter && startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999); // Include full end date
+
+      result = result.filter((i) => {
+        const itemDate = new Date(i.createdAt);
+        return itemDate >= start && itemDate <= end;
+      });
+    }
+
     return result;
-  }, [search, itineraries, companyFilter]);
+  }, [search, itineraries, companyFilter, applyDateFilter, startDate, endDate]);
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const pageData = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
+  // ✅ Filter data by date range for export
+  const getDateFilteredData = (data: Itinerary[]) => {
+    if (!startDate || !endDate) {
+      return data;
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
+
+    return data.filter((item) => {
+      const itemDate = new Date(item.createdAt);
+      return itemDate >= start && itemDate <= end;
+    });
+  };
+
   // ✅ Export to CSV
   const exportToCSV = (data: Itinerary[]) => {
-    if (data.length === 0) {
-      toast.error('No data to export');
+    const filteredData = getDateFilteredData(data);
+
+    if (filteredData.length === 0) {
+      toast.error('No data found in selected date range');
       return;
     }
 
@@ -169,7 +228,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
 
     const csvContent = [
       headers.join(','),
-      ...data.map((item) =>
+      ...filteredData.map((item) =>
         [
           item.company === 'TOURILLO' ? 'TRL' : 'TTH',
           item.travelId,
@@ -192,22 +251,25 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
 
     const timestamp = new Date().toISOString().split('T')[0];
     const filterLabel = companyFilter === 'ALL' ? 'all' : companyFilter === 'TOURILLO' ? 'tourillo' : 'traveltrail';
+    const dateLabel = startDate && endDate ? `_${startDate}_to_${endDate}` : '';
 
     link.setAttribute('href', url);
-    link.setAttribute('download', `itineraries_${filterLabel}_${timestamp}.csv`);
+    link.setAttribute('download', `itineraries_${filterLabel}${dateLabel}_${timestamp}.csv`);
     link.style.visibility = 'hidden';
 
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 
-    toast.success(`${data.length} itineraries exported to CSV!`);
+    toast.success(`${filteredData.length} itineraries exported to CSV!`);
   };
 
   // ✅ Export to Excel
   const exportToExcel = async (data: Itinerary[]) => {
-    if (data.length === 0) {
-      toast.error('No data to export');
+    const filteredData = getDateFilteredData(data);
+
+    if (filteredData.length === 0) {
+      toast.error('No data found in selected date range');
       return;
     }
 
@@ -215,7 +277,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
       setIsExporting(true);
       const XLSX = await import('xlsx');
 
-      const excelData = data.map((item) => ({
+      const excelData = filteredData.map((item) => ({
         Company: item.company === 'TOURILLO' ? 'TRL' : 'TTH',
         'Travel ID': item.travelId,
         'Client Name': item.clientName,
@@ -250,9 +312,10 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
 
       const timestamp = new Date().toISOString().split('T')[0];
       const filterLabel = companyFilter === 'ALL' ? 'all' : companyFilter === 'TOURILLO' ? 'tourillo' : 'traveltrail';
+      const dateLabel = startDate && endDate ? `_${startDate}_to_${endDate}` : '';
 
-      XLSX.writeFile(workbook, `itineraries_${filterLabel}_${timestamp}.xlsx`);
-      toast.success(`${data.length} itineraries exported to Excel!`);
+      XLSX.writeFile(workbook, `itineraries_${filterLabel}${dateLabel}_${timestamp}.xlsx`);
+      toast.success(`${filteredData.length} itineraries exported to Excel!`);
     } catch (error) {
       toast.error('Failed to export to Excel');
       console.error('Excel export error:', error);
@@ -261,17 +324,18 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
     }
   };
 
-  // ✅ Export to PDF - FIXED IMPORTS
+  // ✅ Export to PDF
   const exportToPDF = async (data: Itinerary[]) => {
-    if (data.length === 0) {
-      toast.error('No data to export');
+    const filteredData = getDateFilteredData(data);
+
+    if (filteredData.length === 0) {
+      toast.error('No data found in selected date range');
       return;
     }
 
     try {
       setIsExporting(true);
 
-      // ✅ Correct imports for jsPDF and autoTable
       const { jsPDF } = await import('jspdf');
       const { default: autoTable } = await import('jspdf-autotable');
 
@@ -288,12 +352,15 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
       doc.setFontSize(16);
       doc.text('Itinerary Report', 14, 15);
 
-      // Subtitle
+      // Subtitle with date range
       doc.setFontSize(10);
-      doc.text(`Filter: ${filterLabel} | Generated: ${timestamp}`, 14, 22);
+      let subtitle = `Filter: ${filterLabel} | Generated: ${timestamp}`;
+      if (startDate && endDate) {
+        subtitle += `\nDate Range: ${startDate} to ${endDate}`;
+      }
+      doc.text(subtitle, 14, 22);
 
-      // Table data
-      const tableData = data.map((item) => [
+      const tableData = filteredData.map((item) => [
         item.company === 'TOURILLO' ? 'TRL' : 'TTH',
         item.travelId,
         item.clientName,
@@ -304,28 +371,16 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
         formatDate(item.createdAt),
       ]);
 
-      // Generate table
       autoTable(doc, {
         head: [['Company', 'Travel ID', 'Client Name', 'Phone', 'Package', 'Duration', 'Price', 'Created']],
         body: tableData,
-        startY: 28,
+        startY: startDate && endDate ? 32 : 28,
         theme: 'grid',
-        styles: {
-          fontSize: 8,
-          cellPadding: 3,
-        },
-        headStyles: {
-          fillColor: [99, 102, 241],
-          textColor: 255,
-          fontStyle: 'bold',
-        },
-        alternateRowStyles: {
-          fillColor: [245, 245, 245],
-        },
-        margin: { top: 28 },
+        styles: { fontSize: 8, cellPadding: 3 },
+        headStyles: { fillColor: [99, 102, 241], textColor: 255, fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [245, 245, 245] },
       });
 
-      // Add page numbers
       const pageCount = (doc as any).internal.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
@@ -338,18 +393,54 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
         );
       }
 
-      // Save PDF
       const filterLabel2 = companyFilter === 'ALL' ? 'all' : companyFilter === 'TOURILLO' ? 'tourillo' : 'traveltrail';
       const dateStr = new Date().toISOString().split('T')[0];
+      const dateLabel = startDate && endDate ? `_${startDate}_to_${endDate}` : '';
 
-      doc.save(`itineraries_${filterLabel2}_${dateStr}.pdf`);
-      toast.success(`${data.length} itineraries exported to PDF!`);
+      doc.save(`itineraries_${filterLabel2}${dateLabel}_${dateStr}.pdf`);
+      toast.success(`${filteredData.length} itineraries exported to PDF!`);
     } catch (error) {
       toast.error('Failed to export to PDF');
       console.error('PDF export error:', error);
     } finally {
       setIsExporting(false);
     }
+  };
+
+  // ✅ Handle export with date range dialog
+  const handleExportClick = (type: 'csv' | 'excel' | 'pdf') => {
+    setExportType(type);
+    setShowDateRangeDialog(true);
+  };
+
+  // ✅ Execute export after date selection
+  const executeExport = () => {
+    setShowDateRangeDialog(false);
+
+    setTimeout(() => {
+      switch (exportType) {
+        case 'csv':
+          exportToCSV(filtered);
+          break;
+        case 'excel':
+          exportToExcel(filtered);
+          break;
+        case 'pdf':
+          exportToPDF(filtered);
+          break;
+      }
+
+      // Reset date filters after export
+      setStartDate('');
+      setEndDate('');
+    }, 100);
+  };
+
+  // ✅ Clear date filter
+  const clearDateFilter = () => {
+    setStartDate('');
+    setEndDate('');
+    setApplyDateFilter(false);
   };
 
   const handleDelete = async () => {
@@ -418,7 +509,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
                   setCompanyFilter('ALL');
                   setPage(1);
                 }}
-                className="cursor-pointer"
+                className={`cursor-pointer ${companyFilter === 'ALL' ? 'bg-sky-500 hover:bg-sky-600' : ''}`}
               >
                 All ({stats.total})
               </Button>
@@ -472,7 +563,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem
-                  onClick={() => exportToCSV(filtered)}
+                  onClick={() => handleExportClick('csv')}
                   disabled={isExporting}
                   className="cursor-pointer"
                 >
@@ -481,7 +572,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
                 </DropdownMenuItem>
 
                 <DropdownMenuItem
-                  onClick={() => exportToExcel(filtered)}
+                  onClick={() => handleExportClick('excel')}
                   disabled={isExporting}
                   className="cursor-pointer"
                 >
@@ -492,7 +583,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem
-                  onClick={() => exportToPDF(filtered)}
+                  onClick={() => handleExportClick('pdf')}
                   disabled={isExporting}
                   className="cursor-pointer"
                 >
@@ -532,8 +623,8 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
         </div>
 
         {/* Active Filter Indicator */}
-        {(companyFilter !== 'ALL' || search.trim()) && (
-          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+        {(companyFilter !== 'ALL' || search.trim() || applyDateFilter) && (
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 flex-wrap">
             <span>
               Showing {filtered.length} of {stats.total} itineraries
             </span>
@@ -542,11 +633,23 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
                 {companyFilter === 'TOURILLO' ? 'Tourillo' : 'Travel Trail Holidays'}
               </span>
             )}
+            {applyDateFilter && startDate && endDate && (
+              <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 rounded text-blue-700 dark:text-blue-300 flex items-center gap-2">
+                <CalendarIcon className="h-3 w-3" />
+                {startDate} to {endDate}
+                <button
+                  onClick={clearDateFilter}
+                  className="hover:bg-blue-200 dark:hover:bg-blue-800 rounded-full p-0.5"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            )}
           </div>
         )}
       </div>
 
-      {/* Table */}
+      {/* Table - Same as before */}
       <div className="overflow-x-auto rounded-sm border border-gray-200 dark:border-gray-700">
         <Table>
           <TableHeader>
@@ -568,7 +671,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
                   <div className="flex flex-col items-center gap-2">
                     <PackageIcon className="h-12 w-12 text-gray-300 dark:text-gray-600" />
                     <p className="text-gray-500 dark:text-gray-400">
-                      {search || companyFilter !== 'ALL'
+                      {search || companyFilter !== 'ALL' || applyDateFilter
                         ? 'No itineraries found matching your filters'
                         : 'No itineraries found'}
                     </p>
@@ -710,6 +813,128 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
           </Button>
         </div>
       </div>
+
+      {/* ✅ Date Range Dialog for Export */}
+      <Dialog open={showDateRangeDialog} onOpenChange={setShowDateRangeDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CalendarIcon className="h-5 w-5 text-purple-600" />
+              Select Export Options
+            </DialogTitle>
+            <DialogDescription>Choose to export all data or select a specific date range.</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* ✅ Export All Option */}
+            <div className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-sm hover:border-purple-500 transition">
+              <button
+                type="button"
+                onClick={() => {
+                  setStartDate('');
+                  setEndDate('');
+                  executeExport();
+                }}
+                className="w-full flex items-center justify-between group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-linear-to-r from-green-500 to-emerald-600 rounded-full">
+                    <Download className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-semibold text-base group-hover:text-purple-600 transition">Export All Data</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Export all {filtered.length} itineraries</p>
+                  </div>
+                </div>
+                <div className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full text-sm font-semibold">
+                  {filtered.length}
+                </div>
+              </button>
+            </div>
+
+            {/* ✅ Divider */}
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300 dark:border-gray-700"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-background text-gray-500 dark:text-gray-400">OR</span>
+              </div>
+            </div>
+
+            {/* ✅ Date Range Selection */}
+            <div className="space-y-3">
+              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Select Custom Date Range</p>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-1">
+                  From Date <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  max={formatDateForInput(new Date())}
+                  className="w-full px-3 py-2 border-2 border-gray-300 dark:border-gray-700 rounded-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-background"
+                  placeholder="Select start date"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-1">
+                  To Date <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  min={startDate}
+                  max={formatDateForInput(new Date())}
+                  disabled={!startDate}
+                  className="w-full px-3 py-2 border-2 border-gray-300 dark:border-gray-700 rounded-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-background disabled:opacity-50 disabled:cursor-not-allowed"
+                  placeholder="Select end date"
+                />
+                {!startDate && (
+                  <p className="text-xs text-amber-600 dark:text-amber-400">⚠️ Please select start date first</p>
+                )}
+              </div>
+
+              {/* ✅ Date Range Preview */}
+              {startDate && endDate && (
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-sm border border-blue-200 dark:border-blue-800">
+                  <p className="text-sm text-blue-700 dark:text-blue-300 flex items-center gap-2">
+                    <CalendarIcon className="h-4 w-4" />
+                    <span>
+                      <strong>{startDate}</strong> to <strong>{endDate}</strong>
+                    </span>
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowDateRangeDialog(false);
+                setStartDate('');
+                setEndDate('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={executeExport}
+              disabled={!startDate || !endDate}
+              className="bg-linear-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Export Date Range
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
