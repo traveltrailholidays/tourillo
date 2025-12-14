@@ -4,7 +4,22 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Eye, Trash2, Copy, Search, Calendar, User, Package as PackageIcon, Edit } from 'lucide-react';
+import {
+  Eye,
+  Trash2,
+  Copy,
+  Search,
+  Calendar,
+  User,
+  Package as PackageIcon,
+  Edit,
+  Building2,
+  Filter,
+  Download,
+  FileText,
+  Sheet,
+  File,
+} from 'lucide-react';
 import { deleteItinerary } from '@/lib/actions/itinerary-actions';
 import {
   AlertDialog,
@@ -16,6 +31,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/auth.store';
@@ -23,6 +45,7 @@ import { useAuthStore } from '@/store/auth.store';
 export interface Itinerary {
   id: string;
   travelId: string;
+  company: 'TOURILLO' | 'TRAVEL_TRAIL_HOLIDAYS';
   clientName: string;
   clientPhone: string;
   clientEmail?: string | null;
@@ -73,36 +96,261 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
   const router = useRouter();
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
+  const [companyFilter, setCompanyFilter] = useState<'ALL' | 'TOURILLO' | 'TRAVEL_TRAIL_HOLIDAYS'>('ALL');
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const { user } = useAuthStore();
   const PAGE_SIZE = 10;
 
-  // Check if component is mounted to prevent hydration mismatch
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  // Check if user is admin (similar to sidebar logic)
   const isAdmin = useMemo(() => {
     if (!isMounted) return false;
     return user?.isAdmin || false;
   }, [user, isMounted]);
 
-  const filtered = useMemo(
-    () =>
-      itineraries.filter((i) =>
+  const stats = useMemo(() => {
+    const tourilloCount = itineraries.filter((i) => i.company === 'TOURILLO').length;
+    const tthCount = itineraries.filter((i) => i.company === 'TRAVEL_TRAIL_HOLIDAYS').length;
+
+    return {
+      total: itineraries.length,
+      tourillo: tourilloCount,
+      travelTrail: tthCount,
+    };
+  }, [itineraries]);
+
+  const filtered = useMemo(() => {
+    let result = itineraries;
+
+    if (companyFilter !== 'ALL') {
+      result = result.filter((i) => i.company === companyFilter);
+    }
+
+    if (search.trim()) {
+      result = result.filter((i) =>
         [i.travelId, i.clientName, i.clientPhone, i.packageTitle].some((v) =>
           v?.toLowerCase().includes(search.toLowerCase())
         )
-      ),
-    [search, itineraries]
-  );
+      );
+    }
+
+    return result;
+  }, [search, itineraries, companyFilter]);
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const pageData = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  // ✅ Export to CSV
+  const exportToCSV = (data: Itinerary[]) => {
+    if (data.length === 0) {
+      toast.error('No data to export');
+      return;
+    }
+
+    const headers = [
+      'Company',
+      'Travel ID',
+      'Client Name',
+      'Client Phone',
+      'Client Email',
+      'Package Title',
+      'Days',
+      'Nights',
+      'Quote Price (₹)',
+      'Price Per Person (₹)',
+      'Created Date',
+    ];
+
+    const csvContent = [
+      headers.join(','),
+      ...data.map((item) =>
+        [
+          item.company === 'TOURILLO' ? 'TRL' : 'TTH',
+          item.travelId,
+          `"${item.clientName}"`,
+          item.clientPhone,
+          item.clientEmail || '',
+          `"${item.packageTitle}"`,
+          item.numberOfDays,
+          item.numberOfNights,
+          item.quotePrice,
+          item.pricePerPerson,
+          formatDate(item.createdAt),
+        ].join(',')
+      ),
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+
+    const timestamp = new Date().toISOString().split('T')[0];
+    const filterLabel = companyFilter === 'ALL' ? 'all' : companyFilter === 'TOURILLO' ? 'tourillo' : 'traveltrail';
+
+    link.setAttribute('href', url);
+    link.setAttribute('download', `itineraries_${filterLabel}_${timestamp}.csv`);
+    link.style.visibility = 'hidden';
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast.success(`${data.length} itineraries exported to CSV!`);
+  };
+
+  // ✅ Export to Excel
+  const exportToExcel = async (data: Itinerary[]) => {
+    if (data.length === 0) {
+      toast.error('No data to export');
+      return;
+    }
+
+    try {
+      setIsExporting(true);
+      const XLSX = await import('xlsx');
+
+      const excelData = data.map((item) => ({
+        Company: item.company === 'TOURILLO' ? 'TRL' : 'TTH',
+        'Travel ID': item.travelId,
+        'Client Name': item.clientName,
+        'Client Phone': item.clientPhone,
+        'Client Email': item.clientEmail || '',
+        'Package Title': item.packageTitle,
+        Days: item.numberOfDays,
+        Nights: item.numberOfNights,
+        'Quote Price (₹)': item.quotePrice,
+        'Price Per Person (₹)': item.pricePerPerson,
+        'Created Date': formatDate(item.createdAt),
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Itineraries');
+
+      const columnWidths = [
+        { wch: 10 },
+        { wch: 20 },
+        { wch: 20 },
+        { wch: 15 },
+        { wch: 25 },
+        { wch: 30 },
+        { wch: 8 },
+        { wch: 8 },
+        { wch: 15 },
+        { wch: 18 },
+        { wch: 20 },
+      ];
+      worksheet['!cols'] = columnWidths;
+
+      const timestamp = new Date().toISOString().split('T')[0];
+      const filterLabel = companyFilter === 'ALL' ? 'all' : companyFilter === 'TOURILLO' ? 'tourillo' : 'traveltrail';
+
+      XLSX.writeFile(workbook, `itineraries_${filterLabel}_${timestamp}.xlsx`);
+      toast.success(`${data.length} itineraries exported to Excel!`);
+    } catch (error) {
+      toast.error('Failed to export to Excel');
+      console.error('Excel export error:', error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // ✅ Export to PDF - FIXED IMPORTS
+  const exportToPDF = async (data: Itinerary[]) => {
+    if (data.length === 0) {
+      toast.error('No data to export');
+      return;
+    }
+
+    try {
+      setIsExporting(true);
+
+      // ✅ Correct imports for jsPDF and autoTable
+      const { jsPDF } = await import('jspdf');
+      const { default: autoTable } = await import('jspdf-autotable');
+
+      const doc = new jsPDF();
+      const timestamp = new Date().toLocaleDateString('en-IN');
+      const filterLabel =
+        companyFilter === 'ALL'
+          ? 'All Companies'
+          : companyFilter === 'TOURILLO'
+            ? 'Tourillo (TRL)'
+            : 'Travel Trail Holidays (TTH)';
+
+      // Title
+      doc.setFontSize(16);
+      doc.text('Itinerary Report', 14, 15);
+
+      // Subtitle
+      doc.setFontSize(10);
+      doc.text(`Filter: ${filterLabel} | Generated: ${timestamp}`, 14, 22);
+
+      // Table data
+      const tableData = data.map((item) => [
+        item.company === 'TOURILLO' ? 'TRL' : 'TTH',
+        item.travelId,
+        item.clientName,
+        item.clientPhone,
+        item.packageTitle,
+        `${item.numberOfNights}N/${item.numberOfDays}D`,
+        formatPrice(item.quotePrice),
+        formatDate(item.createdAt),
+      ]);
+
+      // Generate table
+      autoTable(doc, {
+        head: [['Company', 'Travel ID', 'Client Name', 'Phone', 'Package', 'Duration', 'Price', 'Created']],
+        body: tableData,
+        startY: 28,
+        theme: 'grid',
+        styles: {
+          fontSize: 8,
+          cellPadding: 3,
+        },
+        headStyles: {
+          fillColor: [99, 102, 241],
+          textColor: 255,
+          fontStyle: 'bold',
+        },
+        alternateRowStyles: {
+          fillColor: [245, 245, 245],
+        },
+        margin: { top: 28 },
+      });
+
+      // Add page numbers
+      const pageCount = (doc as any).internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(9);
+        doc.text(
+          `Page ${i} of ${pageCount}`,
+          doc.internal.pageSize.getWidth() / 2,
+          doc.internal.pageSize.getHeight() - 10,
+          { align: 'center' }
+        );
+      }
+
+      // Save PDF
+      const filterLabel2 = companyFilter === 'ALL' ? 'all' : companyFilter === 'TOURILLO' ? 'tourillo' : 'traveltrail';
+      const dateStr = new Date().toISOString().split('T')[0];
+
+      doc.save(`itineraries_${filterLabel2}_${dateStr}.pdf`);
+      toast.success(`${data.length} itineraries exported to PDF!`);
+    } catch (error) {
+      toast.error('Failed to export to PDF');
+      console.error('PDF export error:', error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const handleDelete = async () => {
     if (!deleteId || !isAdmin) {
@@ -142,9 +390,10 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
 
   return (
     <div className="rounded-sm bg-foreground shadow-lg border border-gray-200 dark:border-gray-700 p-6">
-      {/* Search and Stats */}
+      {/* Search, Filter and Stats */}
       <div className="mb-6 space-y-4">
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+        <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+          {/* Search Bar */}
           <div className="relative flex-1 max-w-md w-full">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
@@ -157,17 +406,144 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
               }}
             />
           </div>
-          <div className="flex gap-4">
-            <div className="px-4 py-2 bg-purple-100 dark:bg-purple-900/30 rounded-sm">
-              <p className="text-xs text-gray-600 dark:text-gray-400">Total Itineraries</p>
-              <p className="text-xl font-bold text-purple-600">{itineraries.length}</p>
+
+          {/* Company Filter Buttons + Export */}
+          <div className="flex gap-2 items-center flex-wrap">
+            <Filter className="h-4 w-4 text-gray-400" />
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant={companyFilter === 'ALL' ? 'default' : 'outline'}
+                onClick={() => {
+                  setCompanyFilter('ALL');
+                  setPage(1);
+                }}
+                className="cursor-pointer"
+              >
+                All ({stats.total})
+              </Button>
+              <Button
+                size="sm"
+                variant={companyFilter === 'TOURILLO' ? 'default' : 'outline'}
+                onClick={() => {
+                  setCompanyFilter('TOURILLO');
+                  setPage(1);
+                }}
+                className={`cursor-pointer ${companyFilter === 'TOURILLO' ? 'bg-purple-500 hover:bg-purple-600' : ''}`}
+              >
+                Tourillo ({stats.tourillo})
+              </Button>
+              <Button
+                size="sm"
+                variant={companyFilter === 'TRAVEL_TRAIL_HOLIDAYS' ? 'default' : 'outline'}
+                onClick={() => {
+                  setCompanyFilter('TRAVEL_TRAIL_HOLIDAYS');
+                  setPage(1);
+                }}
+                className={`cursor-pointer ${
+                  companyFilter === 'TRAVEL_TRAIL_HOLIDAYS' ? 'bg-blue-500 hover:bg-blue-600' : ''
+                }`}
+              >
+                Travel Trail ({stats.travelTrail})
+              </Button>
             </div>
-            <div className="px-4 py-2 bg-blue-100 dark:bg-blue-900/30 rounded-sm">
-              <p className="text-xs text-gray-600 dark:text-gray-400">Filtered</p>
-              <p className="text-xl font-bold text-blue-600">{filtered.length}</p>
-            </div>
+
+            {/* ✅ Export Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="default"
+                  disabled={filtered.length === 0 || isExporting}
+                  className="bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 cursor-pointer"
+                >
+                  {isExporting ? (
+                    <>
+                      <LoadingSpinner />
+                      <span className="ml-2">Exporting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download className="h-4 w-4 mr-2" />
+                      Export ({filtered.length})
+                    </>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem
+                  onClick={() => exportToCSV(filtered)}
+                  disabled={isExporting}
+                  className="cursor-pointer"
+                >
+                  <Sheet className="h-4 w-4 mr-2 text-blue-600" />
+                  <span>Export to CSV</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={() => exportToExcel(filtered)}
+                  disabled={isExporting}
+                  className="cursor-pointer"
+                >
+                  <FileText className="h-4 w-4 mr-2 text-green-600" />
+                  <span>Export to Excel</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem
+                  onClick={() => exportToPDF(filtered)}
+                  disabled={isExporting}
+                  className="cursor-pointer"
+                >
+                  <File className="h-4 w-4 mr-2 text-red-600" />
+                  <span>Export to PDF</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
+
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="px-4 py-3 bg-linear-to-r from-purple-100 to-purple-200 dark:from-purple-900/30 dark:to-purple-800/30 rounded-sm">
+            <div className="flex items-center gap-2 mb-1">
+              <Building2 className="h-4 w-4 text-purple-600" />
+              <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Tourillo (TRL)</p>
+            </div>
+            <p className="text-2xl font-bold text-purple-600">{stats.tourillo}</p>
+          </div>
+
+          <div className="px-4 py-3 bg-linear-to-r from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30 rounded-sm">
+            <div className="flex items-center gap-2 mb-1">
+              <Building2 className="h-4 w-4 text-blue-600" />
+              <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Travel Trail (TTH)</p>
+            </div>
+            <p className="text-2xl font-bold text-blue-600">{stats.travelTrail}</p>
+          </div>
+
+          <div className="px-4 py-3 bg-linear-to-r from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30 rounded-sm">
+            <div className="flex items-center gap-2 mb-1">
+              <PackageIcon className="h-4 w-4 text-green-600" />
+              <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Total Itineraries</p>
+            </div>
+            <p className="text-2xl font-bold text-green-600">{stats.total}</p>
+          </div>
+        </div>
+
+        {/* Active Filter Indicator */}
+        {(companyFilter !== 'ALL' || search.trim()) && (
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+            <span>
+              Showing {filtered.length} of {stats.total} itineraries
+            </span>
+            {companyFilter !== 'ALL' && (
+              <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 rounded text-purple-700 dark:text-purple-300">
+                {companyFilter === 'TOURILLO' ? 'Tourillo' : 'Travel Trail Holidays'}
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Table */}
@@ -175,6 +551,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
         <Table>
           <TableHeader>
             <TableRow className="bg-gray-50 dark:bg-gray-800">
+              <TableHead className="text-primary font-bold">Company</TableHead>
               <TableHead className="text-primary font-bold">Travel ID</TableHead>
               <TableHead className="text-primary font-bold">Client Details</TableHead>
               <TableHead className="text-primary font-bold">Package</TableHead>
@@ -187,11 +564,13 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
           <TableBody>
             {pageData.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-12">
+                <TableCell colSpan={8} className="text-center py-12">
                   <div className="flex flex-col items-center gap-2">
                     <PackageIcon className="h-12 w-12 text-gray-300 dark:text-gray-600" />
                     <p className="text-gray-500 dark:text-gray-400">
-                      {search ? 'No itineraries found matching your search' : 'No itineraries found'}
+                      {search || companyFilter !== 'ALL'
+                        ? 'No itineraries found matching your filters'
+                        : 'No itineraries found'}
                     </p>
                   </div>
                 </TableCell>
@@ -199,6 +578,18 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
             )}
             {pageData.map((itinerary) => (
               <TableRow key={itinerary.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition">
+                <TableCell>
+                  <span
+                    className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold ${
+                      itinerary.company === 'TOURILLO'
+                        ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
+                        : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                    }`}
+                  >
+                    <Building2 className="h-3 w-3" />
+                    {itinerary.company === 'TOURILLO' ? 'TRL' : 'TTH'}
+                  </span>
+                </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <span className="font-mono font-bold text-purple-600 dark:text-purple-400">
@@ -275,7 +666,6 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
                         <Eye className="h-4 w-4 text-green-600" />
                       </Button>
                     </Link>
-                    {/* Only show delete button if mounted and user is admin */}
                     {isMounted && isAdmin && (
                       <Button
                         size="sm"

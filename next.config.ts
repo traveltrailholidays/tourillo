@@ -16,13 +16,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  experimental: {
-    serverActions: {
-      bodySizeLimit: '3mb', // Reduced since we compress on client
-      allowedOrigins: ['*'],
-    },
-  },
-  // output: 'standalone',
 };
 
 export default nextConfig;

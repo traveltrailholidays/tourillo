@@ -3,9 +3,11 @@
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { uploadItineraryImage } from './file-actions';
 
-// Generate unique travelId in format: TRL2411202516110001
-function generateTravelId(): string {
+// Generate unique travelId based on company
+function generateTravelId(company: 'TOURILLO' | 'TRAVEL_TRAIL_HOLIDAYS'): string {
+  const prefix = company === 'TOURILLO' ? 'TRL' : 'TTH';
   const now = new Date();
 
   const day = String(now.getDate()).padStart(2, '0');
@@ -16,12 +18,12 @@ function generateTravelId(): string {
 
   const randomNum = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
 
-  return `TRL${day}${month}${year}${hours}${minutes}${randomNum}`;
+  return `${prefix}${day}${month}${year}${hours}${minutes}${randomNum}`;
 }
 
 // Check if travelId is unique, if not, regenerate
-async function generateUniqueTravelId(): Promise<string> {
-  let travelId = generateTravelId();
+async function generateUniqueTravelId(company: 'TOURILLO' | 'TRAVEL_TRAIL_HOLIDAYS'): Promise<string> {
+  let travelId = generateTravelId(company);
   let attempts = 0;
   const maxAttempts = 10;
 
@@ -35,7 +37,7 @@ async function generateUniqueTravelId(): Promise<string> {
     }
 
     await new Promise((resolve) => setTimeout(resolve, 100));
-    travelId = generateTravelId();
+    travelId = generateTravelId(company);
     attempts++;
   }
 
@@ -61,6 +63,7 @@ export interface HotelData {
 export interface ItineraryData {
   id: string;
   travelId: string;
+  company: 'TOURILLO' | 'TRAVEL_TRAIL_HOLIDAYS';
   clientName: string;
   clientPhone: string;
   clientEmail: string | null;
@@ -85,6 +88,7 @@ export interface ItineraryData {
 // Itinerary validation schema
 const itinerarySchema = z.object({
   travelId: z.string().min(1, 'Travel ID is required'),
+  company: z.enum(['TOURILLO', 'TRAVEL_TRAIL_HOLIDAYS']),
   clientName: z.string().min(1, 'Client name is required'),
   clientPhone: z.string().min(10, 'Phone number must be at least 10 digits'),
   clientEmail: z.string().email('Invalid email').optional().or(z.literal('')),
@@ -104,10 +108,114 @@ const itinerarySchema = z.object({
   exclusions: z.array(z.string()),
 });
 
-// Create itinerary
-export async function createItinerary(data: z.infer<typeof itinerarySchema>) {
+// Generate new Travel ID
+export async function generateNewTravelId(company: 'TOURILLO' | 'TRAVEL_TRAIL_HOLIDAYS' = 'TOURILLO'): Promise<string> {
+  return await generateUniqueTravelId(company);
+}
+
+// Check phone number exists
+export async function checkPhoneNumberExists(phoneNumber: string, excludeTravelId?: string) {
   try {
-    const validatedData = itinerarySchema.parse(data);
+    const existingItinerary = await prisma.itinerary.findFirst({
+      where: {
+        clientPhone: phoneNumber,
+        ...(excludeTravelId && { travelId: { not: excludeTravelId } }),
+      },
+      select: {
+        travelId: true,
+        clientName: true,
+        packageTitle: true,
+        company: true,
+      },
+    });
+
+    if (existingItinerary) {
+      return {
+        exists: true,
+        itinerary: existingItinerary,
+      };
+    }
+
+    return { exists: false, itinerary: null };
+  } catch (error) {
+    console.error('Error checking phone number:', error);
+    return { exists: false, itinerary: null };
+  }
+}
+
+// Create itinerary with FormData (handles image upload)
+export async function createItinerary(formData: FormData) {
+  try {
+    const dayImages: { [key: number]: string } = {};
+    const numberOfDays = parseInt(formData.get('numberOfDays') as string);
+
+    // Upload all day images using uploadItineraryImage
+    for (let i = 0; i < numberOfDays; i++) {
+      const imageFile = formData.get(`dayImage_${i}`) as File;
+
+      if (imageFile && imageFile.size > 0) {
+        const imageFormData = new FormData();
+        imageFormData.append('file', imageFile);
+
+        const uploadResult = await uploadItineraryImage(imageFormData);
+        if (uploadResult.success && uploadResult.imagePath) {
+          dayImages[i] = uploadResult.imagePath;
+        }
+      }
+    }
+
+    // Parse days data
+    const days: DayData[] = [];
+    for (let i = 0; i < numberOfDays; i++) {
+      days.push({
+        dayNumber: i + 1,
+        summary: formData.get(`days[${i}][summary]`) as string,
+        imageSrc: dayImages[i] || (formData.get(`days[${i}][imageSrc]`) as string) || '',
+        description: formData.get(`days[${i}][description]`) as string,
+      });
+    }
+
+    // Parse hotels data
+    const numberOfHotels = parseInt(formData.get('numberOfHotels') as string);
+    const hotels: HotelData[] = [];
+    for (let i = 0; i < numberOfHotels; i++) {
+      hotels.push({
+        placeName: formData.get(`hotels[${i}][placeName]`) as string,
+        placeDescription: formData.get(`hotels[${i}][placeDescription]`) as string,
+        hotelName: formData.get(`hotels[${i}][hotelName]`) as string,
+        roomType: formData.get(`hotels[${i}][roomType]`) as string,
+        hotelDescription: formData.get(`hotels[${i}][hotelDescription]`) as string,
+      });
+    }
+
+    // Parse inclusions and exclusions
+    const inclusions = JSON.parse((formData.get('inclusions') as string) || '[]');
+    const exclusions = JSON.parse((formData.get('exclusions') as string) || '[]');
+
+    // Build final data object
+    const rawData = {
+      travelId: formData.get('travelId') as string,
+      company: formData.get('company') as 'TOURILLO' | 'TRAVEL_TRAIL_HOLIDAYS',
+      clientName: formData.get('clientName') as string,
+      clientPhone: formData.get('clientPhone') as string,
+      clientEmail: (formData.get('clientEmail') as string) || '',
+      packageTitle: formData.get('packageTitle') as string,
+      numberOfDays: parseInt(formData.get('numberOfDays') as string),
+      numberOfNights: parseInt(formData.get('numberOfNights') as string),
+      numberOfHotels: parseInt(formData.get('numberOfHotels') as string),
+      tripAdvisorName: formData.get('tripAdvisorName') as string,
+      tripAdvisorNumber: formData.get('tripAdvisorNumber') as string,
+      cabs: formData.get('cabs') as string,
+      flights: formData.get('flights') as string,
+      quotePrice: parseFloat(formData.get('quotePrice') as string),
+      pricePerPerson: parseFloat(formData.get('pricePerPerson') as string),
+      days,
+      hotels,
+      inclusions,
+      exclusions,
+    };
+
+    const validatedData = itinerarySchema.parse(rawData);
 
     // Check if custom travelId already exists
     const existingTravelId = await prisma.itinerary.findUnique({
@@ -140,9 +248,103 @@ export async function createItinerary(data: z.infer<typeof itinerarySchema>) {
   }
 }
 
-// Generate new Travel ID
-export async function generateNewTravelId(): Promise<string> {
-  return await generateUniqueTravelId();
+// Update itinerary with FormData (handles image upload)
+export async function updateItineraryWithFormData(travelId: string, formData: FormData) {
+  try {
+    const dayImages: { [key: number]: string } = {};
+    const numberOfDays = parseInt(formData.get('numberOfDays') as string);
+
+    // Upload all new day images
+    for (let i = 0; i < numberOfDays; i++) {
+      const imageFile = formData.get(`dayImage_${i}`) as File;
+
+      if (imageFile && imageFile.size > 0) {
+        const imageFormData = new FormData();
+        imageFormData.append('file', imageFile);
+
+        const uploadResult = await uploadItineraryImage(imageFormData);
+        if (uploadResult.success && uploadResult.imagePath) {
+          dayImages[i] = uploadResult.imagePath;
+        }
+      }
+    }
+
+    // Parse days data
+    const days: DayData[] = [];
+    for (let i = 0; i < numberOfDays; i++) {
+      days.push({
+        dayNumber: i + 1,
+        summary: formData.get(`days[${i}][summary]`) as string,
+        imageSrc: dayImages[i] || (formData.get(`days[${i}][imageSrc]`) as string) || '',
+        description: formData.get(`days[${i}][description]`) as string,
+      });
+    }
+
+    // Parse hotels data
+    const numberOfHotels = parseInt(formData.get('numberOfHotels') as string);
+    const hotels: HotelData[] = [];
+    for (let i = 0; i < numberOfHotels; i++) {
+      hotels.push({
+        placeName: formData.get(`hotels[${i}][placeName]`) as string,
+        placeDescription: formData.get(`hotels[${i}][placeDescription]`) as string,
+        hotelName: formData.get(`hotels[${i}][hotelName]`) as string,
+        roomType: formData.get(`hotels[${i}][roomType]`) as string,
+        hotelDescription: formData.get(`hotels[${i}][hotelDescription]`) as string,
+      });
+    }
+
+    // Parse inclusions and exclusions
+    const inclusions = JSON.parse((formData.get('inclusions') as string) || '[]');
+    const exclusions = JSON.parse((formData.get('exclusions') as string) || '[]');
+
+    // Build final data object
+    const rawData = {
+      travelId: formData.get('travelId') as string,
+      company: formData.get('company') as 'TOURILLO' | 'TRAVEL_TRAIL_HOLIDAYS',
+      clientName: formData.get('clientName') as string,
+      clientPhone: formData.get('clientPhone') as string,
+      clientEmail: (formData.get('clientEmail') as string) || '',
+      packageTitle: formData.get('packageTitle') as string,
+      numberOfDays: parseInt(formData.get('numberOfDays') as string),
+      numberOfNights: parseInt(formData.get('numberOfNights') as string),
+      numberOfHotels: parseInt(formData.get('numberOfHotels') as string),
+      tripAdvisorName: formData.get('tripAdvisorName') as string,
+      tripAdvisorNumber: formData.get('tripAdvisorNumber') as string,
+      cabs: formData.get('cabs') as string,
+      flights: formData.get('flights') as string,
+      quotePrice: parseFloat(formData.get('quotePrice') as string),
+      pricePerPerson: parseFloat(formData.get('pricePerPerson') as string),
+      days,
+      hotels,
+      inclusions,
+      exclusions,
+    };
+
+    const validatedData = itinerarySchema.parse(rawData);
+
+    // Convert empty email to null
+    const cleanedData = {
+      ...validatedData,
+      clientEmail:
+        validatedData.clientEmail && validatedData.clientEmail.trim() !== '' ? validatedData.clientEmail : null,
+    };
+
+    const itinerary = await prisma.itinerary.update({
+      where: { travelId },
+      data: cleanedData,
+    });
+
+    revalidatePath('/admin/itinerary/itinerary-list');
+    revalidatePath(`/admin/itinerary/edit-itinerary/${travelId}`);
+    revalidatePath(`/itinerary/view/${travelId}`);
+
+    return { success: true, travelId: itinerary.travelId, id: itinerary.id };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      throw new Error('Invalid data: ' + error.issues.map((e) => e.message).join(', '));
+    }
+    throw new Error(error instanceof Error ? error.message : 'Failed to update itinerary');
+  }
 }
 
 // Get all itineraries
@@ -169,7 +371,7 @@ export async function getAllItineraries() {
   }
 }
 
-// Get itinerary by travelId - WITH PROPER TYPING
+// Get itinerary by travelId
 export async function getItineraryByTravelId(travelId: string): Promise<ItineraryData | null> {
   try {
     const itinerary = await prisma.itinerary.findUnique({
@@ -183,6 +385,7 @@ export async function getItineraryByTravelId(travelId: string): Promise<Itinerar
     return {
       id: itinerary.id,
       travelId: itinerary.travelId,
+      company: itinerary.company as 'TOURILLO' | 'TRAVEL_TRAIL_HOLIDAYS',
       clientName: itinerary.clientName,
       clientPhone: itinerary.clientPhone,
       clientEmail: itinerary.clientEmail,
@@ -224,55 +427,15 @@ export async function deleteItinerary(id: string) {
   }
 }
 
-// Check if travelId exists
-export async function checkTravelIdExists(travelId: string): Promise<boolean> {
-  try {
-    const itinerary = await prisma.itinerary.findUnique({
-      where: { travelId },
-      select: { id: true },
-    });
-    return !!itinerary;
-  } catch (error) {
-    return false;
-  }
-}
-
-// Update itinerary
-export async function updateItinerary(travelId: string, data: z.infer<typeof itinerarySchema>) {
-  try {
-    const validatedData = itinerarySchema.parse(data);
-
-    // Convert empty email to null
-    const cleanedData = {
-      ...validatedData,
-      clientEmail:
-        validatedData.clientEmail && validatedData.clientEmail.trim() !== '' ? validatedData.clientEmail : null,
-    };
-
-    const itinerary = await prisma.itinerary.update({
-      where: { travelId },
-      data: cleanedData,
-    });
-
-    revalidatePath('/admin/itinerary/itinerary-list');
-    revalidatePath(`/admin/itinerary/edit-itinerary/${travelId}`);
-    revalidatePath(`/itinerary/view/${travelId}`);
-
-    return { success: true, travelId: itinerary.travelId, id: itinerary.id };
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      throw new Error('Invalid data: ' + error.issues.map((e) => e.message).join(', '));
-    }
-    throw new Error(error instanceof Error ? error.message : 'Failed to update itinerary');
-  }
-}
-
+// Get all itineraries for clone (with phone number for search)
 export async function getAllItinerariesForClone() {
   try {
     const itineraries = await prisma.itinerary.findMany({
       select: {
         travelId: true,
+        company: true,
         clientName: true,
+        clientPhone: true,
         packageTitle: true,
         numberOfDays: true,
         numberOfNights: true,
@@ -300,8 +463,9 @@ export async function getItineraryForClone(travelId: string) {
       return null;
     }
 
-    // Return all data except id, travelId, and timestamps
+    // Return all data except id and timestamps
     return {
+      company: itinerary.company as 'TOURILLO' | 'TRAVEL_TRAIL_HOLIDAYS',
       clientName: itinerary.clientName,
       clientPhone: itinerary.clientPhone,
       clientEmail: itinerary.clientEmail,

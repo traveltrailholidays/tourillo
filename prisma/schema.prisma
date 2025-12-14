@@ -135,9 +135,15 @@ model Quote {
   @@map("quotes")
 }
 
+enum Company {
+  TOURILLO
+  TRAVEL_TRAIL_HOLIDAYS
+}
+
 model Itinerary {
   id                String    @id @default(uuid())
   travelId          String    @unique @map("travel_id")
+  company           Company   @default(TOURILLO)
   clientName        String    @map("client_name")
   clientPhone       String    @map("client_phone")
   clientEmail       String?   @map("client_email")

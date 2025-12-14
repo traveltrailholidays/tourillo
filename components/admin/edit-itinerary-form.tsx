@@ -1,137 +1,20 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
-import * as z from 'zod';
-import { updateItinerary } from '@/lib/actions/itinerary-actions';
-import { Upload, Trash2, Image as ImageIcon, Plus, Minus, Copy, Clipboard, ArrowLeft } from 'lucide-react';
+import { updateItineraryWithFormData } from '@/lib/actions/itinerary-actions';
+import { Upload, Trash2, Image as ImageIcon, Plus, Minus, Copy, Clipboard, RefreshCw, FileImage } from 'lucide-react';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { DEFAULT_INCLUSIONS, DEFAULT_EXCLUSIONS, ROOM_TYPES, CAB_OPTIONS } from '@/data/itinerary';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { compressImage } from '@/lib/image-compression';
 
-// Image compression function
-const compressImage = async (file: File): Promise<File> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-
-    reader.onload = (event) => {
-      const img = new window.Image();
-      img.src = event.target?.result as string;
-
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-
-        if (!ctx) {
-          reject(new Error('Could not get canvas context'));
-          return;
-        }
-
-        let width = img.width;
-        let height = img.height;
-        const maxWidth = 1920;
-        const maxHeight = 1080;
-
-        if (width > maxWidth || height > maxHeight) {
-          const ratio = Math.min(maxWidth / width, maxHeight / height);
-          width = Math.floor(width * ratio);
-          height = Math.floor(height * ratio);
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-        ctx.drawImage(img, 0, 0, width, height);
-
-        let quality = 0.85;
-
-        const tryCompress = () => {
-          canvas.toBlob(
-            (blob) => {
-              if (!blob) {
-                reject(new Error('Compression failed'));
-                return;
-              }
-
-              const sizeInMB = blob.size / (1024 * 1024);
-
-              if (sizeInMB < 1 || quality <= 0.3) {
-                const compressedFile = new File([blob], file.name, {
-                  type: 'image/jpeg',
-                  lastModified: Date.now(),
-                });
-
-                // console.log(`Original: ${(file.size / (1024 * 1024)).toFixed(2)}MB → Compressed: ${sizeInMB.toFixed(2)}MB`);
-                resolve(compressedFile);
-              } else {
-                quality -= 0.1;
-                tryCompress();
-              }
-            },
-            'image/jpeg',
-            quality
-          );
-        };
-
-        tryCompress();
-      };
-
-      img.onerror = () => reject(new Error('Failed to load image'));
-    };
-
-    reader.onerror = () => reject(new Error('Failed to read file'));
-  });
-};
-
-// Zod schema
-const ItinerarySchema = z.object({
-  travelId: z.string().min(1, 'Travel ID is required'),
-  clientName: z.string().min(1, 'Client name is required'),
-  clientPhone: z.string().min(10, 'Phone number must be at least 10 digits'),
-  clientEmail: z.string().email('Invalid email').optional().or(z.literal('')),
-  packageTitle: z.string().min(1, 'Package title is required'),
-  numberOfDays: z.number().min(1, 'Number of days must be at least 1'),
-  numberOfNights: z.number(),
-  numberOfHotels: z.number().min(1, 'Number of hotels must be at least 1'),
-  tripAdvisorName: z.string().min(1, 'Trip advisor name is required'),
-  tripAdvisorNumber: z.string().min(1, 'Trip advisor number is required'),
-  cabs: z.string().min(1, 'Cabs details are required'),
-  cabsCustom: z.string().optional(),
-  flights: z.string().min(1, 'Flight details are required'),
-  quotePrice: z.number().min(0, 'Quote price cannot be negative'),
-  pricePerPerson: z.number().min(0, 'Price per person cannot be negative'),
-  days: z.array(
-    z.object({
-      dayNumber: z.number(),
-      summary: z.string().min(1, 'Day summary is required'),
-      imageSrc: z.string().min(1, 'Image is required'),
-      description: z.string().min(1, 'Day description is required'),
-    })
-  ),
-  hotels: z.array(
-    z.object({
-      placeName: z.string().min(1, 'Place name is required'),
-      placeDescription: z.string().min(1, 'Place description is required'),
-      hotelName: z.string().min(1, 'Hotel name is required'),
-      roomType: z.string().min(1, 'Room type is required'),
-      roomTypeCustom: z.string().optional(),
-      hotelDescription: z.string().min(1, 'Hotel description is required'),
-    })
-  ),
-  inclusions: z.array(z.string().min(1)),
-  exclusions: z.array(z.string().min(1)),
-});
-
-type ItineraryFormValues = z.infer<typeof ItinerarySchema>;
-
-// Proper type for itinerary from database
+// Type for itinerary from database
 interface ItineraryData {
   id: string;
   travelId: string;
+  company: 'TOURILLO' | 'TRAVEL_TRAIL_HOLIDAYS';
   clientName: string;
   clientPhone: string;
   clientEmail: string | null;
@@ -170,157 +53,226 @@ interface EditItineraryFormProps {
 
 export default function EditItineraryForm({ itinerary }: EditItineraryFormProps) {
   const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [numberOfDays, setNumberOfDays] = useState(itinerary.numberOfDays);
+  const [numberOfNights, setNumberOfNights] = useState(itinerary.numberOfNights);
+  const [numberOfHotels, setNumberOfHotels] = useState(itinerary.numberOfHotels);
   const [dayImagePreviews, setDayImagePreviews] = useState<{ [key: number]: string }>({});
-  const [dayDragActive, setDayDragActive] = useState<{ [key: number]: boolean }>({});
   const [compressedImages, setCompressedImages] = useState<{ [key: number]: File }>({});
-  const dayFileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
-  const [bulkInclusionText, setBulkInclusionText] = useState('');
-  const [bulkExclusionText, setBulkExclusionText] = useState('');
-  const [showCabsCustom, setShowCabsCustom] = useState(false);
-  const [hotelRoomTypeCustom, setHotelRoomTypeCustom] = useState<{ [key: number]: boolean }>({});
-
-  const {
-    register,
-    control,
-    handleSubmit,
-    setValue,
-    watch,
-    formState: { errors },
-  } = useForm<ItineraryFormValues>({
-    resolver: zodResolver(ItinerarySchema),
-    defaultValues: {
-      travelId: itinerary.travelId,
-      clientName: itinerary.clientName,
-      clientPhone: itinerary.clientPhone,
-      clientEmail: itinerary.clientEmail || '',
-      packageTitle: itinerary.packageTitle,
-      numberOfDays: itinerary.numberOfDays,
-      numberOfNights: itinerary.numberOfNights,
-      numberOfHotels: itinerary.numberOfHotels,
-      tripAdvisorName: itinerary.tripAdvisorName,
-      tripAdvisorNumber: itinerary.tripAdvisorNumber,
-      cabs: itinerary.cabs,
-      cabsCustom: '',
-      flights: itinerary.flights,
-      quotePrice: itinerary.quotePrice,
-      pricePerPerson: itinerary.pricePerPerson,
-      days: itinerary.days,
-      hotels: itinerary.hotels.map((hotel) => ({
-        ...hotel,
-        roomTypeCustom: '',
-      })),
-      inclusions: itinerary.inclusions,
-      exclusions: itinerary.exclusions,
-    },
-  });
-
-  const { fields: hotelFields, replace: replaceHotels } = useFieldArray({
-    control,
-    name: 'hotels',
-  });
-
-  const { fields: dayFields, replace: replaceDays } = useFieldArray({
-    control,
-    name: 'days',
-  });
+  const [dragActiveStates, setDragActiveStates] = useState<{ [key: number]: boolean }>({});
+  const [hasExistingImages, setHasExistingImages] = useState<{ [key: number]: boolean }>({});
 
   const [inclusions, setInclusions] = useState<string[]>(itinerary.inclusions);
   const [exclusions, setExclusions] = useState<string[]>(itinerary.exclusions);
+  const [bulkInclusionText, setBulkInclusionText] = useState('');
+  const [bulkExclusionText, setBulkExclusionText] = useState('');
 
-  const numberOfDays = watch('numberOfDays');
-  const numberOfHotels = watch('numberOfHotels');
-  const cabsSelection = watch('cabs');
-  const hotels = watch('hotels');
+  // Custom Room Type & Cab states
+  const [selectedRoomTypes, setSelectedRoomTypes] = useState<{ [key: number]: string }>({});
+  const [customRoomTypes, setCustomRoomTypes] = useState<{ [key: number]: string }>({});
+  const [customCab, setCustomCab] = useState('');
+  const [selectedCab, setSelectedCab] = useState(itinerary.cabs);
+
+  const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
+
+  // Day fields state
+  const [dayFields, setDayFields] = useState(itinerary.days);
+
+  // Hotel fields state
+  const [hotelFields, setHotelFields] = useState(itinerary.hotels);
 
   // Initialize image previews from existing data
   useEffect(() => {
     const previews: { [key: number]: string } = {};
+    const existing: { [key: number]: boolean } = {};
+
     itinerary.days.forEach((day, index) => {
       if (day.imageSrc) {
         previews[index] = day.imageSrc;
+        existing[index] = true;
       }
     });
+
     setDayImagePreviews(previews);
+    setHasExistingImages(existing);
   }, [itinerary.days]);
 
-  // Watch for custom cab selection
+  // Initialize room types
   useEffect(() => {
-    if (cabsSelection === 'Custom (Enter below)') {
-      setShowCabsCustom(true);
-    } else {
-      setShowCabsCustom(false);
-      setValue('cabsCustom', '');
-    }
-  }, [cabsSelection, setValue]);
+    const roomTypeStates: { [key: number]: string } = {};
+    itinerary.hotels.forEach((hotel, index) => {
+      roomTypeStates[index] = hotel.roomType;
+    });
+    setSelectedRoomTypes(roomTypeStates);
+  }, [itinerary.hotels]);
 
-  // Watch hotel room types for custom selection
+  // Auto-calculate Number of Nights
   useEffect(() => {
-    if (!hotels) return;
+    const nights = Math.max(0, numberOfDays - 1);
+    setNumberOfNights(nights);
+  }, [numberOfDays]);
 
-    hotels.forEach((hotel, index) => {
-      if (hotel.roomType === 'Custom (Enter below)') {
-        setHotelRoomTypeCustom((prev) => {
-          if (!prev[index]) {
-            return { ...prev, [index]: true };
-          }
-          return prev;
-        });
-      } else {
-        setHotelRoomTypeCustom((prev) => {
-          if (prev[index]) {
-            setValue(`hotels.${index}.roomTypeCustom`, '');
-            return { ...prev, [index]: false };
-          }
-          return prev;
+  // Handle number of days changes
+  useEffect(() => {
+    const currentDays = dayFields.length;
+
+    if (numberOfDays > currentDays) {
+      const daysToAdd = numberOfDays - currentDays;
+      const newDays = [...dayFields];
+      for (let i = 0; i < daysToAdd; i++) {
+        newDays.push({
+          dayNumber: currentDays + i + 1,
+          summary: '',
+          imageSrc: '',
+          description: '',
         });
       }
+      setDayFields(newDays);
+    } else if (numberOfDays < currentDays) {
+      setDayFields(dayFields.slice(0, numberOfDays));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [numberOfDays]);
+
+  // Handle number of hotels changes
+  useEffect(() => {
+    const currentHotels = hotelFields.length;
+
+    if (numberOfHotels > currentHotels) {
+      const hotelsToAdd = numberOfHotels - currentHotels;
+      const newHotels = [...hotelFields];
+      for (let i = 0; i < hotelsToAdd; i++) {
+        newHotels.push({
+          placeName: '',
+          placeDescription: '',
+          hotelName: '',
+          roomType: '',
+          hotelDescription: '',
+        });
+      }
+      setHotelFields(newHotels);
+    } else if (numberOfHotels < currentHotels) {
+      setHotelFields(hotelFields.slice(0, numberOfHotels));
+      const newSelectedRoomTypes = { ...selectedRoomTypes };
+      const newCustomRoomTypes = { ...customRoomTypes };
+      for (let i = numberOfHotels; i < currentHotels; i++) {
+        delete newSelectedRoomTypes[i];
+        delete newCustomRoomTypes[i];
+      }
+      setSelectedRoomTypes(newSelectedRoomTypes);
+      setCustomRoomTypes(newCustomRoomTypes);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [numberOfHotels]);
+
+  // Handle Room Type Change
+  const handleRoomTypeChange = (index: number, value: string) => {
+    setSelectedRoomTypes((prev) => ({ ...prev, [index]: value }));
+    if (value !== 'Custom') {
+      setCustomRoomTypes((prev) => {
+        const updated = { ...prev };
+        delete updated[index];
+        return updated;
+      });
+    }
+  };
+
+  // Process file with compression
+  const processFile = async (file: File, index: number) => {
+    if (file.size > 100 * 1024 * 1024) {
+      toast.error('Image must be less than 100MB');
+      return;
+    }
+
+    if (!['image/jpeg', 'image/png', 'image/webp', 'image/jpg'].includes(file.type)) {
+      toast.error('Image must be JPEG, PNG, or WebP format');
+      return;
+    }
+
+    const originalSizeInMB = file.size / (1024 * 1024);
+    const loadingToastId = toast.loading(`Compressing image (${originalSizeInMB.toFixed(2)}MB)...`);
+
+    try {
+      const compressed = await compressImage(file);
+      const compressedSizeInMB = compressed.size / (1024 * 1024);
+
+      toast.dismiss(loadingToastId);
+      toast.success(`Image compressed: ${originalSizeInMB.toFixed(2)}MB → ${compressedSizeInMB.toFixed(2)}MB`, {
+        duration: 3000,
+      });
+
+      setCompressedImages((prev) => ({ ...prev, [index]: compressed }));
+      setHasExistingImages((prev) => ({ ...prev, [index]: false }));
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setDayImagePreviews((prev) => ({ ...prev, [index]: event.target?.result as string }));
+      };
+      reader.readAsDataURL(compressed);
+    } catch (error) {
+      toast.dismiss(loadingToastId);
+      toast.error('Failed to compress image. Please try another image.');
+      console.error('Compression error:', error);
+    }
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      processFile(file, index);
+    }
+  };
+
+  const handleDrag = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === 'dragenter' || e.type === 'dragover') {
+      setDragActiveStates((prev) => ({ ...prev, [index]: true }));
+    } else if (e.type === 'dragleave') {
+      setDragActiveStates((prev) => ({ ...prev, [index]: false }));
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActiveStates((prev) => ({ ...prev, [index]: false }));
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      processFile(file, index);
+    }
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setDayImagePreviews((prev) => {
+      const updated = { ...prev };
+      delete updated[index];
+      return updated;
     });
-  }, [hotels, setValue]);
+    setCompressedImages((prev) => {
+      const updated = { ...prev };
+      delete updated[index];
+      return updated;
+    });
+    setHasExistingImages((prev) => ({ ...prev, [index]: false }));
 
-  // Sync inclusions and exclusions with form
-  useEffect(() => {
-    setValue('inclusions', inclusions);
-  }, [inclusions, setValue]);
-
-  useEffect(() => {
-    setValue('exclusions', exclusions);
-  }, [exclusions, setValue]);
-
-  // Update number of nights when days change
-  useEffect(() => {
-    setValue('numberOfNights', Math.max(0, numberOfDays - 1));
-  }, [numberOfDays, setValue]);
-
-  // Update days array when numberOfDays changes
-  useEffect(() => {
-    const currentDays = watch('days');
-    if (Array.isArray(currentDays)) {
-      const newDays = Array.from({ length: numberOfDays }, (_, index) => ({
-        dayNumber: index + 1,
-        summary: currentDays[index]?.summary || '',
-        imageSrc: currentDays[index]?.imageSrc || '',
-        description: currentDays[index]?.description || '',
-      }));
-      replaceDays(newDays);
+    if (fileInputRefs.current[index]) {
+      fileInputRefs.current[index]!.value = '';
     }
-  }, [numberOfDays, replaceDays, watch]);
 
-  // Update hotels array when numberOfHotels changes
-  useEffect(() => {
-    const currentHotels = watch('hotels');
-    if (Array.isArray(currentHotels)) {
-      const newHotels = Array.from({ length: numberOfHotels }, (_, index) => ({
-        placeName: currentHotels[index]?.placeName || '',
-        placeDescription: currentHotels[index]?.placeDescription || '',
-        hotelName: currentHotels[index]?.hotelName || '',
-        roomType: currentHotels[index]?.roomType || '',
-        roomTypeCustom: currentHotels[index]?.roomTypeCustom || '',
-        hotelDescription: currentHotels[index]?.hotelDescription || '',
-      }));
-      replaceHotels(newHotels);
-    }
-  }, [numberOfHotels, replaceHotels, watch]);
+    const updatedDays = [...dayFields];
+    updatedDays[index] = { ...updatedDays[index], imageSrc: '' };
+    setDayFields(updatedDays);
+
+    toast.success('Image removed');
+  };
+
+  const handleImageClick = (index: number) => {
+    fileInputRefs.current[index]?.click();
+  };
 
   // Handle bulk inclusions paste
   const handleBulkInclusionsPaste = () => {
@@ -366,140 +318,109 @@ export default function EditItineraryForm({ itinerary }: EditItineraryFormProps)
     toast.success(`Added ${lines.length} exclusion(s)`);
   };
 
-  // Add/Remove individual inclusions
-  const addInclusion = () => {
-    setInclusions((prev) => [...prev, '']);
-  };
-
-  const removeInclusion = (index: number) => {
-    if (inclusions.length > 1) {
-      setInclusions((prev) => prev.filter((_, i) => i !== index));
-    }
-  };
-
+  const addInclusion = () => setInclusions([...inclusions, '']);
+  const removeInclusion = (index: number) => setInclusions(inclusions.filter((_, i) => i !== index));
   const updateInclusion = (index: number, value: string) => {
-    setInclusions((prev) => prev.map((item, i) => (i === index ? value : item)));
+    const updated = [...inclusions];
+    updated[index] = value;
+    setInclusions(updated);
   };
 
-  // Add/Remove individual exclusions
-  const addExclusion = () => {
-    setExclusions((prev) => [...prev, '']);
-  };
-
-  const removeExclusion = (index: number) => {
-    if (exclusions.length > 1) {
-      setExclusions((prev) => prev.filter((_, i) => i !== index));
-    }
-  };
-
+  const addExclusion = () => setExclusions([...exclusions, '']);
+  const removeExclusion = (index: number) => setExclusions(exclusions.filter((_, i) => i !== index));
   const updateExclusion = (index: number, value: string) => {
-    setExclusions((prev) => prev.map((item, i) => (i === index ? value : item)));
+    const updated = [...exclusions];
+    updated[index] = value;
+    setExclusions(updated);
   };
 
-  const processImageFile = async (file: File | undefined, dayIndex: number) => {
-    if (!file) return;
-
-    if (file.size > 100 * 1024 * 1024) {
-      toast.error('Image must be less than 100MB');
-      return;
-    }
-
-    if (!['image/jpeg', 'image/png', 'image/webp', 'image/jpg'].includes(file.type)) {
-      toast.error('Image must be JPEG, PNG, or WebP format');
-      return;
-    }
-
-    const originalSizeInMB = file.size / (1024 * 1024);
-    const loadingToastId = toast.loading(`Compressing image (${originalSizeInMB.toFixed(2)}MB)...`);
+  // Handle form submission with FormData
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmitting(true);
 
     try {
-      const compressed = await compressImage(file);
-      const compressedSizeInMB = compressed.size / (1024 * 1024);
+      const formData = new FormData();
 
-      toast.dismiss(loadingToastId);
-      toast.success(`Image compressed: ${originalSizeInMB.toFixed(2)}MB → ${compressedSizeInMB.toFixed(2)}MB`, {
-        duration: 3000,
+      // Add basic fields
+      formData.append('travelId', itinerary.travelId);
+      formData.append('company', itinerary.company);
+      formData.append('numberOfDays', numberOfDays.toString());
+      formData.append('numberOfNights', numberOfNights.toString());
+      formData.append('numberOfHotels', numberOfHotels.toString());
+
+      // Add form inputs
+      const form = e.currentTarget;
+      formData.append('clientName', (form.elements.namedItem('clientName') as HTMLInputElement).value);
+      formData.append('clientPhone', (form.elements.namedItem('clientPhone') as HTMLInputElement).value);
+      formData.append('clientEmail', (form.elements.namedItem('clientEmail') as HTMLInputElement).value);
+      formData.append('packageTitle', (form.elements.namedItem('packageTitle') as HTMLInputElement).value);
+      formData.append('tripAdvisorName', (form.elements.namedItem('tripAdvisorName') as HTMLInputElement).value);
+      formData.append('tripAdvisorNumber', (form.elements.namedItem('tripAdvisorNumber') as HTMLInputElement).value);
+
+      const finalCab = selectedCab === 'Custom' ? customCab : selectedCab;
+      formData.append('cabs', finalCab);
+
+      formData.append('flights', (form.elements.namedItem('flights') as HTMLTextAreaElement).value);
+      formData.append('quotePrice', (form.elements.namedItem('quotePrice') as HTMLInputElement).value);
+      formData.append('pricePerPerson', (form.elements.namedItem('pricePerPerson') as HTMLInputElement).value);
+
+      // ✅ Add compressed images to FormData
+      Object.keys(compressedImages).forEach((key) => {
+        const index = parseInt(key);
+        const file = compressedImages[index];
+        if (file) {
+          formData.append(`dayImage_${index}`, file);
+        }
       });
 
-      setCompressedImages((prev) => ({ ...prev, [dayIndex]: compressed }));
+      // Add days data
+      dayFields.forEach((day, index) => {
+        formData.append(
+          `days[${index}][summary]`,
+          (form.elements.namedItem(`days[${index}][summary]`) as HTMLInputElement).value
+        );
+        formData.append(
+          `days[${index}][description]`,
+          (form.elements.namedItem(`days[${index}][description]`) as HTMLTextAreaElement).value
+        );
+        formData.append(`days[${index}][imageSrc]`, day.imageSrc);
+      });
 
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const result = event.target?.result as string;
-        setDayImagePreviews((prev) => ({ ...prev, [dayIndex]: result }));
-        setValue(`days.${dayIndex}.imageSrc`, result);
-      };
-      reader.readAsDataURL(compressed);
-    } catch (error) {
-      toast.dismiss(loadingToastId);
-      toast.error('Failed to compress image. Please try another image.');
-      console.error('Compression error:', error);
-    }
-  };
+      // Add hotels data with custom room type handling
+      hotelFields.forEach((hotel, index) => {
+        formData.append(
+          `hotels[${index}][placeName]`,
+          (form.elements.namedItem(`hotels[${index}][placeName]`) as HTMLInputElement).value
+        );
+        formData.append(
+          `hotels[${index}][placeDescription]`,
+          (form.elements.namedItem(`hotels[${index}][placeDescription]`) as HTMLInputElement).value
+        );
+        formData.append(
+          `hotels[${index}][hotelName]`,
+          (form.elements.namedItem(`hotels[${index}][hotelName]`) as HTMLInputElement).value
+        );
 
-  const handleDayImageChange = (e: React.ChangeEvent<HTMLInputElement>, dayIndex: number) => {
-    const file = e.target.files?.[0];
-    processImageFile(file, dayIndex);
-  };
+        const roomType = selectedRoomTypes[index] || '';
+        const finalRoomType = roomType === 'Custom' ? customRoomTypes[index] || '' : roomType;
+        formData.append(`hotels[${index}][roomType]`, finalRoomType);
 
-  const handleDayDrag = (e: React.DragEvent, dayIndex: number) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === 'dragenter' || e.type === 'dragover') {
-      setDayDragActive((prev) => ({ ...prev, [dayIndex]: true }));
-    } else if (e.type === 'dragleave') {
-      setDayDragActive((prev) => ({ ...prev, [dayIndex]: false }));
-    }
-  };
+        formData.append(
+          `hotels[${index}][hotelDescription]`,
+          (form.elements.namedItem(`hotels[${index}][hotelDescription]`) as HTMLTextAreaElement).value
+        );
+      });
 
-  const handleDayDrop = (e: React.DragEvent, dayIndex: number) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDayDragActive((prev) => ({ ...prev, [dayIndex]: false }));
+      // Add inclusions and exclusions
+      formData.append('inclusions', JSON.stringify(inclusions.filter((inc) => inc.trim() !== '')));
+      formData.append('exclusions', JSON.stringify(exclusions.filter((exc) => exc.trim() !== '')));
 
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
-      processImageFile(file, dayIndex);
-    }
-  };
+      await updateItineraryWithFormData(itinerary.travelId, formData);
 
-  const handleRemoveDayImage = (dayIndex: number) => {
-    setDayImagePreviews((prev) => {
-      const newPreviews = { ...prev };
-      delete newPreviews[dayIndex];
-      return newPreviews;
-    });
-    setCompressedImages((prev) => {
-      const newImages = { ...prev };
-      delete newImages[dayIndex];
-      return newImages;
-    });
-    setValue(`days.${dayIndex}.imageSrc`, '');
-    if (dayFileInputRefs.current[dayIndex]) {
-      dayFileInputRefs.current[dayIndex]!.value = '';
-    }
-  };
-
-  const onSubmit = async (data: ItineraryFormValues) => {
-    setIsSubmitting(true);
-    try {
-      // Merge custom values if selected
-      const finalData = {
-        ...data,
-        cabs: data.cabs === 'Custom (Enter below)' ? data.cabsCustom || data.cabs : data.cabs,
-        hotels: data.hotels.map((hotel) => ({
-          ...hotel,
-          roomType: hotel.roomType === 'Custom (Enter below)' ? hotel.roomTypeCustom || hotel.roomType : hotel.roomType,
-        })),
-      };
-
-      await updateItinerary(itinerary.travelId, finalData);
       toast.success('Itinerary updated successfully!');
-
-      // Redirect to list
-      setTimeout(() => {
-        router.push('/admin/itinerary/itinerary-list');
-      }, 1500);
+      router.push('/admin/itinerary/itinerary-list');
+      router.refresh();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to update itinerary');
     } finally {
@@ -510,270 +431,312 @@ export default function EditItineraryForm({ itinerary }: EditItineraryFormProps)
   const inputClassName =
     'w-full p-3 border-2 border-gray-300 dark:border-gray-700 rounded-sm focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200 bg-foreground';
   const labelClassName = 'block text-sm font-semibold mb-2';
-  const errorClassName = 'text-red-500 text-sm mt-1';
 
   return (
     <div className="container mx-auto p-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Edit Itinerary</h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-1">Easily edit and optimize your itineraries in minutes</p>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">Update and optimize your itinerary details</p>
       </div>
-      <div className="bg-foreground rounded-sm shadow-lg p-8">
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
-          {/* Travel ID Section - READ ONLY */}
-          <div className="">
+      <div className="bg-foreground rounded-sm p-6">
+        <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col gap-6">
+          {/* Travel ID - Read Only */}
+          <div>
             <label className={labelClassName}>Travel ID (Read Only)</label>
             <input
-              {...register('travelId')}
               type="text"
+              value={itinerary.travelId}
+              readOnly
               className={`${inputClassName} font-mono text-lg font-bold bg-gray-100 dark:bg-gray-800 cursor-not-allowed`}
               disabled
-              readOnly
             />
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">Travel ID cannot be changed after creation</p>
+            <p className="text-xs text-gray-500 mt-2">Travel ID cannot be changed after creation</p>
           </div>
 
-          {/* Client Details */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className={labelClassName}>
-                Client Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                {...register('clientName')}
-                type="text"
-                placeholder="Enter client's name"
-                className={inputClassName}
-                disabled={isSubmitting}
-              />
-              {errors.clientName && <p className={errorClassName}>{errors.clientName.message}</p>}
-            </div>
+          {/* Client Information */}
+          <div>
+            <h3 className="text-xl font-bold mb-4 text-purple-600">Client Information</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className={labelClassName}>
+                  Client Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  name="clientName"
+                  type="text"
+                  required
+                  defaultValue={itinerary.clientName}
+                  className={inputClassName}
+                  disabled={isSubmitting}
+                  placeholder="Enter client full name"
+                />
+              </div>
 
-            <div>
-              <label className={labelClassName}>
-                Client Phone Number <span className="text-red-500">*</span>
-              </label>
-              <input
-                {...register('clientPhone')}
-                type="tel"
-                placeholder="Enter phone number"
-                className={inputClassName}
-                disabled={isSubmitting}
-              />
-              {errors.clientPhone && <p className={errorClassName}>{errors.clientPhone.message}</p>}
-            </div>
+              <div>
+                <label className={labelClassName}>
+                  Client Phone <span className="text-red-500">*</span>
+                </label>
+                <input
+                  name="clientPhone"
+                  type="tel"
+                  required
+                  pattern="[0-9]{10,15}"
+                  defaultValue={itinerary.clientPhone}
+                  className={inputClassName}
+                  disabled={isSubmitting}
+                  placeholder="10-15 digit phone number"
+                  title="Please enter a valid phone number (10-15 digits, numbers only)"
+                />
+              </div>
 
-            <div>
-              <label className={labelClassName}>
-                Client Email <span className="text-gray-400 text-xs">(Optional)</span>
-              </label>
-              <input
-                {...register('clientEmail')}
-                type="email"
-                placeholder="Enter email address"
-                className={inputClassName}
-                disabled={isSubmitting}
-              />
-              {errors.clientEmail && <p className={errorClassName}>{errors.clientEmail.message}</p>}
-            </div>
-
-            <div>
-              <label className={labelClassName}>
-                Package Title <span className="text-red-500">*</span>
-              </label>
-              <input
-                {...register('packageTitle')}
-                type="text"
-                placeholder="Enter package title"
-                className={inputClassName}
-                disabled={isSubmitting}
-              />
-              {errors.packageTitle && <p className={errorClassName}>{errors.packageTitle.message}</p>}
+              <div className="md:col-span-2">
+                <label className={labelClassName}>Client Email</label>
+                <input
+                  name="clientEmail"
+                  type="email"
+                  pattern="[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$"
+                  defaultValue={itinerary.clientEmail || ''}
+                  className={inputClassName}
+                  disabled={isSubmitting}
+                  placeholder="client@example.com"
+                  title="Please enter a valid email address"
+                />
+              </div>
             </div>
           </div>
 
-          {/* Numbers Section */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <label className={labelClassName}>
-                Number of Days <span className="text-red-500">*</span>
-              </label>
-              <input
-                {...register('numberOfDays', { valueAsNumber: true })}
-                type="number"
-                min="1"
-                placeholder="Enter number of days"
-                className={inputClassName}
-                disabled={isSubmitting}
-              />
-              {errors.numberOfDays && <p className={errorClassName}>{errors.numberOfDays.message}</p>}
-            </div>
+          {/* Package Details */}
+          <div className="border-t-2 border-gray-200 dark:border-gray-700 pt-6">
+            <h3 className="text-2xl font-bold mb-6 text-purple-600">Package Details</h3>
+            <div className="space-y-6">
+              <div>
+                <label className={labelClassName}>
+                  Package Title <span className="text-red-500">*</span>
+                </label>
+                <input
+                  name="packageTitle"
+                  type="text"
+                  required
+                  defaultValue={itinerary.packageTitle}
+                  className={inputClassName}
+                  disabled={isSubmitting}
+                  placeholder="e.g., Magical Kashmir 5N/6D Tour Package"
+                />
+              </div>
 
-            <div>
-              <label className={labelClassName}>Number of Nights (Auto-calculated)</label>
-              <input
-                {...register('numberOfNights', { valueAsNumber: true })}
-                type="number"
-                disabled
-                className={`${inputClassName} bg-gray-100 dark:bg-gray-800 cursor-not-allowed`}
-              />
-            </div>
-
-            <div>
-              <label className={labelClassName}>
-                Number of Hotels <span className="text-red-500">*</span>
-              </label>
-              <input
-                {...register('numberOfHotels', { valueAsNumber: true })}
-                type="number"
-                min="1"
-                placeholder="Enter number of hotels"
-                className={inputClassName}
-                disabled={isSubmitting}
-              />
-              {errors.numberOfHotels && <p className={errorClassName}>{errors.numberOfHotels.message}</p>}
-            </div>
-          </div>
-
-          {/* Trip Advisor Details */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className={labelClassName}>
-                Trip Advisor Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                {...register('tripAdvisorName')}
-                type="text"
-                placeholder="Enter Trip Advisor Name"
-                className={inputClassName}
-                disabled={isSubmitting}
-              />
-              {errors.tripAdvisorName && <p className={errorClassName}>{errors.tripAdvisorName.message}</p>}
-            </div>
-
-            <div>
-              <label className={labelClassName}>
-                Trip Advisor Number <span className="text-red-500">*</span>
-              </label>
-              <input
-                {...register('tripAdvisorNumber')}
-                type="text"
-                placeholder="Enter Trip Advisor Number"
-                className={inputClassName}
-                disabled={isSubmitting}
-              />
-              {errors.tripAdvisorNumber && <p className={errorClassName}>{errors.tripAdvisorNumber.message}</p>}
-            </div>
-          </div>
-
-          {/* Transport Details */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className={labelClassName}>
-                Cabs Details <span className="text-red-500">*</span>
-              </label>
-              <select {...register('cabs')} className={inputClassName} disabled={isSubmitting}>
-                <option value="">Select cab option</option>
-                {CAB_OPTIONS.map((cab) => (
-                  <option key={cab} value={cab}>
-                    {cab}
-                  </option>
-                ))}
-              </select>
-              {errors.cabs && <p className={errorClassName}>{errors.cabs.message}</p>}
-
-              {/* Custom Cab Input */}
-              {showCabsCustom && (
-                <div className="mt-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <label className={labelClassName}>
+                    Number of Days <span className="text-red-500">*</span>
+                  </label>
                   <input
-                    {...register('cabsCustom')}
-                    type="text"
-                    placeholder="Enter custom cab details"
+                    type="number"
+                    min="1"
+                    required
+                    value={numberOfDays}
+                    onChange={(e) => setNumberOfDays(parseInt(e.target.value) || 1)}
                     className={inputClassName}
                     disabled={isSubmitting}
                   />
                 </div>
-              )}
-            </div>
 
-            <div>
-              <label className={labelClassName}>
-                Flights Details <span className="text-red-500">*</span>
-              </label>
-              <input
-                {...register('flights')}
-                type="text"
-                placeholder="Enter flight details (e.g., Included/Not Included)"
-                className={inputClassName}
-                disabled={isSubmitting}
-              />
-              {errors.flights && <p className={errorClassName}>{errors.flights.message}</p>}
+                <div>
+                  <label className={labelClassName}>
+                    Number of Nights <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={numberOfNights}
+                    readOnly
+                    className={`${inputClassName} bg-gray-100 dark:bg-gray-800 cursor-not-allowed`}
+                    disabled
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Auto-calculated (Days - 1)</p>
+                </div>
+
+                <div>
+                  <label className={labelClassName}>
+                    Number of Hotels <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    value={numberOfHotels}
+                    onChange={(e) => setNumberOfHotels(parseInt(e.target.value) || 1)}
+                    className={inputClassName}
+                    disabled={isSubmitting}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className={labelClassName}>
+                    Quote Price (₹) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    name="quotePrice"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    required
+                    defaultValue={itinerary.quotePrice}
+                    className={inputClassName}
+                    disabled={isSubmitting}
+                    placeholder="0.00"
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClassName}>
+                    Price Per Person (₹) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    name="pricePerPerson"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    required
+                    defaultValue={itinerary.pricePerPerson}
+                    className={inputClassName}
+                    disabled={isSubmitting}
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Price Details */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className={labelClassName}>
-                Quote Price (₹) <span className="text-red-500">*</span>
-              </label>
-              <input
-                {...register('quotePrice', { valueAsNumber: true })}
-                type="number"
-                placeholder="Enter total quote price"
-                className={inputClassName}
-                min={0}
-                disabled={isSubmitting}
-              />
-              {errors.quotePrice && <p className={errorClassName}>{errors.quotePrice.message}</p>}
-            </div>
+          {/* Trip Advisor Details */}
+          <div className="border-t-2 border-gray-200 dark:border-gray-700 pt-6">
+            <h3 className="text-2xl font-bold mb-6 text-purple-600">Trip Advisor Details</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className={labelClassName}>
+                  Trip Advisor Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  name="tripAdvisorName"
+                  type="text"
+                  required
+                  defaultValue={itinerary.tripAdvisorName}
+                  className={inputClassName}
+                  disabled={isSubmitting}
+                  placeholder="Enter advisor name"
+                />
+              </div>
 
-            <div>
-              <label className={labelClassName}>
-                Price per Person (₹) <span className="text-red-500">*</span>
-              </label>
-              <input
-                {...register('pricePerPerson', { valueAsNumber: true })}
-                type="number"
-                placeholder="Enter price per person"
-                className={inputClassName}
-                min={0}
-                disabled={isSubmitting}
-              />
-              {errors.pricePerPerson && <p className={errorClassName}>{errors.pricePerPerson.message}</p>}
+              <div>
+                <label className={labelClassName}>
+                  Trip Advisor Number <span className="text-red-500">*</span>
+                </label>
+                <input
+                  name="tripAdvisorNumber"
+                  type="tel"
+                  required
+                  pattern="[0-9]{10,15}"
+                  defaultValue={itinerary.tripAdvisorNumber}
+                  className={inputClassName}
+                  disabled={isSubmitting}
+                  placeholder="10-15 digit phone number"
+                  title="Please enter a valid phone number (10-15 digits, numbers only)"
+                />
+              </div>
             </div>
           </div>
 
-          {/* Days Section */}
-          <div className="border-t-2 border-purple-200 dark:border-purple-800 pt-6">
+          {/* Transportation Details */}
+          <div className="border-t-2 border-gray-200 dark:border-gray-700 pt-6">
+            <h3 className="text-2xl font-bold mb-6 text-purple-600">Transportation Details</h3>
+            <div className="space-y-6">
+              <div>
+                <label className={labelClassName}>
+                  Cab Details <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="cabs"
+                  required
+                  value={selectedCab}
+                  onChange={(e) => setSelectedCab(e.target.value)}
+                  className={inputClassName}
+                  disabled={isSubmitting}
+                >
+                  <option value="">Select Cab Type</option>
+                  {CAB_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+
+                {selectedCab === 'Custom' && (
+                  <div className="mt-3">
+                    <label className="text-sm font-semibold mb-2 block text-blue-600">
+                      Enter Custom Cab Details <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={customCab}
+                      onChange={(e) => setCustomCab(e.target.value)}
+                      required={selectedCab === 'Custom'}
+                      className={inputClassName}
+                      disabled={isSubmitting}
+                      placeholder="e.g., Luxury SUV, Minibus, etc."
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className={labelClassName}>
+                  Flight Details <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  name="flights"
+                  rows={3}
+                  required
+                  defaultValue={itinerary.flights}
+                  className={inputClassName}
+                  disabled={isSubmitting}
+                  placeholder="Enter flight details..."
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Daily Itinerary with Image Upload */}
+          <div className="border-t-2 border-gray-200 dark:border-gray-700 pt-6">
             <h3 className="text-2xl font-bold mb-6 text-purple-600">Daily Itinerary</h3>
             {dayFields.map((field, index) => (
               <div
-                key={field.id}
-                className="mb-6 p-6 border-2 border-purple-200 dark:border-purple-800 rounded-sm bg-gray-50 dark:bg-gray-900"
+                key={index}
+                className="mb-6 p-6 border-2 border-gray-300 dark:border-gray-700 rounded-sm bg-gray-50 dark:bg-gray-900"
               >
                 <h4 className="font-semibold text-lg mb-4 text-purple-600">Day {index + 1}</h4>
+
                 <div className="space-y-4">
                   <div>
                     <label className={labelClassName}>
-                      Summary <span className="text-red-500">*</span>
+                      Day Summary <span className="text-red-500">*</span>
                     </label>
-                    <textarea
-                      {...register(`days.${index}.summary`)}
-                      placeholder={`Brief summary for Day ${index + 1}`}
-                      rows={2}
+                    <input
+                      name={`days[${index}][summary]`}
+                      type="text"
+                      required
+                      defaultValue={field.summary}
                       className={inputClassName}
                       disabled={isSubmitting}
+                      placeholder="e.g., Arrival in Delhi - City Tour"
                     />
-                    {errors.days?.[index]?.summary && (
-                      <p className={errorClassName}>{errors.days[index]?.summary?.message}</p>
-                    )}
                   </div>
 
+                  {/* Image Upload Section */}
                   <div>
                     <label className={labelClassName}>
                       <ImageIcon className="h-4 w-4 inline mr-1" />
-                      Day Image <span className="text-red-500">*</span>
+                      Day Image
                     </label>
 
                     {dayImagePreviews[index] ? (
@@ -783,24 +746,26 @@ export default function EditItineraryForm({ itinerary }: EditItineraryFormProps)
                           alt={`Day ${index + 1}`}
                           width={400}
                           height={250}
-                          className="rounded-sm object-cover border-2 border-gray-200 dark:border-gray-700 w-full max-w-md h-64"
-                          unoptimized
+                          className="rounded-sm object-cover border-2 border-gray-200 dark:border-gray-700 w-full max-w-md h-48 sm:h-64"
+                          unoptimized={!hasExistingImages[index]}
                         />
                         <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-sm flex items-center justify-center max-w-md">
                           <div className="flex gap-2">
                             <button
                               type="button"
-                              onClick={() => dayFileInputRefs.current[index]?.click()}
+                              onClick={() => handleImageClick(index)}
                               disabled={isSubmitting}
                               className="p-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors disabled:opacity-50"
+                              title="Replace Image"
                             >
                               <Upload className="h-5 w-5" />
                             </button>
                             <button
                               type="button"
-                              onClick={() => handleRemoveDayImage(index)}
+                              onClick={() => handleRemoveImage(index)}
                               disabled={isSubmitting}
                               className="p-3 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors disabled:opacity-50"
+                              title="Remove Image"
                             >
                               <Trash2 className="h-5 w-5" />
                             </button>
@@ -809,157 +774,162 @@ export default function EditItineraryForm({ itinerary }: EditItineraryFormProps)
                       </div>
                     ) : (
                       <div
-                        onClick={!isSubmitting ? () => dayFileInputRefs.current[index]?.click() : undefined}
-                        onDragEnter={(e) => handleDayDrag(e, index)}
-                        onDragLeave={(e) => handleDayDrag(e, index)}
-                        onDragOver={(e) => handleDayDrag(e, index)}
-                        onDrop={(e) => handleDayDrop(e, index)}
-                        className={`border-2 border-dashed rounded-sm p-8 text-center transition-all duration-200 ${
+                        onClick={!isSubmitting ? () => handleImageClick(index) : undefined}
+                        onDragEnter={(e) => handleDrag(e, index)}
+                        onDragLeave={(e) => handleDrag(e, index)}
+                        onDragOver={(e) => handleDrag(e, index)}
+                        onDrop={(e) => handleDrop(e, index)}
+                        className={`border-2 border-dashed rounded-sm p-6 sm:p-8 text-center transition-all duration-200 ${
                           isSubmitting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                         } ${
-                          dayDragActive[index]
+                          dragActiveStates[index]
                             ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                            : 'border-gray-300 dark:border-gray-600 hover:border-purple-500'
+                            : 'border-gray-300 dark:border-gray-700 hover:border-purple-500'
                         }`}
                       >
                         <div className="flex flex-col items-center">
-                          <ImageIcon
-                            className={`h-12 w-12 mb-4 ${dayDragActive[index] ? 'text-purple-500' : 'text-gray-400'}`}
+                          <FileImage
+                            className={`h-10 w-10 sm:h-12 sm:w-12 mb-4 ${
+                              dragActiveStates[index] ? 'text-purple-500' : 'text-gray-400'
+                            }`}
                           />
-                          <p className="text-gray-600 dark:text-gray-400 mb-2 font-medium">
-                            {dayDragActive[index] ? 'Drop image here' : 'Click to upload or drag and drop'}
+                          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-2 font-medium">
+                            {dragActiveStates[index] ? 'Drop image here' : 'Click to upload or drag and drop'}
                           </p>
-                          <p className="text-sm text-gray-500">JPEG, PNG, or WebP (max 100MB)</p>
+                          <p className="text-xs sm:text-sm text-gray-500">JPEG, PNG, or WebP (max 100MB)</p>
                           <p className="text-xs text-gray-400 mt-1">Images will be automatically compressed</p>
                         </div>
                       </div>
                     )}
 
+                    {/* Single input for file selection */}
                     <input
                       ref={(el) => {
-                        dayFileInputRefs.current[index] = el;
+                        fileInputRefs.current[index] = el;
                       }}
                       type="file"
                       accept="image/jpeg,image/png,image/webp,image/jpg"
-                      onChange={(e) => handleDayImageChange(e, index)}
+                      onChange={(e) => handleImageChange(e, index)}
                       disabled={isSubmitting}
                       className="hidden"
                     />
-                    {errors.days?.[index]?.imageSrc && (
-                      <p className={errorClassName}>{errors.days[index]?.imageSrc?.message}</p>
-                    )}
                   </div>
 
                   <div>
                     <label className={labelClassName}>
-                      Description <span className="text-red-500">*</span>
+                      Day Description <span className="text-red-500">*</span>
                     </label>
                     <textarea
-                      {...register(`days.${index}.description`)}
-                      placeholder="Detailed description of activities"
+                      name={`days[${index}][description]`}
                       rows={4}
+                      required
+                      defaultValue={field.description}
                       className={inputClassName}
                       disabled={isSubmitting}
+                      placeholder="Detailed description of the day's activities..."
                     />
-                    {errors.days?.[index]?.description && (
-                      <p className={errorClassName}>{errors.days[index]?.description?.message}</p>
-                    )}
                   </div>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Hotels Section */}
-          <div className="border-t-2 border-purple-200 dark:border-purple-800 pt-6">
-            <h3 className="text-2xl font-bold mb-6 text-purple-600">Hotels</h3>
+          {/* Hotels */}
+          <div className="border-t-2 border-gray-200 dark:border-gray-700 pt-6">
+            <h3 className="text-2xl font-bold mb-6 text-purple-600">Hotel Details</h3>
             {hotelFields.map((field, index) => (
               <div
-                key={field.id}
-                className="mb-6 p-6 border-2 border-purple-200 dark:border-purple-800 rounded-sm bg-gray-50 dark:bg-gray-900"
+                key={index}
+                className="mb-6 p-6 border-2 border-gray-300 dark:border-gray-700 rounded-sm bg-gray-50 dark:bg-gray-900"
               >
                 <h4 className="font-semibold text-lg mb-4 text-purple-600">Hotel {index + 1}</h4>
+
                 <div className="space-y-4">
-                  <div>
-                    <label className={labelClassName}>
-                      Place Name <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      {...register(`hotels.${index}.placeName`)}
-                      type="text"
-                      placeholder="Enter place name (e.g., Manali, Shimla)"
-                      className={inputClassName}
-                      disabled={isSubmitting}
-                    />
-                    {errors.hotels?.[index]?.placeName && (
-                      <p className={errorClassName}>{errors.hotels[index]?.placeName?.message}</p>
-                    )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelClassName}>
+                        Place Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        name={`hotels[${index}][placeName]`}
+                        type="text"
+                        required
+                        defaultValue={field.placeName}
+                        className={inputClassName}
+                        disabled={isSubmitting}
+                        placeholder="e.g., Srinagar"
+                      />
+                    </div>
+
+                    <div>
+                      <label className={labelClassName}>
+                        Place Description <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        name={`hotels[${index}][placeDescription]`}
+                        type="text"
+                        required
+                        defaultValue={field.placeDescription}
+                        className={inputClassName}
+                        disabled={isSubmitting}
+                        placeholder="e.g., Summer Capital of Kashmir"
+                      />
+                    </div>
                   </div>
 
-                  <div>
-                    <label className={labelClassName}>
-                      Night Details <span className="text-red-500">*</span>
-                    </label>
-                    <textarea
-                      {...register(`hotels.${index}.placeDescription`)}
-                      placeholder="Example: 1st Night, 2nd Night"
-                      rows={2}
-                      className={inputClassName}
-                      disabled={isSubmitting}
-                    />
-                    {errors.hotels?.[index]?.placeDescription && (
-                      <p className={errorClassName}>{errors.hotels[index]?.placeDescription?.message}</p>
-                    )}
-                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelClassName}>
+                        Hotel Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        name={`hotels[${index}][hotelName]`}
+                        type="text"
+                        required
+                        defaultValue={field.hotelName}
+                        className={inputClassName}
+                        disabled={isSubmitting}
+                        placeholder="e.g., Hotel Paradise"
+                      />
+                    </div>
 
-                  <div>
-                    <label className={labelClassName}>
-                      Hotel Name <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      {...register(`hotels.${index}.hotelName`)}
-                      type="text"
-                      placeholder="Enter hotel name"
-                      className={inputClassName}
-                      disabled={isSubmitting}
-                    />
-                    {errors.hotels?.[index]?.hotelName && (
-                      <p className={errorClassName}>{errors.hotels[index]?.hotelName?.message}</p>
-                    )}
-                  </div>
+                    <div>
+                      <label className={labelClassName}>
+                        Room Type <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        name={`hotels[${index}][roomType]`}
+                        required
+                        value={selectedRoomTypes[index] || field.roomType || ''}
+                        onChange={(e) => handleRoomTypeChange(index, e.target.value)}
+                        className={inputClassName}
+                        disabled={isSubmitting}
+                      >
+                        <option value="">Select Room Type</option>
+                        {ROOM_TYPES.map((type) => (
+                          <option key={type} value={type}>
+                            {type}
+                          </option>
+                        ))}
+                      </select>
 
-                  <div>
-                    <label className={labelClassName}>
-                      Room Type <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      {...register(`hotels.${index}.roomType`)}
-                      className={inputClassName}
-                      disabled={isSubmitting}
-                    >
-                      <option value="">Select room type</option>
-                      {ROOM_TYPES.map((room) => (
-                        <option key={room} value={room}>
-                          {room}
-                        </option>
-                      ))}
-                    </select>
-                    {errors.hotels?.[index]?.roomType && (
-                      <p className={errorClassName}>{errors.hotels[index]?.roomType?.message}</p>
-                    )}
-
-                    {/* Custom Room Type Input */}
-                    {hotelRoomTypeCustom[index] && (
-                      <div className="mt-3">
-                        <input
-                          {...register(`hotels.${index}.roomTypeCustom`)}
-                          type="text"
-                          placeholder="Enter custom room type"
-                          className={inputClassName}
-                          disabled={isSubmitting}
-                        />
-                      </div>
-                    )}
+                      {selectedRoomTypes[index] === 'Custom' && (
+                        <div className="mt-3">
+                          <label className="text-sm font-semibold mb-2 block text-blue-600">
+                            Enter Custom Room Type <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={customRoomTypes[index] || ''}
+                            onChange={(e) => setCustomRoomTypes((prev) => ({ ...prev, [index]: e.target.value }))}
+                            required
+                            className={inputClassName}
+                            disabled={isSubmitting}
+                            placeholder="e.g., Presidential Suite, Garden View Room, etc."
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div>
@@ -967,35 +937,23 @@ export default function EditItineraryForm({ itinerary }: EditItineraryFormProps)
                       Hotel Description <span className="text-red-500">*</span>
                     </label>
                     <textarea
-                      {...register(`hotels.${index}.hotelDescription`)}
-                      placeholder="Enter hotel description, amenities, etc."
+                      name={`hotels[${index}][hotelDescription]`}
                       rows={3}
+                      required
+                      defaultValue={field.hotelDescription}
                       className={inputClassName}
                       disabled={isSubmitting}
+                      placeholder="Describe the hotel amenities and features..."
                     />
-                    {errors.hotels?.[index]?.hotelDescription && (
-                      <p className={errorClassName}>{errors.hotels[index]?.hotelDescription?.message}</p>
-                    )}
                   </div>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Inclusions Section */}
-          <div className="border-t-2 border-purple-200 dark:border-purple-800 pt-6">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-2xl font-bold text-purple-600">Inclusions</h3>
-              <button
-                type="button"
-                onClick={addInclusion}
-                disabled={isSubmitting}
-                className="flex items-center px-4 py-2 bg-green-500 text-white rounded-sm hover:bg-green-600 transition disabled:opacity-50"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Single
-              </button>
-            </div>
+          {/* Inclusions */}
+          <div className="border-t-2 border-gray-200 dark:border-gray-700 pt-6">
+            <h3 className="text-2xl font-bold mb-4 text-purple-600">Inclusions</h3>
 
             <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-sm border-2 border-blue-200 dark:border-blue-800">
               <div className="flex items-center gap-2 mb-3">
@@ -1007,62 +965,56 @@ export default function EditItineraryForm({ itinerary }: EditItineraryFormProps)
               <textarea
                 value={bulkInclusionText}
                 onChange={(e) => setBulkInclusionText(e.target.value)}
-                placeholder="Paste multiple inclusions here (one per line)&#10;Example:&#10;Welcome drinks on arrival&#10;Daily breakfast&#10;All transfers"
+                placeholder="Paste multiple inclusions here (one per line)"
                 rows={4}
                 className={`${inputClassName} mb-2`}
                 disabled={isSubmitting}
               />
-              <button
+              <Button
                 type="button"
                 onClick={handleBulkInclusionsPaste}
                 disabled={isSubmitting || !bulkInclusionText.trim()}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-sm hover:bg-blue-700 transition disabled:opacity-50"
+                variant="outline"
+                className="cursor-pointer"
               >
                 <Copy className="h-4 w-4 mr-2" />
                 Add All Lines
-              </button>
+              </Button>
             </div>
 
             <div className="space-y-3">
               {inclusions.map((inclusion, index) => (
-                <div key={index} className="flex gap-2 items-start">
-                  <div className="flex-1">
-                    <input
-                      value={inclusion}
-                      onChange={(e) => updateInclusion(index, e.target.value)}
-                      type="text"
-                      placeholder={`Inclusion ${index + 1}`}
-                      className={inputClassName}
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                  <button
+                <div key={index} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={inclusion}
+                    onChange={(e) => updateInclusion(index, e.target.value)}
+                    className={inputClassName}
+                    disabled={isSubmitting}
+                    placeholder="Enter inclusion..."
+                  />
+                  <Button
                     type="button"
                     onClick={() => removeInclusion(index)}
-                    disabled={isSubmitting || inclusions.length === 1}
-                    className="p-3 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-sm transition-colors disabled:opacity-50"
+                    disabled={isSubmitting}
+                    variant="outline"
+                    size="icon"
+                    className="shrink-0"
                   >
-                    <Minus className="h-5 w-5" />
-                  </button>
+                    <Minus className="h-4 w-4" />
+                  </Button>
                 </div>
               ))}
+              <Button type="button" onClick={addInclusion} disabled={isSubmitting} variant="outline" className="w-full">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Inclusion
+              </Button>
             </div>
           </div>
 
-          {/* Exclusions Section */}
-          <div className="border-t-2 border-purple-200 dark:border-purple-800 pt-6">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-2xl font-bold text-purple-600">Exclusions</h3>
-              <button
-                type="button"
-                onClick={addExclusion}
-                disabled={isSubmitting}
-                className="flex items-center px-4 py-2 bg-green-500 text-white rounded-sm hover:bg-green-600 transition disabled:opacity-50"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Single
-              </button>
-            </div>
+          {/* Exclusions */}
+          <div className="border-t-2 border-gray-200 dark:border-gray-700 pt-6">
+            <h3 className="text-2xl font-bold mb-4 text-purple-600">Exclusions</h3>
 
             <div className="mb-6 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-sm border-2 border-orange-200 dark:border-orange-800">
               <div className="flex items-center gap-2 mb-3">
@@ -1074,61 +1026,68 @@ export default function EditItineraryForm({ itinerary }: EditItineraryFormProps)
               <textarea
                 value={bulkExclusionText}
                 onChange={(e) => setBulkExclusionText(e.target.value)}
-                placeholder="Paste multiple exclusions here (one per line)&#10;Example:&#10;Airfare not included&#10;Personal expenses&#10;Travel insurance"
+                placeholder="Paste multiple exclusions here (one per line)"
                 rows={4}
                 className={`${inputClassName} mb-2`}
                 disabled={isSubmitting}
               />
-              <button
+              <Button
                 type="button"
                 onClick={handleBulkExclusionsPaste}
                 disabled={isSubmitting || !bulkExclusionText.trim()}
-                className="flex items-center px-4 py-2 bg-orange-600 text-white rounded-sm hover:bg-orange-700 transition disabled:opacity-50"
+                variant="outline"
+                className="cursor-pointer"
               >
                 <Copy className="h-4 w-4 mr-2" />
                 Add All Lines
-              </button>
+              </Button>
             </div>
 
             <div className="space-y-3">
               {exclusions.map((exclusion, index) => (
-                <div key={index} className="flex gap-2 items-start">
-                  <div className="flex-1">
-                    <input
-                      value={exclusion}
-                      onChange={(e) => updateExclusion(index, e.target.value)}
-                      type="text"
-                      placeholder={`Exclusion ${index + 1}`}
-                      className={inputClassName}
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                  <button
+                <div key={index} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={exclusion}
+                    onChange={(e) => updateExclusion(index, e.target.value)}
+                    className={inputClassName}
+                    disabled={isSubmitting}
+                    placeholder="Enter exclusion..."
+                  />
+                  <Button
                     type="button"
                     onClick={() => removeExclusion(index)}
-                    disabled={isSubmitting || exclusions.length === 1}
-                    className="p-3 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-sm transition-colors disabled:opacity-50"
+                    disabled={isSubmitting}
+                    variant="outline"
+                    size="icon"
+                    className="shrink-0"
                   >
-                    <Minus className="h-5 w-5" />
-                  </button>
+                    <Minus className="h-4 w-4" />
+                  </Button>
                 </div>
               ))}
+              <Button type="button" onClick={addExclusion} disabled={isSubmitting} variant="outline" className="w-full">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Exclusion
+              </Button>
             </div>
           </div>
 
           {/* Submit Button */}
-          <div className="border-t-2 border-purple-200 dark:border-purple-800 pt-6 flex gap-4 justify-end">
-            <Link href="/admin/itinerary/itinerary-list">
-              <Button type="button" variant="outline" disabled={isSubmitting} className="cursor-pointer">
-                Cancel
-              </Button>
-            </Link>
+          <div className="border-t-2 border-gray-200 dark:border-gray-700 pt-6">
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 hover:opacity-90 text-white cursor-pointer"
+              className="w-full py-6 text-lg font-bold bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? 'Updating Itinerary...' : 'Update Itinerary'}
+              {isSubmitting ? (
+                <>
+                  <RefreshCw className="h-5 w-5 mr-2 animate-spin" />
+                  Updating Itinerary...
+                </>
+              ) : (
+                'Update Itinerary'
+              )}
             </Button>
           </div>
         </form>

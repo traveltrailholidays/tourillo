@@ -42,7 +42,10 @@ async function ensureUploadDir() {
   return uploadDir;
 }
 
-// Upload image - minimal server-side processing since client compresses
+// ========================================
+// BLOG IMAGE FUNCTIONS
+// ========================================
+
 export async function uploadBlogImage(formData: FormData): Promise<ImageUploadResult> {
   try {
     const file = formData.get('file') as File;
@@ -64,14 +67,13 @@ export async function uploadBlogImage(formData: FormData): Promise<ImageUploadRe
     }
 
     const uploadDir = await ensureUploadDir();
-    const fileName = `${uuid()}.jpg`;
+    const fileName = `blog-${uuid()}.jpg`;
     const filePath = path.join(uploadDir, fileName);
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
     const originalSizeInMB = buffer.length / (1024 * 1024);
-    // console.log(`Received compressed file: ${originalSizeInMB.toFixed(2)}MB`);
 
     // Light optimization to ensure consistent format
     const optimizedBuffer = await sharp(buffer)
@@ -82,7 +84,6 @@ export async function uploadBlogImage(formData: FormData): Promise<ImageUploadRe
       .toBuffer();
 
     const finalSizeInMB = optimizedBuffer.length / (1024 * 1024);
-    // console.log(`Final optimized size: ${finalSizeInMB.toFixed(2)}MB`);
 
     await fs.writeFile(filePath, optimizedBuffer);
 
@@ -95,7 +96,7 @@ export async function uploadBlogImage(formData: FormData): Promise<ImageUploadRe
       finalSize: `${finalSizeInMB.toFixed(2)}MB`,
     };
   } catch (error) {
-    console.error('Image upload error:', error);
+    console.error('Blog image upload error:', error);
     return {
       success: false,
       error: 'Failed to upload and process image',
@@ -103,7 +104,6 @@ export async function uploadBlogImage(formData: FormData): Promise<ImageUploadRe
   }
 }
 
-// Delete image file
 export async function deleteBlogImage(imagePath: string): Promise<boolean> {
   try {
     if (!imagePath.startsWith('/uploads/')) {
@@ -117,15 +117,13 @@ export async function deleteBlogImage(imagePath: string): Promise<boolean> {
     const fullPath = path.join(uploadDir, fileName);
 
     await fs.unlink(fullPath);
-    // console.log('Image deleted successfully:', fullPath);
     return true;
   } catch (error) {
-    console.error('Error deleting image:', error);
+    console.error('Error deleting blog image:', error);
     return false;
   }
 }
 
-// Generate multiple sizes for responsive images
 export async function generateResponsiveImages(originalBuffer: Buffer, fileName: string): Promise<string[]> {
   const uploadDir = await ensureUploadDir();
   const baseName = path.parse(fileName).name;
@@ -158,4 +156,87 @@ export async function generateResponsiveImages(originalBuffer: Buffer, fileName:
   }
 
   return generatedPaths;
+}
+
+// ========================================
+// ITINERARY IMAGE FUNCTIONS
+// Same /uploads folder, different filename prefix
+// ========================================
+
+export async function uploadItineraryImage(formData: FormData): Promise<ImageUploadResult> {
+  try {
+    const file = formData.get('file') as File;
+
+    if (!file || file.size === 0) {
+      return {
+        success: false,
+        error: 'No file provided',
+      };
+    }
+
+    // Validate file
+    const validation = imageSchema.safeParse({ file });
+    if (!validation.success) {
+      return {
+        success: false,
+        error: formatZodError(validation.error),
+      };
+    }
+
+    const uploadDir = await ensureUploadDir();
+    const fileName = `itinerary-${uuid()}.jpg`;
+    const filePath = path.join(uploadDir, fileName);
+
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    const originalSizeInMB = buffer.length / (1024 * 1024);
+
+    // Light optimization to ensure consistent format
+    const optimizedBuffer = await sharp(buffer)
+      .jpeg({
+        quality: 90,
+        progressive: true,
+      })
+      .toBuffer();
+
+    const finalSizeInMB = optimizedBuffer.length / (1024 * 1024);
+
+    await fs.writeFile(filePath, optimizedBuffer);
+
+    const relativePath = `/uploads/${fileName}`;
+
+    return {
+      success: true,
+      imagePath: relativePath,
+      originalSize: `${originalSizeInMB.toFixed(2)}MB`,
+      finalSize: `${finalSizeInMB.toFixed(2)}MB`,
+    };
+  } catch (error) {
+    console.error('Itinerary image upload error:', error);
+    return {
+      success: false,
+      error: 'Failed to upload and process itinerary image',
+    };
+  }
+}
+
+export async function deleteItineraryImage(imagePath: string): Promise<boolean> {
+  try {
+    if (!imagePath.startsWith('/uploads/')) {
+      return false;
+    }
+
+    const fileName = path.basename(imagePath);
+    const uploadDir =
+      process.env.NODE_ENV === 'production' ? '/var/www/app/uploads' : path.join(process.cwd(), 'public', 'uploads');
+
+    const fullPath = path.join(uploadDir, fileName);
+
+    await fs.unlink(fullPath);
+    return true;
+  } catch (error) {
+    console.error('Error deleting itinerary image:', error);
+    return false;
+  }
 }

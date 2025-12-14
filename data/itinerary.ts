@@ -29,7 +29,7 @@ export const ROOM_TYPES = [
   'Executive Suite',
   'Premium Room',
   'Luxury Villa',
-  'Custom (Enter below)',
+  'Custom',
 ];
 
 export const CAB_OPTIONS = [
@@ -39,5 +39,5 @@ export const CAB_OPTIONS = [
   'Mini Bus (17-20 Seater)',
   'Luxury Coach (30+ Seater)',
   'No Cab Required',
-  'Custom (Enter below)',
+  'Custom',
 ];
