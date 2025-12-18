@@ -18,6 +18,7 @@ model User {
   isAgent       Boolean   @default(false)
   isActive      Boolean   @default(true)
   lastLoginAt   DateTime? @map("last_login_at")
+  phone         String?   @map("phone")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 

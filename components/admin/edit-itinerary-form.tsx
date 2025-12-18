@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 import { DEFAULT_INCLUSIONS, DEFAULT_EXCLUSIONS, ROOM_TYPES, CAB_OPTIONS } from '@/data/itinerary';
 import { Button } from '@/components/ui/button';
 import { compressImage } from '@/lib/image-compression';
+import { getAllAgents } from '@/lib/actions/user-actions';
 
 // Type for itinerary from database
 interface ItineraryData {
@@ -75,6 +76,12 @@ export default function EditItineraryForm({ itinerary }: EditItineraryFormProps)
   const [customCab, setCustomCab] = useState('');
   const [selectedCab, setSelectedCab] = useState(itinerary.cabs);
 
+  // Agent dropdown states
+  const [agents, setAgents] = useState<any[]>([]);
+  const [agentName, setAgentName] = useState(itinerary.tripAdvisorName);
+  const [agentPhone, setAgentPhone] = useState(itinerary.tripAdvisorNumber);
+  const [agentsLoaded, setAgentsLoaded] = useState(false);
+
   const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
 
   // Day fields state
@@ -82,6 +89,57 @@ export default function EditItineraryForm({ itinerary }: EditItineraryFormProps)
 
   // Hotel fields state
   const [hotelFields, setHotelFields] = useState(itinerary.hotels);
+
+  // Load agents on component mount
+  useEffect(() => {
+    const loadAgents = async () => {
+      try {
+        const data = await getAllAgents();
+        setAgents(data);
+        setAgentsLoaded(true);
+
+        // Verify if the current agent exists in the loaded agents
+        const existingAgent = data.find((agent: any) => agent.name === itinerary.tripAdvisorName);
+
+        if (existingAgent) {
+          // Agent exists in the list, ensure values are set correctly
+          // Use nullish coalescing to handle null values
+          setAgentName(existingAgent.name ?? itinerary.tripAdvisorName);
+          // Keep the DB phone value
+          setAgentPhone(itinerary.tripAdvisorNumber);
+        } else {
+          // Agent doesn't exist in list (maybe deleted or custom entry)
+          console.warn(`Agent "${itinerary.tripAdvisorName}" not found in agents list. Keeping current values.`);
+          // Keep the existing values from DB
+          setAgentName(itinerary.tripAdvisorName);
+          setAgentPhone(itinerary.tripAdvisorNumber);
+        }
+      } catch (error) {
+        console.error('Failed to load agents:', error);
+        setAgentsLoaded(true);
+        // Keep DB values if agents fail to load
+        setAgentName(itinerary.tripAdvisorName);
+        setAgentPhone(itinerary.tripAdvisorNumber);
+      }
+    };
+    loadAgents();
+  }, [itinerary.tripAdvisorName, itinerary.tripAdvisorNumber]);
+
+  // Handle Agent Selection
+  const handleAgentSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedName = e.target.value;
+    setAgentName(selectedName);
+
+    // Find the full agent object to get the phone number
+    const selectedAgent = agents.find((agent) => agent.name === selectedName);
+
+    if (selectedAgent && selectedAgent.phone) {
+      setAgentPhone(selectedAgent.phone);
+    } else {
+      // If no phone in agent profile, clear it
+      setAgentPhone('');
+    }
+  };
 
   // Initialize image previews from existing data
   useEffect(() => {
@@ -355,8 +413,10 @@ export default function EditItineraryForm({ itinerary }: EditItineraryFormProps)
       formData.append('clientPhone', (form.elements.namedItem('clientPhone') as HTMLInputElement).value);
       formData.append('clientEmail', (form.elements.namedItem('clientEmail') as HTMLInputElement).value);
       formData.append('packageTitle', (form.elements.namedItem('packageTitle') as HTMLInputElement).value);
-      formData.append('tripAdvisorName', (form.elements.namedItem('tripAdvisorName') as HTMLInputElement).value);
-      formData.append('tripAdvisorNumber', (form.elements.namedItem('tripAdvisorNumber') as HTMLInputElement).value);
+
+      // Use state values for agent name and phone
+      formData.append('tripAdvisorName', agentName);
+      formData.append('tripAdvisorNumber', agentPhone);
 
       const finalCab = selectedCab === 'Custom' ? customCab : selectedCab;
       formData.append('cabs', finalCab);
@@ -365,7 +425,7 @@ export default function EditItineraryForm({ itinerary }: EditItineraryFormProps)
       formData.append('quotePrice', (form.elements.namedItem('quotePrice') as HTMLInputElement).value);
       formData.append('pricePerPerson', (form.elements.namedItem('pricePerPerson') as HTMLInputElement).value);
 
-      // ✅ Add compressed images to FormData
+      // Add compressed images to FormData
       Object.keys(compressedImages).forEach((key) => {
         const index = parseInt(key);
         const file = compressedImages[index];
@@ -609,40 +669,67 @@ export default function EditItineraryForm({ itinerary }: EditItineraryFormProps)
             </div>
           </div>
 
-          {/* Trip Advisor Details */}
+          {/* Agent Details with Dropdown */}
           <div className="border-t-2 border-gray-200 dark:border-gray-700 pt-6">
-            <h3 className="text-2xl font-bold mb-6 text-purple-600">Trip Advisor Details</h3>
+            <h3 className="text-2xl font-bold mb-6 text-purple-600">Agent Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* AGENT NAME (Saved to tripAdvisorName) */}
               <div>
                 <label className={labelClassName}>
-                  Trip Advisor Name <span className="text-red-500">*</span>
+                  Agent Name <span className="text-red-500">*</span>
                 </label>
-                <input
-                  name="tripAdvisorName"
-                  type="text"
-                  required
-                  defaultValue={itinerary.tripAdvisorName}
-                  className={inputClassName}
-                  disabled={isSubmitting}
-                  placeholder="Enter advisor name"
-                />
+                {!agentsLoaded ? (
+                  <div className="flex items-center gap-2 p-3 border-2 border-gray-300 dark:border-gray-700 rounded-sm">
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                    <span className="text-sm text-gray-500">Loading agents...</span>
+                  </div>
+                ) : (
+                  <select
+                    value={agentName}
+                    onChange={handleAgentSelect}
+                    className={inputClassName}
+                    disabled={isSubmitting}
+                    required
+                  >
+                    <option value="">Select an Agent</option>
+                    {agents.map((agent) => (
+                      <option key={agent.id} value={agent.name || ''}>
+                        {agent.name}
+                      </option>
+                    ))}
+                    {/* Show current value if it's not in the agents list */}
+                    {agentName && !agents.find((a) => a.name === agentName) && (
+                      <option value={agentName}>{agentName} (Custom)</option>
+                    )}
+                  </select>
+                )}
+                {agentName && !agents.find((a) => a.name === agentName) && agentsLoaded && (
+                  <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
+                    ⚠️ This agent is not in the current agents list. You can select a different agent or keep this
+                    value.
+                  </p>
+                )}
               </div>
 
+              {/* AGENT PHONE (Saved to tripAdvisorNumber) */}
               <div>
                 <label className={labelClassName}>
-                  Trip Advisor Number <span className="text-red-500">*</span>
+                  Agent Phone <span className="text-red-500">*</span>
                 </label>
                 <input
-                  name="tripAdvisorNumber"
-                  type="tel"
-                  required
-                  pattern="[0-9]{10,15}"
-                  defaultValue={itinerary.tripAdvisorNumber}
+                  type="text"
+                  value={agentPhone}
+                  onChange={(e) => setAgentPhone(e.target.value)}
+                  placeholder="9876543210"
                   className={inputClassName}
                   disabled={isSubmitting}
-                  placeholder="10-15 digit phone number"
+                  required
+                  pattern="[0-9]{10,15}"
                   title="Please enter a valid phone number (10-15 digits, numbers only)"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Auto-filled from agent profile. You can edit this manually.
+                </p>
               </div>
             </div>
           </div>
@@ -1078,7 +1165,7 @@ export default function EditItineraryForm({ itinerary }: EditItineraryFormProps)
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-6 text-lg font-bold bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-6 text-lg font-bold bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white"
             >
               {isSubmitting ? (
                 <>

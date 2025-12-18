@@ -30,6 +30,7 @@ import toast from 'react-hot-toast';
 import { DEFAULT_INCLUSIONS, DEFAULT_EXCLUSIONS, ROOM_TYPES, CAB_OPTIONS } from '@/data/itinerary';
 import { Button } from '@/components/ui/button';
 import { compressImage } from '@/lib/image-compression';
+import { getAllAgents } from '@/lib/actions/user-actions';
 
 interface CreateItineraryProps {
   itinerariesForClone?: Array<{
@@ -272,6 +273,40 @@ const CreateItinerary = ({ itinerariesForClone = [] }: CreateItineraryProps) => 
 
     if (formRef.current) {
       formRef.current.reset();
+    }
+  };
+
+  const [agents, setAgents] = useState<any[]>([]);
+
+  // State for the fields (assuming you are using controlled inputs or useState)
+  const [agentName, setAgentName] = useState(''); // Maps to tripAdvisorName
+  const [agentPhone, setAgentPhone] = useState(''); // Maps to tripAdvisorNumber
+
+  useEffect(() => {
+    const loadAgents = async () => {
+      try {
+        const data = await getAllAgents();
+        setAgents(data);
+      } catch (error) {
+        console.error('Failed to load agents');
+      }
+    };
+    loadAgents();
+  }, []);
+
+  // 2. Handle Agent Selection
+  const handleAgentSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedName = e.target.value;
+    setAgentName(selectedName);
+
+    // Find the full agent object to get the phone number
+    const selectedAgent = agents.find((agent) => agent.name === selectedName);
+
+    if (selectedAgent && selectedAgent.phone) {
+      setAgentPhone(selectedAgent.phone);
+    } else {
+      // Optional: Clear phone or keep previous value if agent has no phone
+      setAgentPhone('');
     }
   };
 
@@ -1040,38 +1075,41 @@ const CreateItinerary = ({ itinerariesForClone = [] }: CreateItineraryProps) => 
           </div>
 
           {/* Trip Advisor Details */}
-          <div className="border-t-2 border-gray-200 dark:border-gray-700 pt-6">
-            <h3 className="text-2xl font-bold mb-6 text-purple-600">Trip Advisor Details</h3>
+          <div className="border-t pt-6 mt-6">
+            <h3 className="text-xl font-bold mb-4">Agent Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* AGENT NAME (Saved to tripAdvisorName) */}
               <div>
-                <label className={labelClassName}>
-                  Trip Advisor Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  name="tripAdvisorName"
-                  type="text"
-                  required
+                <label className="block text-sm font-medium mb-2">Agent Name</label>
+                <select
+                  name="tripAdvisorName" // Binds to existing DB field
+                  value={agentName}
+                  onChange={handleAgentSelect}
                   className={inputClassName}
-                  disabled={isSubmitting}
-                  placeholder="Enter advisor name"
-                />
+                >
+                  <option value="">Select an Agent</option>
+                  {agents.map((agent) => (
+                    <option key={agent.id} value={agent.name || ''}>
+                      {agent.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
+              {/* AGENT PHONE (Saved to tripAdvisorNumber) */}
               <div>
-                <label className={labelClassName}>
-                  Trip Advisor Number <span className="text-red-500">*</span>
-                </label>
+                <label className="block text-sm font-medium mb-2">Agent Phone (Optional)</label>
                 <input
-                  name="tripAdvisorNumber"
-                  type="tel"
-                  required
-                  pattern="[0-9]{10,15}"
+                  name="tripAdvisorNumber" // Binds to existing DB field
+                  type="text"
+                  value={agentPhone}
+                  onChange={(e) => setAgentPhone(e.target.value)}
+                  placeholder="9876543210"
                   className={inputClassName}
-                  disabled={isSubmitting}
-                  placeholder="10-15 digit phone number"
-                  title="Please enter a valid phone number (10-15 digits, numbers only)"
                 />
-                <p className="text-xs text-gray-500 mt-1">Enter 10-15 digit phone number (numbers only)</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Auto-filled from agent profile. You can edit this manually.
+                </p>
               </div>
             </div>
           </div>
@@ -1289,7 +1327,7 @@ const CreateItinerary = ({ itinerariesForClone = [] }: CreateItineraryProps) => 
 
                     <div>
                       <label className={labelClassName}>
-                        Place Description <span className="text-red-500">*</span>
+                        Night Details <span className="text-red-500">*</span>
                       </label>
                       <input
                         name={`hotels[${index}][placeDescription]`}
@@ -1298,7 +1336,7 @@ const CreateItinerary = ({ itinerariesForClone = [] }: CreateItineraryProps) => 
                         defaultValue={field.placeDescription}
                         className={inputClassName}
                         disabled={isSubmitting}
-                        placeholder="e.g., Summer Capital of Kashmir"
+                        placeholder="e.g., 1st Night, 2nd Night"
                       />
                     </div>
                   </div>

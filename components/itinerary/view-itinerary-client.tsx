@@ -1,23 +1,15 @@
 'use client';
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import { Noto_Sans } from 'next/font/google';
-import {
-  FaPhoneAlt,
-  FaRegArrowAltCircleRight,
-  FaCheck,
-  FaHotel,
-  FaSuitcase,
-  FaEnvelope,
-  FaIdCard,
-} from 'react-icons/fa';
+import { FaPhoneAlt, FaRegArrowAltCircleRight, FaCheck, FaHotel, FaSuitcase, FaEnvelope } from 'react-icons/fa';
 import { RxCrossCircled } from 'react-icons/rx';
 import { MdRateReview } from 'react-icons/md';
 import { AiFillThunderbolt } from 'react-icons/ai';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { ItineraryData } from '@/lib/actions/itinerary-actions';
-import LogoFull from '../logo-full';
+import { getCompanyConfig } from '@/lib/config/company-config';
 
 const notoSans = Noto_Sans({
   subsets: ['latin'],
@@ -48,6 +40,10 @@ interface ViewItineraryClientProps {
 
 export default function ViewItineraryClient({ itinerary }: ViewItineraryClientProps) {
   const [showButtons, setShowButtons] = useState(true);
+
+  // Get company configuration based on itinerary company
+  const companyConfig = useMemo(() => getCompanyConfig(itinerary.company), [itinerary.company]);
+  const CompanyLogo = companyConfig.LogoComponent;
 
   const handlePrint = useCallback(() => {
     setShowButtons(false);
@@ -195,7 +191,7 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
             <div className="print-avoid-break">
               {/* Header */}
               <header className="bg-slate-800 text-white w-full flex p-4 justify-between items-center border-b-4 border-slate-600">
-                <LogoFull />
+                <CompanyLogo />
                 <div className="flex items-center gap-3">
                   <div className="bg-slate-700 rounded-lg w-10 h-10 flex justify-center items-center text-white">
                     <FaPhoneAlt size={16} />
@@ -205,7 +201,7 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
                       <span className="font-semibold text-xs text-gray-300">Call Us</span>
                     </div>
                     <div>
-                      <span className="font-semibold text-sm">+91 9625992025</span>
+                      <span className="font-semibold text-sm">{companyConfig.contactPhone}</span>
                     </div>
                   </div>
                 </div>
@@ -235,10 +231,10 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
                   <span className="text-base text-gray-800">
                     Dear <span className="font-semibold capitalize text-slate-800">{itinerary.clientName}</span>,
                   </span>
-                  <span className="text-gray-700">Greetings from Tourillo!</span>
+                  <span className="text-gray-700">Greetings from {companyConfig.shortName}!</span>
                   <span className="text-gray-700">
                     We&apos;re pleased to present you with a carefully curated holiday package tailored to your
-                    preferences by Tourillo, your trusted travel partner.
+                    preferences by {companyConfig.shortName}, your trusted travel partner.
                   </span>
 
                   {/* Client Contact Information */}
@@ -269,22 +265,22 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
                   <div className="flex gap-8 items-center mt-4 print-avoid-break text-gray-600">
                     <div className="flex items-center gap-2 font-medium text-sm">
                       <FaSuitcase size={14} className="text-slate-600" />
-                      500+ Trips
+                      {companyConfig.stats.trips} Trips
                     </div>
                     <div className="flex items-center gap-2 font-medium text-sm">
                       <MdRateReview size={14} className="text-slate-600" />
-                      350+ Reviews
+                      {companyConfig.stats.reviews} Reviews
                     </div>
                     <div className="flex items-center gap-2 font-medium text-sm">
                       <AiFillThunderbolt size={14} className="text-slate-600" />
-                      100% Satisfaction
+                      {companyConfig.stats.satisfaction} Satisfaction
                     </div>
                   </div>
 
                   <div className="mt-6 flex flex-col gap-1 print-avoid-break">
                     <span className="font-bold text-2xl text-slate-800">{itinerary.packageTitle}</span>
                     <span className="font-medium text-base text-gray-600">
-                      {itinerary.numberOfNights} Nights / {itinerary.numberOfDays} Days
+                      {itinerary.numberOfDays} Days / {itinerary.numberOfNights} Nights
                     </span>
                   </div>
 
@@ -306,7 +302,6 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
               {/* Hotel Summary */}
               <div className="px-5 py-4 print-compact print-allow-break-before border-b border-gray-200">
                 <h2 className="text-xl font-bold text-slate-800 print-keep-with-next">Hotel Summary</h2>
-                {/* <div className="h-0.5 w-full bg-gray-300 mt-2 mb-4"></div> */}
                 <div className="flex flex-col gap-4 print-compact-gap">
                   {itinerary.hotels.map((hotel, index) => (
                     <div
@@ -341,7 +336,6 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
               {/* Flights */}
               <div className="px-5 py-4 print-compact print-avoid-break border-b border-gray-200">
                 <h2 className="text-xl font-bold text-slate-800 print-keep-with-next mb-4">Flight Details</h2>
-                {/* <div className="h-0.5 w-full bg-gray-300 mt-2 mb-3"></div> */}
                 <div className="p-4 bg-gray-50 rounded-lg border border-gray-300">
                   <span className="text-sm text-gray-700">{itinerary.flights}</span>
                 </div>
@@ -350,7 +344,6 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
               {/* Cabs */}
               <div className="px-5 py-4 print-compact print-avoid-break border-b border-gray-200">
                 <h2 className="text-xl font-bold text-slate-800 print-keep-with-next mb-4">Transportation</h2>
-                {/* <div className="h-0.5 w-full bg-gray-300 mt-2 mb-3"></div> */}
                 <div className="p-4 bg-gray-50 rounded-lg border border-gray-300">
                   <span className="text-sm text-gray-700">{itinerary.cabs}</span>
                 </div>
@@ -359,7 +352,6 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
               {/* Itinerary */}
               <div className="px-5 py-4 print-compact print-allow-break-before border-b border-gray-200">
                 <h2 className="text-xl font-bold text-slate-800 print-keep-with-next mb-4">Detailed Itinerary</h2>
-                {/* <div className="h-0.5 w-full bg-gray-300 mt-2 mb-4"></div> */}
                 <div className="flex flex-col gap-4 print-compact-gap">
                   {itinerary.days.map((day, index) => (
                     <div
@@ -396,7 +388,6 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
               <div className="px-5 py-4 flex gap-8 print-compact print-allow-break-before print-smart-section border-b border-gray-200">
                 <div className="w-1/2">
                   <h2 className="text-lg font-bold text-slate-800 print-keep-with-next mb-4">What's Included</h2>
-                  {/* <div className="h-0.5 w-full bg-gray-300 mt-2 mb-3"></div> */}
                   <div className="bg-gray-50 p-4 rounded-lg border border-gray-300">
                     {itinerary.inclusions.map((inclusion, index) => (
                       <BulletPoints key={index} icon={FaCheck} size={12} color="#475569" text={inclusion} />
@@ -405,7 +396,6 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
                 </div>
                 <div className="w-1/2">
                   <h2 className="text-lg font-bold text-slate-800 print-keep-with-next mb-4">What's Excluded</h2>
-                  {/* <div className="h-0.5 w-full bg-gray-300 mt-2 mb-3"></div> */}
                   <div className="bg-gray-50 p-4 rounded-lg border border-gray-300">
                     {itinerary.exclusions.map((exclusion, index) => (
                       <BulletPoints key={index} icon={RxCrossCircled} size={12} color="#64748b" text={exclusion} />
@@ -417,26 +407,25 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
               {/* Payment Process */}
               <div className="px-5 py-4 print-compact print-allow-break-before border-b border-gray-200">
                 <h2 className="text-xl font-bold text-slate-800 print-keep-with-next mb-4">Payment Information</h2>
-                {/* <div className="h-0.5 w-full bg-gray-300 mt-2 mb-3"></div> */}
                 <div className="text-sm mb-4 font-medium text-gray-700">Available payment methods:</div>
                 <div className="w-full flex gap-6 justify-between print-compact-gap">
                   <div className="w-1/2 bg-gray-50 p-4 rounded-lg border border-gray-300 print-avoid-break">
                     <span className="text-base font-bold text-slate-800">1. Bank Transfer</span>
                     <div className="ml-4 flex flex-col gap-1.5 mt-3 text-xs text-gray-700">
                       <div>
-                        <span className="font-semibold">Bank:</span> IndusInd Bank
+                        <span className="font-semibold">Bank:</span> {companyConfig.bankDetails.bankName}
                       </div>
                       <div>
-                        <span className="font-semibold">Account:</span> Tourillo Private Limited
+                        <span className="font-semibold">Account:</span> {companyConfig.bankDetails.accountName}
                       </div>
                       <div>
-                        <span className="font-semibold">Number:</span> 259625992025
+                        <span className="font-semibold">Number:</span> {companyConfig.bankDetails.accountNumber}
                       </div>
                       <div>
-                        <span className="font-semibold">IFSC:</span> INDB0000735
+                        <span className="font-semibold">IFSC:</span> {companyConfig.bankDetails.ifsc}
                       </div>
                       <div>
-                        <span className="font-semibold">Type:</span> Current
+                        <span className="font-semibold">Type:</span> {companyConfig.bankDetails.accountType}
                       </div>
                     </div>
                   </div>
@@ -444,16 +433,16 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
                     <span className="text-base font-bold text-slate-800">2. UPI Payment</span>
                     <div className="ml-4 flex flex-col gap-1.5 mt-3 text-xs text-gray-700">
                       <div>
-                        <span className="font-semibold">Merchant:</span> Tourillo Pvt Ltd
+                        <span className="font-semibold">Merchant:</span> {companyConfig.upiDetails.merchantName}
                       </div>
                       <div>
-                        <span className="font-semibold">UPI ID:</span> 9625992025@upi
+                        <span className="font-semibold">UPI ID:</span> {companyConfig.upiDetails.upiId}
                       </div>
                       <div>
-                        <span className="font-semibold">Number:</span> 9625992025
+                        <span className="font-semibold">Number:</span> {companyConfig.upiDetails.phoneNumber}
                       </div>
                       <div className="relative w-[120px] h-[120px] mt-2 border border-gray-300 rounded overflow-hidden print-avoid-break">
-                        <Image src="/images/payment/upi.webp" alt="UPI QR" fill className="object-contain" />
+                        <Image src={companyConfig.upiDetails.qrCodePath} alt="UPI QR" fill className="object-contain" />
                       </div>
                     </div>
                   </div>
@@ -464,25 +453,9 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
               <div className="px-5 py-4 print-compact print-avoid-break border-b border-gray-200">
                 <div className="px-4 py-4 bg-gray-50 rounded-lg border border-gray-300">
                   <div className="flex flex-col gap-3 font-medium text-xs text-gray-700">
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-center gap-3">
                       <div className="bg-slate-700 text-white p-1.5 rounded mt-0.5 shrink-0">
                         <FaPhoneAlt size={11} />
-                      </div>
-                      <p>
-                        For any customization requests or budget adjustments, please contact us at{' '}
-                        <span className="font-bold text-slate-800">{itinerary.clientPhone}</span>
-                        {itinerary.clientEmail && (
-                          <>
-                            {' '}
-                            or email <span className="font-bold text-slate-800">{itinerary.clientEmail}</span>
-                          </>
-                        )}
-                        .
-                      </p>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <div className="bg-slate-700 text-white p-1.5 rounded mt-0.5 shrink-0">
-                        <FaEnvelope size={11} />
                       </div>
                       <p>
                         For support, contact{' '}
@@ -602,7 +575,7 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
                       icon={FaRegArrowAltCircleRight}
                       size={11}
                       color="#475569"
-                      text="Tourillo reserves the right to modify itineraries due to force majeure, weather, strikes, or other uncontrollable circumstances."
+                      text={`${companyConfig.shortName} reserves the right to modify itineraries due to force majeure, weather, strikes, or other uncontrollable circumstances.`}
                     />
                     <BulletPoints
                       icon={FaRegArrowAltCircleRight}
@@ -668,7 +641,7 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
                       icon={FaRegArrowAltCircleRight}
                       size={11}
                       color="#475569"
-                      text="Tourillo reserves the right to terminate trips for payment delays."
+                      text={`${companyConfig.shortName} reserves the right to terminate trips for payment delays.`}
                     />
                   </div>
                 </div>

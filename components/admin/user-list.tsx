@@ -25,6 +25,7 @@ export interface User {
   id: string;
   name: string | null;
   email: string | null;
+  phone: string | null;
   image: string | null;
   isActive: boolean;
   lastLoginAt: string | null;
@@ -36,7 +37,6 @@ interface UserListProps {
   userType: 'user' | 'agent' | 'admin';
 }
 
-// Helper function to format date to dd/mm/yyyy
 const formatDate = (dateString: string | null): string => {
   if (!dateString) return 'Never';
   const date = new Date(dateString);
@@ -56,7 +56,7 @@ export const UserList: React.FC<UserListProps> = ({ users, userType }) => {
   const PAGE_SIZE = 10;
 
   const filtered = useMemo(
-    () => users.filter((u) => [u.name, u.email].some((v) => v?.toLowerCase().includes(search.toLowerCase()))),
+    () => users.filter((u) => [u.name, u.email, u.phone].some((v) => v?.toLowerCase().includes(search.toLowerCase()))),
     [search, users]
   );
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
@@ -98,8 +98,8 @@ export const UserList: React.FC<UserListProps> = ({ users, userType }) => {
     <div className="rounded bg-foreground p-6">
       <div className="mb-4 flex items-center gap-2">
         <input
-          className="w-full md:max-w-xs px-3 py-2 rounded bg-background"
-          placeholder="Search by name or email..."
+          className="w-full md:max-w-xs px-3 py-2 rounded bg-background border border-gray-200 dark:border-gray-700"
+          placeholder="Search by name, email or phone..."
           value={search}
           onChange={(e) => {
             setPage(1);
@@ -113,6 +113,7 @@ export const UserList: React.FC<UserListProps> = ({ users, userType }) => {
             <TableRow>
               <TableHead className="text-primary">User</TableHead>
               <TableHead className="text-primary">Email</TableHead>
+              <TableHead className="text-primary">Phone</TableHead>
               <TableHead className="text-primary">Status</TableHead>
               <TableHead className="text-primary">Last Login</TableHead>
               <TableHead className="text-primary">Joined</TableHead>
@@ -122,7 +123,7 @@ export const UserList: React.FC<UserListProps> = ({ users, userType }) => {
           <TableBody>
             {pageData.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8">
+                <TableCell colSpan={7} className="text-center py-8">
                   No {userType}s found.
                 </TableCell>
               </TableRow>
@@ -148,6 +149,7 @@ export const UserList: React.FC<UserListProps> = ({ users, userType }) => {
                   </div>
                 </TableCell>
                 <TableCell>{user.email}</TableCell>
+                <TableCell>{user.phone || 'N/A'}</TableCell>
                 <TableCell>
                   {user.isActive ? (
                     <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded-full text-xs font-medium">

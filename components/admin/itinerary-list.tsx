@@ -21,6 +21,7 @@ import {
   File,
   CalendarIcon,
   X,
+  UserCheck,
 } from 'lucide-react';
 import { deleteItinerary } from '@/lib/actions/itinerary-actions';
 import {
@@ -59,6 +60,8 @@ export interface Itinerary {
   clientName: string;
   clientPhone: string;
   clientEmail?: string | null;
+  tripAdvisorName?: string | null;
+  tripAdvisorNumber?: string | null;
   packageTitle: string;
   numberOfDays: number;
   numberOfNights: number;
@@ -71,18 +74,23 @@ interface ItineraryListProps {
   itineraries: Itinerary[];
 }
 
-// Helper function to format date
+// 1. Helper to format full date objects to dd/mm/yyyy (for Table/Export)
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const year = date.getFullYear();
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${day}/${month}/${year} ${hours}:${minutes}`;
+  return `${day}/${month}/${year}`;
 };
 
-// Format date for input field (YYYY-MM-DD)
+// 2. Helper to format input string (YYYY-MM-DD) to Display (dd/mm/yyyy)
+const formatDisplayDate = (dateStr: string): string => {
+  if (!dateStr) return '';
+  const [year, month, day] = dateStr.split('-');
+  return `${day}/${month}/${year}`;
+};
+
+// Format date for input field attribute (Must remain YYYY-MM-DD for HTML inputs)
 const formatDateForInput = (date: Date): string => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -115,13 +123,14 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [companyFilter, setCompanyFilter] = useState<'ALL' | 'TOURILLO' | 'TRAVEL_TRAIL_HOLIDAYS'>('ALL');
+  const [agentFilter, setAgentFilter] = useState<string>('ALL');
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
-  // ✅ Date Range Filter States
+  // Date Range Filter States
   const [showDateRangeDialog, setShowDateRangeDialog] = useState(false);
   const [exportType, setExportType] = useState<'csv' | 'excel' | 'pdf'>('csv');
   const [startDate, setStartDate] = useState('');
@@ -151,29 +160,46 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
     };
   }, [itineraries]);
 
-  // ✅ Filter by company, search, and date range
+  // Extract unique agents with counts
+  const agentOptions = useMemo(() => {
+    const counts: Record<string, number> = {};
+
+    itineraries.forEach((i) => {
+      const name = i.tripAdvisorName;
+      if (name) {
+        counts[name] = (counts[name] || 0) + 1;
+      }
+    });
+
+    return Object.entries(counts)
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([name, count]) => ({ name, count }));
+  }, [itineraries]);
+
+  // Filter Logic
   const filtered = useMemo(() => {
     let result = itineraries;
 
-    // Apply company filter
     if (companyFilter !== 'ALL') {
       result = result.filter((i) => i.company === companyFilter);
     }
 
-    // Apply search filter
+    if (agentFilter !== 'ALL') {
+      result = result.filter((i) => i.tripAdvisorName === agentFilter);
+    }
+
     if (search.trim()) {
       result = result.filter((i) =>
-        [i.travelId, i.clientName, i.clientPhone, i.packageTitle].some((v) =>
+        [i.travelId, i.clientName, i.clientPhone, i.packageTitle, i.tripAdvisorName].some((v) =>
           v?.toLowerCase().includes(search.toLowerCase())
         )
       );
     }
 
-    // Apply date range filter (for display only, not export)
     if (applyDateFilter && startDate && endDate) {
       const start = new Date(startDate);
       const end = new Date(endDate);
-      end.setHours(23, 59, 59, 999); // Include full end date
+      end.setHours(23, 59, 59, 999);
 
       result = result.filter((i) => {
         const itemDate = new Date(i.createdAt);
@@ -182,31 +208,25 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
     }
 
     return result;
-  }, [search, itineraries, companyFilter, applyDateFilter, startDate, endDate]);
+  }, [search, itineraries, companyFilter, agentFilter, applyDateFilter, startDate, endDate]);
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const pageData = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  // ✅ Filter data by date range for export
   const getDateFilteredData = (data: Itinerary[]) => {
-    if (!startDate || !endDate) {
-      return data;
-    }
-
+    if (!startDate || !endDate) return data;
     const start = new Date(startDate);
     const end = new Date(endDate);
     end.setHours(23, 59, 59, 999);
-
     return data.filter((item) => {
       const itemDate = new Date(item.createdAt);
       return itemDate >= start && itemDate <= end;
     });
   };
 
-  // ✅ Export to CSV
+  // Export to CSV
   const exportToCSV = (data: Itinerary[]) => {
     const filteredData = getDateFilteredData(data);
-
     if (filteredData.length === 0) {
       toast.error('No data found in selected date range');
       return;
@@ -218,6 +238,8 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
       'Client Name',
       'Client Phone',
       'Client Email',
+      'Agent Name',
+      'Agent Phone',
       'Package Title',
       'Days',
       'Nights',
@@ -235,12 +257,14 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
           `"${item.clientName}"`,
           item.clientPhone,
           item.clientEmail || '',
+          `"${item.tripAdvisorName || ''}"`,
+          item.tripAdvisorNumber || '',
           `"${item.packageTitle}"`,
           item.numberOfDays,
           item.numberOfNights,
           item.quotePrice,
           item.pricePerPerson,
-          formatDate(item.createdAt),
+          formatDate(item.createdAt), // dd/mm/yyyy
         ].join(',')
       ),
     ].join('\n');
@@ -248,7 +272,6 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
-
     const timestamp = new Date().toISOString().split('T')[0];
     const filterLabel = companyFilter === 'ALL' ? 'all' : companyFilter === 'TOURILLO' ? 'tourillo' : 'traveltrail';
     const dateLabel = startDate && endDate ? `_${startDate}_to_${endDate}` : '';
@@ -264,10 +287,9 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
     toast.success(`${filteredData.length} itineraries exported to CSV!`);
   };
 
-  // ✅ Export to Excel
+  // Export to Excel
   const exportToExcel = async (data: Itinerary[]) => {
     const filteredData = getDateFilteredData(data);
-
     if (filteredData.length === 0) {
       toast.error('No data found in selected date range');
       return;
@@ -276,19 +298,20 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
     try {
       setIsExporting(true);
       const XLSX = await import('xlsx');
-
       const excelData = filteredData.map((item) => ({
         Company: item.company === 'TOURILLO' ? 'TRL' : 'TTH',
         'Travel ID': item.travelId,
         'Client Name': item.clientName,
         'Client Phone': item.clientPhone,
         'Client Email': item.clientEmail || '',
+        'Agent Name': item.tripAdvisorName || 'N/A',
+        'Agent Phone': item.tripAdvisorNumber || 'N/A',
         'Package Title': item.packageTitle,
         Days: item.numberOfDays,
         Nights: item.numberOfNights,
         'Quote Price (₹)': item.quotePrice,
         'Price Per Person (₹)': item.pricePerPerson,
-        'Created Date': formatDate(item.createdAt),
+        'Created Date': formatDate(item.createdAt), // dd/mm/yyyy
       }));
 
       const worksheet = XLSX.utils.json_to_sheet(excelData);
@@ -301,6 +324,8 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
         { wch: 20 },
         { wch: 15 },
         { wch: 25 },
+        { wch: 20 },
+        { wch: 15 },
         { wch: 30 },
         { wch: 8 },
         { wch: 8 },
@@ -324,10 +349,9 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
     }
   };
 
-  // ✅ Export to PDF
+  // Export to PDF
   const exportToPDF = async (data: Itinerary[]) => {
     const filteredData = getDateFilteredData(data);
-
     if (filteredData.length === 0) {
       toast.error('No data found in selected date range');
       return;
@@ -335,11 +359,10 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
 
     try {
       setIsExporting(true);
-
       const { jsPDF } = await import('jspdf');
       const { default: autoTable } = await import('jspdf-autotable');
 
-      const doc = new jsPDF();
+      const doc = new jsPDF({ orientation: 'landscape' });
       const timestamp = new Date().toLocaleDateString('en-IN');
       const filterLabel =
         companyFilter === 'ALL'
@@ -348,11 +371,9 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
             ? 'Tourillo (TRL)'
             : 'Travel Trail Holidays (TTH)';
 
-      // Title
       doc.setFontSize(16);
       doc.text('Itinerary Report', 14, 15);
 
-      // Subtitle with date range
       doc.setFontSize(10);
       let subtitle = `Filter: ${filterLabel} | Generated: ${timestamp}`;
       if (startDate && endDate) {
@@ -364,15 +385,15 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
         item.company === 'TOURILLO' ? 'TRL' : 'TTH',
         item.travelId,
         item.clientName,
-        item.clientPhone,
+        item.tripAdvisorName || '-',
         item.packageTitle,
         `${item.numberOfNights}N/${item.numberOfDays}D`,
         formatPrice(item.quotePrice),
-        formatDate(item.createdAt),
+        formatDate(item.createdAt), // dd/mm/yyyy
       ]);
 
       autoTable(doc, {
-        head: [['Company', 'Travel ID', 'Client Name', 'Phone', 'Package', 'Duration', 'Price', 'Created']],
+        head: [['Company', 'Travel ID', 'Client', 'Agent', 'Package', 'Duration', 'Price', 'Created']],
         body: tableData,
         startY: startDate && endDate ? 32 : 28,
         theme: 'grid',
@@ -407,16 +428,13 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
     }
   };
 
-  // ✅ Handle export with date range dialog
   const handleExportClick = (type: 'csv' | 'excel' | 'pdf') => {
     setExportType(type);
     setShowDateRangeDialog(true);
   };
 
-  // ✅ Execute export after date selection
   const executeExport = () => {
     setShowDateRangeDialog(false);
-
     setTimeout(() => {
       switch (exportType) {
         case 'csv':
@@ -429,14 +447,11 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
           exportToPDF(filtered);
           break;
       }
-
-      // Reset date filters after export
       setStartDate('');
       setEndDate('');
     }, 100);
   };
 
-  // ✅ Clear date filter
   const clearDateFilter = () => {
     setStartDate('');
     setEndDate('');
@@ -448,7 +463,6 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
       toast.error('Only administrators can delete itineraries');
       return;
     }
-
     setIsDeleting(true);
     try {
       await deleteItinerary(deleteId);
@@ -470,7 +484,6 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
 
   const openDeleteDialog = (id: string) => {
     if (!isMounted) return;
-
     if (!isAdmin) {
       toast.error('Only administrators can delete itineraries');
       return;
@@ -484,12 +497,11 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
       {/* Search, Filter and Stats */}
       <div className="mb-6 space-y-4">
         <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-          {/* Search Bar */}
           <div className="relative flex-1 max-w-md w-full">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
               className="w-full pl-10 pr-4 py-2.5 rounded-sm border-2 border-gray-300 dark:border-gray-600 bg-background focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
-              placeholder="Search by Travel ID, client name, phone, or package..."
+              placeholder="Search by ID, client, agent, or package..."
               value={search}
               onChange={(e) => {
                 setPage(1);
@@ -498,7 +510,6 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
             />
           </div>
 
-          {/* Company Filter Buttons + Export */}
           <div className="flex gap-2 items-center flex-wrap">
             <Filter className="h-4 w-4 text-gray-400" />
             <div className="flex gap-2">
@@ -522,7 +533,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
                 }}
                 className={`cursor-pointer ${companyFilter === 'TOURILLO' ? 'bg-purple-500 hover:bg-purple-600' : ''}`}
               >
-                Tourillo ({stats.tourillo})
+                TRL ({stats.tourillo})
               </Button>
               <Button
                 size="sm"
@@ -531,15 +542,29 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
                   setCompanyFilter('TRAVEL_TRAIL_HOLIDAYS');
                   setPage(1);
                 }}
-                className={`cursor-pointer ${
-                  companyFilter === 'TRAVEL_TRAIL_HOLIDAYS' ? 'bg-blue-500 hover:bg-blue-600' : ''
-                }`}
+                className={`cursor-pointer ${companyFilter === 'TRAVEL_TRAIL_HOLIDAYS' ? 'bg-blue-500 hover:bg-blue-600' : ''}`}
               >
-                Travel Trail ({stats.travelTrail})
+                TTH ({stats.travelTrail})
               </Button>
             </div>
 
-            {/* ✅ Export Dropdown */}
+            {/* Agent Filter with Counts */}
+            <select
+              className="h-9 px-3 rounded-md border border-gray-300 dark:border-gray-600 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+              value={agentFilter}
+              onChange={(e) => {
+                setAgentFilter(e.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="ALL">All Agents</option>
+              {agentOptions.map((agent) => (
+                <option key={agent.name} value={agent.name}>
+                  {agent.name} ({agent.count})
+                </option>
+              ))}
+            </select>
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -570,7 +595,6 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
                   <Sheet className="h-4 w-4 mr-2 text-blue-600" />
                   <span>Export to CSV</span>
                 </DropdownMenuItem>
-
                 <DropdownMenuItem
                   onClick={() => handleExportClick('excel')}
                   disabled={isExporting}
@@ -579,9 +603,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
                   <FileText className="h-4 w-4 mr-2 text-green-600" />
                   <span>Export to Excel</span>
                 </DropdownMenuItem>
-
                 <DropdownMenuSeparator />
-
                 <DropdownMenuItem
                   onClick={() => handleExportClick('pdf')}
                   disabled={isExporting}
@@ -623,7 +645,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
         </div>
 
         {/* Active Filter Indicator */}
-        {(companyFilter !== 'ALL' || search.trim() || applyDateFilter) && (
+        {(companyFilter !== 'ALL' || agentFilter !== 'ALL' || search.trim() || applyDateFilter) && (
           <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 flex-wrap">
             <span>
               Showing {filtered.length} of {stats.total} itineraries
@@ -633,10 +655,16 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
                 {companyFilter === 'TOURILLO' ? 'Tourillo' : 'Travel Trail Holidays'}
               </span>
             )}
+            {agentFilter !== 'ALL' && (
+              <span className="px-2 py-1 bg-indigo-100 dark:bg-indigo-900/30 rounded text-indigo-700 dark:text-indigo-300 flex items-center gap-1">
+                <UserCheck className="h-3 w-3" />
+                Agent: {agentFilter}
+              </span>
+            )}
             {applyDateFilter && startDate && endDate && (
               <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 rounded text-blue-700 dark:text-blue-300 flex items-center gap-2">
                 <CalendarIcon className="h-3 w-3" />
-                {startDate} to {endDate}
+                {formatDisplayDate(startDate)} to {formatDisplayDate(endDate)}
                 <button
                   onClick={clearDateFilter}
                   className="hover:bg-blue-200 dark:hover:bg-blue-800 rounded-full p-0.5"
@@ -649,14 +677,15 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
         )}
       </div>
 
-      {/* Table - Same as before */}
+      {/* Table Section */}
       <div className="overflow-x-auto rounded-sm border border-gray-200 dark:border-gray-700">
         <Table>
           <TableHeader>
             <TableRow className="bg-gray-50 dark:bg-gray-800">
               <TableHead className="text-primary font-bold">Company</TableHead>
               <TableHead className="text-primary font-bold">Travel ID</TableHead>
-              <TableHead className="text-primary font-bold">Client Details</TableHead>
+              <TableHead className="text-primary font-bold">Client</TableHead>
+              <TableHead className="text-primary font-bold">Agent</TableHead>
               <TableHead className="text-primary font-bold">Package</TableHead>
               <TableHead className="text-primary font-bold">Duration</TableHead>
               <TableHead className="text-primary font-bold">Pricing</TableHead>
@@ -667,11 +696,11 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
           <TableBody>
             {pageData.length === 0 && (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-12">
+                <TableCell colSpan={9} className="text-center py-12">
                   <div className="flex flex-col items-center gap-2">
                     <PackageIcon className="h-12 w-12 text-gray-300 dark:text-gray-600" />
                     <p className="text-gray-500 dark:text-gray-400">
-                      {search || companyFilter !== 'ALL' || applyDateFilter
+                      {search || companyFilter !== 'ALL' || agentFilter !== 'ALL' || applyDateFilter
                         ? 'No itineraries found matching your filters'
                         : 'No itineraries found'}
                     </p>
@@ -683,11 +712,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
               <TableRow key={itinerary.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition">
                 <TableCell>
                   <span
-                    className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold ${
-                      itinerary.company === 'TOURILLO'
-                        ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
-                        : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                    }`}
+                    className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold ${itinerary.company === 'TOURILLO' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}
                   >
                     <Building2 className="h-3 w-3" />
                     {itinerary.company === 'TOURILLO' ? 'TRL' : 'TTH'}
@@ -702,8 +727,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
                       size="icon"
                       variant="ghost"
                       onClick={() => copyTravelId(itinerary.travelId)}
-                      title="Copy Travel ID"
-                      className="h-7 w-7 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+                      className="h-7 w-7"
                     >
                       <Copy className="h-3.5 w-3.5" />
                     </Button>
@@ -711,61 +735,42 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
                 </TableCell>
                 <TableCell>
                   <div className="space-y-1">
-                    <p className="font-semibold flex items-center gap-1.5">
-                      <User className="h-3.5 w-3.5 text-gray-400" />
-                      {itinerary.clientName}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{itinerary.clientPhone}</p>
-                    {itinerary.clientEmail && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[200px]">
-                        {itinerary.clientEmail}
-                      </p>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell className="max-w-xs">
-                  <p className="font-medium truncate" title={itinerary.packageTitle}>
-                    {itinerary.packageTitle}
-                  </p>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-1.5">
-                    <Calendar className="h-3.5 w-3.5 text-gray-400" />
-                    <span className="font-semibold">
-                      {itinerary.numberOfNights}N / {itinerary.numberOfDays}D
-                    </span>
+                    <p className="font-semibold text-sm">{itinerary.clientName}</p>
+                    <p className="text-xs text-gray-500">{itinerary.clientPhone}</p>
                   </div>
                 </TableCell>
                 <TableCell>
                   <div className="space-y-1">
-                    <p className="font-bold text-green-600 dark:text-green-400">{formatPrice(itinerary.quotePrice)}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {formatPrice(itinerary.pricePerPerson)}/person
-                    </p>
+                    <p className="font-semibold text-sm text-indigo-600">{itinerary.tripAdvisorName || 'N/A'}</p>
+                    <p className="text-xs text-gray-500">{itinerary.tripAdvisorNumber}</p>
+                  </div>
+                </TableCell>
+                <TableCell className="max-w-xs">
+                  <p className="font-medium truncate text-sm">{itinerary.packageTitle}</p>
+                </TableCell>
+                <TableCell>
+                  <span className="font-semibold text-sm">
+                    {itinerary.numberOfNights}N / {itinerary.numberOfDays}D
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <div className="space-y-1">
+                    <p className="font-bold text-green-600 text-sm">{formatPrice(itinerary.quotePrice)}</p>
+                    <p className="text-xs text-gray-500">{formatPrice(itinerary.pricePerPerson)}/p</p>
                   </div>
                 </TableCell>
                 <TableCell>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{formatDate(itinerary.createdAt)}</p>
+                  <p className="text-xs text-gray-600">{formatDate(itinerary.createdAt)}</p>
                 </TableCell>
                 <TableCell>
                   <div className="flex gap-2 justify-end">
                     <Link href={`/admin/itinerary/edit-itinerary/${itinerary.travelId}`}>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        title="Edit Itinerary"
-                        className="hover:bg-blue-100 dark:hover:bg-blue-900/30 cursor-pointer"
-                      >
+                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
                         <Edit className="h-4 w-4 text-blue-600" />
                       </Button>
                     </Link>
                     <Link href={`/itinerary/view/${itinerary.travelId}`} target="_blank">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        title="Open Itinerary"
-                        className="hover:bg-green-100 dark:hover:bg-green-900/30 cursor-pointer"
-                      >
+                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
                         <Eye className="h-4 w-4 text-green-600" />
                       </Button>
                     </Link>
@@ -774,8 +779,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
                         size="sm"
                         variant="ghost"
                         onClick={() => openDeleteDialog(itinerary.id)}
-                        title="Delete (Admin Only)"
-                        className="hover:bg-red-100 dark:hover:bg-red-900/30 cursor-pointer"
+                        className="h-8 w-8 p-0"
                       >
                         <Trash2 className="h-4 w-4 text-red-600" />
                       </Button>
@@ -788,9 +792,8 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
         </Table>
       </div>
 
-      {/* Pagination */}
       <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4">
-        <span className="text-sm text-gray-600 dark:text-gray-400">
+        <span className="text-sm text-gray-600">
           Showing {pageData.length > 0 ? (page - 1) * PAGE_SIZE + 1 : 0} to{' '}
           {Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length} results
         </span>
@@ -798,11 +801,6 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
           <Button disabled={page === 1} size="sm" onClick={() => setPage((p) => Math.max(p - 1, 1))} variant="outline">
             Previous
           </Button>
-          <div className="flex items-center gap-2 px-3">
-            <span className="text-sm font-medium">
-              Page {page} of {totalPages || 1}
-            </span>
-          </div>
           <Button
             disabled={page === totalPages || totalPages === 0}
             size="sm"
@@ -814,7 +812,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
         </div>
       </div>
 
-      {/* ✅ Date Range Dialog for Export */}
+      {/* Export Dialog with Fixed Preview */}
       <Dialog open={showDateRangeDialog} onOpenChange={setShowDateRangeDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -826,7 +824,6 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            {/* ✅ Export All Option */}
             <div className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-sm hover:border-purple-500 transition">
               <button
                 type="button"
@@ -843,31 +840,28 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
                   </div>
                   <div className="text-left">
                     <p className="font-semibold text-base group-hover:text-purple-600 transition">Export All Data</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Export all {filtered.length} itineraries</p>
                   </div>
                 </div>
-                <div className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full text-sm font-semibold">
+                <div className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
                   {filtered.length}
                 </div>
               </button>
             </div>
 
-            {/* ✅ Divider */}
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300 dark:border-gray-700"></div>
+                <div className="w-full border-t border-gray-300"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-background text-gray-500 dark:text-gray-400">OR</span>
+                <span className="px-2 bg-background text-gray-500">OR</span>
               </div>
             </div>
 
-            {/* ✅ Date Range Selection */}
             <div className="space-y-3">
-              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Select Custom Date Range</p>
+              <p className="text-sm font-semibold text-gray-700">Select Custom Date Range</p>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-1">
+                <label className="text-sm font-medium">
                   From Date <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -875,13 +869,12 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
                   max={formatDateForInput(new Date())}
-                  className="w-full px-3 py-2 border-2 border-gray-300 dark:border-gray-700 rounded-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-background"
-                  placeholder="Select start date"
+                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-purple-500 bg-background"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-1">
+                <label className="text-sm font-medium">
                   To Date <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -891,21 +884,16 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
                   min={startDate}
                   max={formatDateForInput(new Date())}
                   disabled={!startDate}
-                  className="w-full px-3 py-2 border-2 border-gray-300 dark:border-gray-700 rounded-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-background disabled:opacity-50 disabled:cursor-not-allowed"
-                  placeholder="Select end date"
+                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-purple-500 bg-background disabled:opacity-50"
                 />
-                {!startDate && (
-                  <p className="text-xs text-amber-600 dark:text-amber-400">⚠️ Please select start date first</p>
-                )}
               </div>
 
-              {/* ✅ Date Range Preview */}
               {startDate && endDate && (
-                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-sm border border-blue-200 dark:border-blue-800">
-                  <p className="text-sm text-blue-700 dark:text-blue-300 flex items-center gap-2">
+                <div className="p-3 bg-blue-50 rounded-sm border border-blue-200">
+                  <p className="text-sm text-blue-700 flex items-center gap-2">
                     <CalendarIcon className="h-4 w-4" />
                     <span>
-                      <strong>{startDate}</strong> to <strong>{endDate}</strong>
+                      <strong>{formatDisplayDate(startDate)}</strong> to <strong>{formatDisplayDate(endDate)}</strong>
                     </span>
                   </p>
                 </div>
@@ -927,40 +915,26 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
             <Button
               onClick={executeExport}
               disabled={!startDate || !endDate}
-              className="bg-linear-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-linear-to-r from-purple-500 to-indigo-600 text-white hover:from-purple-600 hover:to-indigo-700"
             >
-              <Download className="h-4 w-4 mr-2" />
               Export Date Range
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Itinerary?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this itinerary? This action cannot be undone and all associated data will
-              be permanently removed.
+              Are you sure you want to delete this itinerary? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDeleteId(null)} disabled={isDeleting}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="bg-linear-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isDeleting && (
-                <span className="mr-2">
-                  <LoadingSpinner />
-                </span>
-              )}
-              {isDeleting ? 'Deleting...' : 'Delete'}
+            <AlertDialogCancel onClick={() => setDeleteId(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

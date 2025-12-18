@@ -14,6 +14,7 @@ interface User {
   id: string;
   name: string | null;
   email: string | null;
+  phone: string | null; // Added phone to interface
   image: string | null;
   isAdmin: boolean;
   isAgent: boolean;
@@ -32,6 +33,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({ user }) => {
   const [formData, setFormData] = useState({
     name: user.name || '',
     email: user.email || '',
+    phone: user.phone || '', // Added phone state
     isAdmin: user.isAdmin,
     isAgent: user.isAgent,
     isActive: user.isActive,
@@ -45,6 +47,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({ user }) => {
       await updateUser(user.id, {
         name: formData.name,
         email: formData.email,
+        phone: formData.phone, // Added phone to submission
         isAdmin: formData.isAdmin,
         isAgent: formData.isAgent,
         isActive: formData.isActive,
@@ -120,7 +123,21 @@ const UserEditForm: React.FC<UserEditFormProps> = ({ user }) => {
               </div>
             </div>
 
+            {/* Added Phone Input Row */}
             <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="phone" className="text-gray-900 dark:text-gray-200">
+                  Phone Number
+                </Label>
+                <input
+                  id="phone"
+                  type="text"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  className="w-full px-4 py-3 mt-1 border border-gray-300 dark:border-gray-600 rounded-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  placeholder="Enter phone number"
+                />
+              </div>
               <div>
                 <Label className="text-gray-900 dark:text-gray-200">User ID</Label>
                 <input
@@ -130,7 +147,9 @@ const UserEditForm: React.FC<UserEditFormProps> = ({ user }) => {
                   className="w-full px-4 py-3 mt-1 border border-gray-300 dark:border-gray-600 rounded-sm bg-gray-100 dark:bg-gray-800 cursor-not-allowed text-gray-600 dark:text-gray-400"
                 />
               </div>
+            </div>
 
+            <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <Label className="text-gray-900 dark:text-gray-200">User Type</Label>
                 <div className="flex items-center h-[52px] px-4 mt-1 border border-gray-300 dark:border-gray-600 rounded-sm bg-gray-100 dark:bg-gray-800">

@@ -5,10 +5,11 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { auth } from '@/auth';
 
-// User validation schema
+// User validation schema - UPDATED with phone
 const userSchema = z.object({
   name: z.string().min(1, 'Name is required').optional(),
   email: z.email('Invalid email').optional(),
+  phone: z.string().optional().nullable(), // Added phone
   isAdmin: z.boolean().optional(),
   isAgent: z.boolean().optional(),
   isActive: z.boolean().optional(),
@@ -29,6 +30,7 @@ export async function getAllUsers() {
         id: true,
         name: true,
         email: true,
+        phone: true, // Added phone
         image: true,
         isActive: true,
         lastLoginAt: true,
@@ -60,6 +62,7 @@ export async function getAllAgents() {
       select: {
         id: true,
         name: true,
+        phone: true, // Already existed, keeping it
         email: true,
         image: true,
         isActive: true,
@@ -93,6 +96,7 @@ export async function getAllAdmins() {
         id: true,
         name: true,
         email: true,
+        phone: true, // Added phone
         image: true,
         isActive: true,
         lastLoginAt: true,
@@ -146,7 +150,6 @@ export async function updateUser(id: string, data: z.infer<typeof userSchema>) {
     return { success: true, user: updatedUser };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      // Changed from error.errors to error.issues
       throw new Error('Invalid data: ' + error.issues.map((e) => e.message).join(', '));
     }
     throw new Error(error instanceof Error ? error.message : 'Failed to update user');

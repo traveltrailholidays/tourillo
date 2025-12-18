@@ -21,23 +21,14 @@ export const DEFAULT_EXCLUSIONS = [
   'GST (5%) or any other applicable taxes',
 ];
 
-export const ROOM_TYPES = [
-  'Standard Room',
-  'Deluxe Room',
-  'Super Deluxe Room',
-  'Suite Room',
-  'Executive Suite',
-  'Premium Room',
-  'Luxury Villa',
-  'Custom',
-];
+export const ROOM_TYPES = ['Standard', 'Deluxe', 'Super Deluxe', 'Suite', 'Luxury', 'Houseboat', 'Custom'];
 
 export const CAB_OPTIONS = [
-  'Sedan (4 Seater)',
-  'SUV (6-7 Seater)',
-  'Tempo Traveller (12-14 Seater)',
-  'Mini Bus (17-20 Seater)',
-  'Luxury Coach (30+ Seater)',
+  '2 Seater - Scooty on Rent',
+  '4 Seater - Sedan (Dzire / Aura / Baleno or similar)',
+  '6 Seater - MUV (Ertiga or similar)',
+  '7 Seater - SUV (Innova Crysta or similar)',
+  '8 Seater - SUV Plus (Innova or similar)',
   'No Cab Required',
   'Custom',
 ];
