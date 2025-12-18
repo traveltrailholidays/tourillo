@@ -15,6 +15,12 @@ import {
   MapPin,
   Users,
   Building2,
+  Receipt,
+  Hotel,
+  DollarSign,
+  Target,
+  Award,
+  BarChart3,
 } from 'lucide-react';
 import {
   LineChart,
@@ -35,6 +41,7 @@ import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import type { DashboardStats } from '@/lib/actions/dashboard-actions';
 import { getDashboardStats } from '@/lib/actions/dashboard-actions';
 import Link from 'next/link';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface DashboardProps {
   initialStats: DashboardStats;
@@ -326,8 +333,8 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
           </div>
         )}
 
-        {/* Stats Grid - Two rows layout */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+        {/* ✅ Stats Grid - Existing + New Voucher Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
           <StatCard
             icon={MapPin}
             label="Total Itineraries"
@@ -367,9 +374,99 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
             color="border-l-orange-500"
             link="/admin/quotes/quotes-list"
           />
+          {/* ✅ NEW: Voucher Cards */}
+          <StatCard
+            icon={Receipt}
+            label="Total Vouchers"
+            value={stats.totalVouchers}
+            sublabel={`TRL: ${stats.tourilloVouchers} • TTH: ${stats.tthVouchers}`}
+            color="border-l-cyan-500"
+            link="/admin/voucher/voucher-list"
+          />
+          <StatCard
+            icon={Hotel}
+            label="Total Nights"
+            value={stats.totalVoucherNights}
+            sublabel={`${stats.vouchersWithHotels} with hotels • ${stats.vouchersWithoutHotels} without`}
+            color="border-l-indigo-500"
+            link="/admin/voucher/voucher-list"
+          />
+          <StatCard
+            icon={Users}
+            label="Total Guests"
+            value={stats.totalVoucherGuests}
+            sublabel="Across all vouchers"
+            color="border-l-rose-500"
+            link="/admin/voucher/voucher-list"
+          />
         </div>
 
-        {/* Monthly Trends Chart */}
+        {/* ✅ NEW: Business Metrics Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="bg-linear-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg p-5 border border-purple-200 dark:border-purple-700 shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2.5 bg-purple-200 dark:bg-purple-800 rounded-lg">
+                <DollarSign className="h-5 w-5 text-purple-700 dark:text-purple-300" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-purple-900 dark:text-purple-100 uppercase">Total Revenue</p>
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-purple-900 dark:text-purple-100 mb-1">
+              {formatPrice(stats.businessMetrics.totalItineraryRevenue)}
+            </p>
+            <p className="text-xs text-purple-700 dark:text-purple-300 font-medium">
+              From {stats.totalItineraries} itineraries
+            </p>
+          </div>
+
+          <div className="bg-linear-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg p-5 border border-blue-200 dark:border-blue-700 shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2.5 bg-blue-200 dark:bg-blue-800 rounded-lg">
+                <Target className="h-5 w-5 text-blue-700 dark:text-blue-300" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-blue-900 dark:text-blue-100 uppercase">Avg Package Price</p>
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-blue-900 dark:text-blue-100 mb-1">
+              {formatPrice(stats.businessMetrics.averageItineraryPrice)}
+            </p>
+            <p className="text-xs text-blue-700 dark:text-blue-300 font-medium">Average per itinerary</p>
+          </div>
+
+          <div className="bg-linear-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg p-5 border border-green-200 dark:border-green-700 shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2.5 bg-green-200 dark:bg-green-800 rounded-lg">
+                <TrendingUp className="h-5 w-5 text-green-700 dark:text-green-300" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-green-900 dark:text-green-100 uppercase">Conversion Rate</p>
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-green-900 dark:text-green-100 mb-1">
+              {stats.businessMetrics.conversionRate.toFixed(1)}%
+            </p>
+            <p className="text-xs text-green-700 dark:text-green-300 font-medium">Itineraries with vouchers</p>
+          </div>
+
+          <div className="bg-linear-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 rounded-lg p-5 border border-amber-200 dark:border-amber-700 shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2.5 bg-amber-200 dark:bg-amber-800 rounded-lg">
+                <BarChart3 className="h-5 w-5 text-amber-700 dark:text-amber-300" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-amber-900 dark:text-amber-100 uppercase">Avg Vouchers</p>
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-amber-900 dark:text-amber-100 mb-1">
+              {stats.businessMetrics.averageVouchersPerItinerary.toFixed(2)}
+            </p>
+            <p className="text-xs text-amber-700 dark:text-amber-300 font-medium">Per itinerary</p>
+          </div>
+        </div>
+
+        {/* ✅ Monthly Trends Chart - Updated with Vouchers */}
         <div className="bg-foreground rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
           <div className="flex items-center gap-3 mb-5">
             <div className="p-2.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
@@ -402,6 +499,16 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
                 strokeWidth={2.5}
                 name="Itineraries"
                 dot={{ fill: '#ec4899', r: 4 }}
+                activeDot={{ r: 6 }}
+              />
+              {/* ✅ NEW: Vouchers line */}
+              <Line
+                type="monotone"
+                dataKey="vouchers"
+                stroke="#06b6d4"
+                strokeWidth={2.5}
+                name="Vouchers"
+                dot={{ fill: '#06b6d4', r: 4 }}
                 activeDot={{ r: 6 }}
               />
               <Line
@@ -444,145 +551,208 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
           </ResponsiveContainer>
         </div>
 
-        {/* Distribution Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-          {/* Itineraries by Company */}
-          <div className="bg-foreground rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="p-2.5 bg-pink-100 dark:bg-pink-900/30 rounded-lg">
-                <Building2 className="h-5 w-5 text-pink-600 dark:text-pink-400" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-gray-900 dark:text-white">By Company</h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Company distribution</p>
-              </div>
-            </div>
-            {stats.itinerariesByCompany.length > 0 ? (
-              <div className="h-[280px] flex items-center justify-center">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={stats.itinerariesByCompany}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={renderCustomLabel}
-                      outerRadius={90}
-                      fill="#8884d8"
-                      dataKey="count"
-                      nameKey="company"
-                    >
-                      <Cell fill="#8b5cf6" />
-                      <Cell fill="#3b82f6" />
-                    </Pie>
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'hsl(var(--foreground))',
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '8px',
-                        fontSize: '12px',
-                      }}
-                    />
-                    <Legend
-                      verticalAlign="bottom"
-                      height={36}
-                      wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            ) : (
-              <div className="h-[280px] flex flex-col items-center justify-center text-gray-400">
-                <Building2 className="h-14 w-14 mb-2 opacity-20" />
-                <p className="text-xs font-semibold">No data available</p>
-              </div>
-            )}
-          </div>
+        {/* ✅ Tabs for Organized Content */}
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="vouchers">Vouchers</TabsTrigger>
+            <TabsTrigger value="advisors">Advisors</TabsTrigger>
+          </TabsList>
 
-          {/* Packages by Category */}
-          <div className="bg-foreground rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="p-2.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                <Package className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+          {/* Overview Tab - Existing Charts */}
+          <TabsContent value="overview" className="space-y-5 mt-5">
+            {/* Distribution Charts Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+              {/* Itineraries by Company */}
+              <div className="bg-foreground rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2.5 bg-pink-100 dark:bg-pink-900/30 rounded-lg">
+                    <Building2 className="h-5 w-5 text-pink-600 dark:text-pink-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-gray-900 dark:text-white">By Company</h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Company distribution</p>
+                  </div>
+                </div>
+                {stats.itinerariesByCompany.length > 0 ? (
+                  <div className="h-[280px] flex items-center justify-center">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={stats.itinerariesByCompany}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={renderCustomLabel}
+                          outerRadius={90}
+                          fill="#8884d8"
+                          dataKey="count"
+                          nameKey="company"
+                        >
+                          <Cell fill="#8b5cf6" />
+                          <Cell fill="#3b82f6" />
+                        </Pie>
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: 'hsl(var(--foreground))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px',
+                            fontSize: '12px',
+                          }}
+                        />
+                        <Legend
+                          verticalAlign="bottom"
+                          height={36}
+                          wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="h-[280px] flex flex-col items-center justify-center text-gray-400">
+                    <Building2 className="h-14 w-14 mb-2 opacity-20" />
+                    <p className="text-xs font-semibold">No data available</p>
+                  </div>
+                )}
               </div>
-              <div>
-                <h3 className="text-base font-bold text-gray-900 dark:text-white">Packages</h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">By category</p>
-              </div>
-            </div>
-            {stats.packagesByCategory.length > 0 ? (
-              <div className="h-[280px] flex items-center justify-center">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={stats.packagesByCategory}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={renderCustomLabel}
-                      outerRadius={90}
-                      fill="#8884d8"
-                      dataKey="count"
-                      nameKey="category"
-                    >
-                      {stats.packagesByCategory.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'hsl(var(--foreground))',
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '8px',
-                        fontSize: '12px',
-                      }}
-                    />
-                    <Legend
-                      verticalAlign="bottom"
-                      height={36}
-                      wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            ) : (
-              <div className="h-[280px] flex flex-col items-center justify-center text-gray-400">
-                <Package className="h-14 w-14 mb-2 opacity-20" />
-                <p className="text-xs font-semibold">No data available</p>
-              </div>
-            )}
-          </div>
 
-          {/* Blogs by Category */}
-          <div className="bg-foreground rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="p-2.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              {/* Packages by Category */}
+              <div className="bg-foreground rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                    <Package className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-gray-900 dark:text-white">Packages</h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">By category</p>
+                  </div>
+                </div>
+                {stats.packagesByCategory.length > 0 ? (
+                  <div className="h-[280px] flex items-center justify-center">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={stats.packagesByCategory}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={renderCustomLabel}
+                          outerRadius={90}
+                          fill="#8884d8"
+                          dataKey="count"
+                          nameKey="category"
+                        >
+                          {stats.packagesByCategory.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: 'hsl(var(--foreground))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px',
+                            fontSize: '12px',
+                          }}
+                        />
+                        <Legend
+                          verticalAlign="bottom"
+                          height={36}
+                          wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="h-[280px] flex flex-col items-center justify-center text-gray-400">
+                    <Package className="h-14 w-14 mb-2 opacity-20" />
+                    <p className="text-xs font-semibold">No data available</p>
+                  </div>
+                )}
               </div>
-              <div>
-                <h3 className="text-base font-bold text-gray-900 dark:text-white">Blogs</h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Content distribution</p>
+
+              {/* Blogs by Category */}
+              <div className="bg-foreground rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                    <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-gray-900 dark:text-white">Blogs</h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Content distribution</p>
+                  </div>
+                </div>
+                {stats.blogsByCategory.length > 0 ? (
+                  <div className="h-[280px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={stats.blogsByCategory} margin={{ top: 15, right: 10, left: -10, bottom: 35 }}>
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          stroke="#e5e7eb"
+                          className="dark:stroke-gray-700"
+                          opacity={0.5}
+                        />
+                        <XAxis
+                          dataKey="category"
+                          stroke="#6b7280"
+                          style={{ fontSize: '10px', fontWeight: 500 }}
+                          angle={-45}
+                          textAnchor="end"
+                          height={70}
+                        />
+                        <YAxis stroke="#6b7280" style={{ fontSize: '11px' }} />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: 'hsl(var(--foreground))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px',
+                            fontSize: '12px',
+                          }}
+                        />
+                        <Bar dataKey="count" fill="#3b82f6" radius={[6, 6, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="h-[280px] flex flex-col items-center justify-center text-gray-400">
+                    <FileText className="h-14 w-14 mb-2 opacity-20" />
+                    <p className="text-xs font-semibold">No data available</p>
+                  </div>
+                )}
               </div>
             </div>
-            {stats.blogsByCategory.length > 0 ? (
-              <div className="h-[280px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={stats.blogsByCategory} margin={{ top: 15, right: 10, left: -10, bottom: 35 }}>
+
+            {/* Itineraries by Trip Advisor */}
+            <div className="bg-foreground rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="p-2.5 bg-pink-100 dark:bg-pink-900/30 rounded-lg">
+                  <Users className="h-5 w-5 text-pink-600 dark:text-pink-400" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">Itineraries by Trip Advisor</h2>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Top 10 advisors performance</p>
+                </div>
+              </div>
+              {stats.itinerariesByAdvisor.length > 0 ? (
+                <ResponsiveContainer width="100%" height={380}>
+                  <BarChart
+                    data={stats.itinerariesByAdvisor}
+                    layout="vertical"
+                    margin={{ top: 5, right: 20, left: 20, bottom: 5 }}
+                  >
                     <CartesianGrid
                       strokeDasharray="3 3"
                       stroke="#e5e7eb"
                       className="dark:stroke-gray-700"
                       opacity={0.5}
                     />
-                    <XAxis
-                      dataKey="category"
+                    <XAxis type="number" stroke="#6b7280" style={{ fontSize: '12px', fontWeight: 500 }} />
+                    <YAxis
+                      dataKey="advisor"
+                      type="category"
                       stroke="#6b7280"
-                      style={{ fontSize: '10px', fontWeight: 500 }}
-                      angle={-45}
-                      textAnchor="end"
-                      height={70}
+                      style={{ fontSize: '12px', fontWeight: 500 }}
+                      width={160}
                     />
-                    <YAxis stroke="#6b7280" style={{ fontSize: '11px' }} />
                     <Tooltip
                       contentStyle={{
                         backgroundColor: 'hsl(var(--foreground))',
@@ -590,68 +760,435 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
                         borderRadius: '8px',
                         fontSize: '12px',
                       }}
+                      cursor={{ fill: 'rgba(236, 72, 153, 0.1)' }}
                     />
-                    <Bar dataKey="count" fill="#3b82f6" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="count" fill="#ec4899" radius={[0, 6, 6, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
-              </div>
-            ) : (
-              <div className="h-[280px] flex flex-col items-center justify-center text-gray-400">
-                <FileText className="h-14 w-14 mb-2 opacity-20" />
-                <p className="text-xs font-semibold">No data available</p>
-              </div>
-            )}
-          </div>
-        </div>
+              ) : (
+                <div className="h-[380px] flex flex-col items-center justify-center text-gray-400">
+                  <Users className="h-14 w-14 mb-2 opacity-20" />
+                  <p className="text-xs font-semibold">No data available</p>
+                </div>
+              )}
+            </div>
+          </TabsContent>
 
-        {/* Itineraries by Trip Advisor */}
-        <div className="bg-foreground rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="p-2.5 bg-pink-100 dark:bg-pink-900/30 rounded-lg">
-              <Users className="h-5 w-5 text-pink-600 dark:text-pink-400" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Itineraries by Trip Advisor</h2>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Top 10 advisors performance</p>
-            </div>
-          </div>
-          {stats.itinerariesByAdvisor.length > 0 ? (
-            <ResponsiveContainer width="100%" height={380}>
-              <BarChart
-                data={stats.itinerariesByAdvisor}
-                layout="vertical"
-                margin={{ top: 5, right: 20, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" className="dark:stroke-gray-700" opacity={0.5} />
-                <XAxis type="number" stroke="#6b7280" style={{ fontSize: '12px', fontWeight: 500 }} />
-                <YAxis
-                  dataKey="advisor"
-                  type="category"
-                  stroke="#6b7280"
-                  style={{ fontSize: '12px', fontWeight: 500 }}
-                  width={160}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--foreground))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px',
-                    fontSize: '12px',
-                  }}
-                  cursor={{ fill: 'rgba(236, 72, 153, 0.1)' }}
-                />
-                <Bar dataKey="count" fill="#ec4899" radius={[0, 6, 6, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-[380px] flex flex-col items-center justify-center text-gray-400">
-              <Users className="h-14 w-14 mb-2 opacity-20" />
-              <p className="text-xs font-semibold">No data available</p>
-            </div>
-          )}
-        </div>
+          {/* ✅ NEW: Vouchers Tab */}
+          <TabsContent value="vouchers" className="space-y-5 mt-5">
+            {/* Vouchers by Company */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              <div className="bg-foreground rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2.5 bg-cyan-100 dark:bg-cyan-900/30 rounded-lg">
+                    <Receipt className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-gray-900 dark:text-white">Vouchers by Company</h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Distribution</p>
+                  </div>
+                </div>
+                {stats.vouchersByCompany.length > 0 ? (
+                  <div className="h-[280px] flex items-center justify-center">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={stats.vouchersByCompany}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={renderCustomLabel}
+                          outerRadius={90}
+                          fill="#8884d8"
+                          dataKey="count"
+                          nameKey="company"
+                        >
+                          <Cell fill="#8b5cf6" />
+                          <Cell fill="#06b6d4" />
+                        </Pie>
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: 'hsl(var(--foreground))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px',
+                            fontSize: '12px',
+                          }}
+                        />
+                        <Legend
+                          verticalAlign="bottom"
+                          height={36}
+                          wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="h-[280px] flex flex-col items-center justify-center text-gray-400">
+                    <Receipt className="h-14 w-14 mb-2 opacity-20" />
+                    <p className="text-xs font-semibold">No data available</p>
+                  </div>
+                )}
+              </div>
 
-        {/* Recent Activity Tables */}
+              {/* Revenue Split */}
+              <div className="bg-foreground rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2.5 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                    <DollarSign className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-gray-900 dark:text-white">Revenue Split</h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">By company</p>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-bold text-purple-900 dark:text-purple-100">Tourillo (TRL)</span>
+                      <span className="text-xs text-purple-700 dark:text-purple-300 font-semibold">
+                        {(
+                          (stats.businessMetrics.tourilloRevenue / stats.businessMetrics.totalItineraryRevenue) *
+                          100
+                        ).toFixed(1)}
+                        %
+                      </span>
+                    </div>
+                    <div className="text-xl font-bold text-purple-900 dark:text-purple-100 mb-2">
+                      {formatPrice(stats.businessMetrics.tourilloRevenue)}
+                    </div>
+                    <div className="w-full bg-purple-200 dark:bg-purple-800 rounded-full h-2">
+                      <div
+                        className="bg-purple-600 h-2 rounded-full transition-all"
+                        style={{
+                          width: `${(stats.businessMetrics.tourilloRevenue / stats.businessMetrics.totalItineraryRevenue) * 100}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-cyan-50 dark:bg-cyan-900/20 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-bold text-cyan-900 dark:text-cyan-100">
+                        Travel Trail Holidays (TTH)
+                      </span>
+                      <span className="text-xs text-cyan-700 dark:text-cyan-300 font-semibold">
+                        {(
+                          (stats.businessMetrics.tthRevenue / stats.businessMetrics.totalItineraryRevenue) *
+                          100
+                        ).toFixed(1)}
+                        %
+                      </span>
+                    </div>
+                    <div className="text-xl font-bold text-cyan-900 dark:text-cyan-100 mb-2">
+                      {formatPrice(stats.businessMetrics.tthRevenue)}
+                    </div>
+                    <div className="w-full bg-cyan-200 dark:bg-cyan-800 rounded-full h-2">
+                      <div
+                        className="bg-cyan-600 h-2 rounded-full transition-all"
+                        style={{
+                          width: `${(stats.businessMetrics.tthRevenue / stats.businessMetrics.totalItineraryRevenue) * 100}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Top Itineraries by Vouchers */}
+            <div className="bg-foreground rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="p-2.5 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
+                  <Award className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-gray-900 dark:text-white">Top Itineraries by Vouchers</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Highest voucher count</p>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50 dark:bg-gray-800">
+                    <tr>
+                      <th className="px-4 py-3 text-left font-bold text-gray-700 dark:text-gray-300">Travel ID</th>
+                      <th className="px-4 py-3 text-left font-bold text-gray-700 dark:text-gray-300">Client</th>
+                      <th className="px-4 py-3 text-center font-bold text-gray-700 dark:text-gray-300">Company</th>
+                      <th className="px-4 py-3 text-center font-bold text-gray-700 dark:text-gray-300">Vouchers</th>
+                      <th className="px-4 py-3 text-center font-bold text-gray-700 dark:text-gray-300">Nights</th>
+                      <th className="px-4 py-3 text-center font-bold text-gray-700 dark:text-gray-300">Guests</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {stats.topItinerariesByVouchers.length > 0 ? (
+                      stats.topItinerariesByVouchers.map((item, index) => (
+                        <tr
+                          key={index}
+                          className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+                        >
+                          <td className="px-4 py-3 font-mono text-xs font-bold text-pink-600">{item.travelId}</td>
+                          <td className="px-4 py-3">{item.clientName}</td>
+                          <td className="px-4 py-3 text-center">
+                            <span
+                              className={`px-2 py-1 rounded text-xs font-bold ${
+                                item.company === 'TRL'
+                                  ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+                                  : 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200'
+                              }`}
+                            >
+                              {item.company}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-center font-bold text-purple-600">{item.voucherCount}</td>
+                          <td className="px-4 py-3 text-center">{item.totalNights}</td>
+                          <td className="px-4 py-3 text-center">{item.totalGuests}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
+                          <Award className="h-12 w-12 mx-auto mb-2 opacity-20" />
+                          <p className="text-xs font-semibold">No data available</p>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Recent Vouchers */}
+            <div className="bg-foreground rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-cyan-100 dark:bg-cyan-900/30 rounded-lg">
+                    <Receipt className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+                  </div>
+                  <h3 className="text-base font-bold text-gray-900 dark:text-white">Recent Vouchers</h3>
+                </div>
+                <Link
+                  href="/admin/voucher/voucher-list"
+                  className="text-xs text-cyan-600 hover:text-cyan-700 dark:text-cyan-500 dark:hover:text-cyan-400 font-bold flex items-center gap-1.5 group"
+                >
+                  View All
+                  <ArrowUpRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                </Link>
+              </div>
+              <div className="space-y-2.5 max-h-[450px] overflow-y-auto pr-1">
+                {stats.recentVouchers.length > 0 ? (
+                  stats.recentVouchers.map((voucher) => (
+                    <div
+                      key={voucher.id}
+                      className="p-3.5 bg-gray-50 dark:bg-gray-800/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border border-gray-200 dark:border-gray-700"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className="font-mono text-xs font-bold text-cyan-600 dark:text-cyan-500">
+                              {voucher.voucherId}
+                            </span>
+                            <span
+                              className={`text-xs px-2 py-0.5 rounded font-bold ${
+                                voucher.company === 'TRL'
+                                  ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+                                  : 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400'
+                              }`}
+                            >
+                              {voucher.company}
+                            </span>
+                          </div>
+                          <p className="font-bold truncate text-gray-900 dark:text-white text-sm mb-1">
+                            {voucher.clientName}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate mb-1">
+                            {voucher.packageTitle}
+                          </p>
+                          <p className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold">
+                            {voucher.totalNights} nights • {voucher.adultNo + voucher.childrenNo} guests
+                          </p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                            {format(new Date(voucher.createdAt), 'MMM dd')}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center text-gray-400 py-14">
+                    <Receipt className="h-14 w-14 mx-auto mb-2 opacity-20" />
+                    <p className="text-xs font-semibold">No vouchers yet</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Itinerary-Voucher Relationship */}
+            <div className="bg-foreground rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="p-2.5 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
+                  <BarChart3 className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-gray-900 dark:text-white">Itinerary-Voucher Relationship</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Coverage analysis</p>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50 dark:bg-gray-800">
+                    <tr>
+                      <th className="px-4 py-3 text-left font-bold text-gray-700 dark:text-gray-300">Travel ID</th>
+                      <th className="px-4 py-3 text-left font-bold text-gray-700 dark:text-gray-300">Client</th>
+                      <th className="px-4 py-3 text-center font-bold text-gray-700 dark:text-gray-300">Company</th>
+                      <th className="px-4 py-3 text-center font-bold text-gray-700 dark:text-gray-300">Has Voucher</th>
+                      <th className="px-4 py-3 text-center font-bold text-gray-700 dark:text-gray-300">Vouchers</th>
+                      <th className="px-4 py-3 text-center font-bold text-gray-700 dark:text-gray-300">
+                        Itinerary Nights
+                      </th>
+                      <th className="px-4 py-3 text-center font-bold text-gray-700 dark:text-gray-300">
+                        Voucher Nights
+                      </th>
+                      <th className="px-4 py-3 text-center font-bold text-gray-700 dark:text-gray-300">Coverage</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {stats.itineraryVoucherRelation.length > 0 ? (
+                      stats.itineraryVoucherRelation.map((item) => (
+                        <tr
+                          key={item.itineraryId}
+                          className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+                        >
+                          <td className="px-4 py-3 font-mono text-xs font-bold text-pink-600">{item.travelId}</td>
+                          <td className="px-4 py-3">{item.clientName}</td>
+                          <td className="px-4 py-3 text-center">
+                            <span
+                              className={`px-2 py-1 rounded text-xs font-bold ${
+                                item.company === 'TRL'
+                                  ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+                                  : 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200'
+                              }`}
+                            >
+                              {item.company}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            {item.hasVoucher ? (
+                              <span className="text-green-600 font-bold">✓</span>
+                            ) : (
+                              <span className="text-red-600 font-bold">✗</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-center font-semibold">{item.voucherCount}</td>
+                          <td className="px-4 py-3 text-center">{item.totalItineraryNights}</td>
+                          <td className="px-4 py-3 text-center">{item.totalVoucherNights}</td>
+                          <td className="px-4 py-3 text-center">
+                            <span
+                              className={`px-2 py-1 rounded text-xs font-bold ${
+                                item.totalVoucherNights >= item.totalItineraryNights
+                                  ? 'bg-green-100 text-green-800'
+                                  : item.totalVoucherNights > 0
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : 'bg-red-100 text-red-800'
+                              }`}
+                            >
+                              {item.totalItineraryNights > 0
+                                ? `${((item.totalVoucherNights / item.totalItineraryNights) * 100).toFixed(0)}%`
+                                : 'N/A'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={8} className="px-4 py-8 text-center text-gray-400">
+                          <BarChart3 className="h-12 w-12 mx-auto mb-2 opacity-20" />
+                          <p className="text-xs font-semibold">No data available</p>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* ✅ NEW: Advisors Tab */}
+          <TabsContent value="advisors" className="space-y-5 mt-5">
+            <div className="bg-foreground rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="p-2.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                  <Award className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-gray-900 dark:text-white">Trip Advisor Performance</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Top performers</p>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50 dark:bg-gray-800">
+                    <tr>
+                      <th className="px-4 py-3 text-left font-bold text-gray-700 dark:text-gray-300">Advisor Name</th>
+                      <th className="px-4 py-3 text-center font-bold text-gray-700 dark:text-gray-300">Itineraries</th>
+                      <th className="px-4 py-3 text-center font-bold text-gray-700 dark:text-gray-300">Vouchers</th>
+                      <th className="px-4 py-3 text-right font-bold text-gray-700 dark:text-gray-300">Total Revenue</th>
+                      <th className="px-4 py-3 text-right font-bold text-gray-700 dark:text-gray-300">Avg Price</th>
+                      <th className="px-4 py-3 text-center font-bold text-gray-700 dark:text-gray-300">Conv. Rate</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {stats.advisorPerformance.length > 0 ? (
+                      stats.advisorPerformance.map((advisor, index) => {
+                        const convRate =
+                          advisor.itineraryCount > 0
+                            ? ((advisor.voucherCount / advisor.itineraryCount) * 100).toFixed(1)
+                            : '0.0';
+                        return (
+                          <tr
+                            key={index}
+                            className={`border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 ${
+                              index === 0 ? 'bg-yellow-50 dark:bg-yellow-900/20' : ''
+                            }`}
+                          >
+                            <td className="px-4 py-3 font-semibold">
+                              <div className="flex items-center gap-2">
+                                {index === 0 && <Award className="h-4 w-4 text-yellow-600" />}
+                                {advisor.advisorName}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-center font-bold text-purple-600">
+                              {advisor.itineraryCount}
+                            </td>
+                            <td className="px-4 py-3 text-center font-bold text-cyan-600">{advisor.voucherCount}</td>
+                            <td className="px-4 py-3 text-right font-bold text-green-600">
+                              {formatPrice(advisor.totalRevenue)}
+                            </td>
+                            <td className="px-4 py-3 text-right text-gray-600">{formatPrice(advisor.averagePrice)}</td>
+                            <td className="px-4 py-3 text-center">
+                              <span className="px-2 py-1 rounded bg-green-100 text-green-800 text-xs font-bold">
+                                {convRate}%
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <tr>
+                        <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
+                          <Users className="h-12 w-12 mx-auto mb-2 opacity-20" />
+                          <p className="text-xs font-semibold">No data available</p>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        {/* Recent Activity Tables - Existing */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           {/* Recent Itineraries */}
           <div className="bg-foreground rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm">

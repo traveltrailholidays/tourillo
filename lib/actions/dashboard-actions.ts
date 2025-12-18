@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma';
 
 export interface DashboardStats {
+  // ✅ Existing counts (kept as is)
   totalPackages: number;
   totalBlogs: number;
   totalContacts: number;
@@ -14,6 +15,17 @@ export interface DashboardStats {
   featuredBlogs: number;
   tourilloItineraries: number;
   tthItineraries: number;
+
+  // ✅ NEW: Voucher counts
+  totalVouchers: number;
+  tourilloVouchers: number;
+  tthVouchers: number;
+  vouchersWithHotels: number;
+  vouchersWithoutHotels: number;
+  totalVoucherNights: number;
+  totalVoucherGuests: number;
+
+  // ✅ Existing recent items (kept as is)
   recentPackages: Array<{
     id: string;
     title: string;
@@ -54,6 +66,22 @@ export interface DashboardStats {
     quotePrice: number;
     createdAt: string;
   }>;
+
+  // ✅ NEW: Recent vouchers
+  recentVouchers: Array<{
+    id: string;
+    voucherId: string;
+    clientName: string;
+    totalNights: number;
+    adultNo: number;
+    childrenNo: number;
+    company: string;
+    itineraryTravelId: string;
+    packageTitle: string;
+    createdAt: string;
+  }>;
+
+  // ✅ Existing categories (kept as is)
   packagesByCategory: Array<{
     category: string;
     count: number;
@@ -70,6 +98,34 @@ export interface DashboardStats {
     advisor: string;
     count: number;
   }>;
+
+  // ✅ NEW: Voucher analytics
+  vouchersByCompany: Array<{
+    company: string;
+    count: number;
+  }>;
+  topItinerariesByVouchers: Array<{
+    travelId: string;
+    clientName: string;
+    packageTitle: string;
+    company: string;
+    voucherCount: number;
+    totalNights: number;
+    totalGuests: number;
+  }>;
+  itineraryVoucherRelation: Array<{
+    itineraryId: string;
+    travelId: string;
+    clientName: string;
+    packageTitle: string;
+    company: string;
+    hasVoucher: boolean;
+    voucherCount: number;
+    totalItineraryNights: number;
+    totalVoucherNights: number;
+  }>;
+
+  // ✅ Existing monthly stats (enhanced with vouchers)
   monthlyStats: Array<{
     month: string;
     packages: number;
@@ -77,11 +133,33 @@ export interface DashboardStats {
     contacts: number;
     quotes: number;
     itineraries: number;
+    vouchers: number; // ✅ Added
+  }>;
+
+  // ✅ NEW: Business metrics
+  businessMetrics: {
+    totalItineraryRevenue: number;
+    averageItineraryPrice: number;
+    averageVouchersPerItinerary: number;
+    conversionRate: number;
+    tourilloRevenue: number;
+    tthRevenue: number;
+  };
+
+  // ✅ NEW: Advisor performance
+  advisorPerformance: Array<{
+    advisorName: string;
+    itineraryCount: number;
+    voucherCount: number;
+    totalRevenue: number;
+    averagePrice: number;
   }>;
 }
 
 export async function getDashboardStats(dateRange?: { from: Date; to: Date }): Promise<DashboardStats> {
   try {
+    console.log('🔄 Fetching dashboard stats...');
+
     const whereClause = dateRange
       ? {
           createdAt: {
@@ -91,13 +169,16 @@ export async function getDashboardStats(dateRange?: { from: Date; to: Date }): P
         }
       : {};
 
-    // Get counts
+    // ============================================
+    // PART 1: Existing Basic Counts + Voucher Counts
+    // ============================================
     const [
       totalPackages,
       totalBlogs,
       totalContacts,
       totalQuotes,
       totalItineraries,
+      totalVouchers,
       unreadContacts,
       unreadQuotes,
       publishedBlogs,
@@ -110,6 +191,7 @@ export async function getDashboardStats(dateRange?: { from: Date; to: Date }): P
       prisma.contact.count({ where: whereClause }),
       prisma.quote.count({ where: whereClause }),
       prisma.itinerary.count({ where: whereClause }),
+      prisma.voucher.count({ where: whereClause }),
       prisma.contact.count({ where: { ...whereClause, isRead: false } }),
       prisma.quote.count({ where: { ...whereClause, isRead: false } }),
       prisma.blog.count({ where: { ...whereClause, published: true } }),
@@ -118,76 +200,136 @@ export async function getDashboardStats(dateRange?: { from: Date; to: Date }): P
       prisma.itinerary.count({ where: { ...whereClause, company: 'TRAVEL_TRAIL_HOLIDAYS' } }),
     ]);
 
-    // Get recent items
-    const [recentPackages, recentBlogs, recentContacts, recentQuotes, recentItineraries] = await Promise.all([
-      prisma.listing.findMany({
-        where: whereClause,
-        orderBy: { createdAt: 'desc' },
-        take: 5,
-        select: {
-          id: true,
-          title: true,
-          category: true,
-          price: true,
-          createdAt: true,
+    // ✅ Voucher-specific counts
+    const [tourilloVouchers, tthVouchers, allVouchers] = await Promise.all([
+      prisma.voucher.count({
+        where: {
+          ...whereClause,
+          itinerary: {
+            company: 'TOURILLO',
+          },
         },
       }),
-      prisma.blog.findMany({
-        where: whereClause,
-        orderBy: { createdAt: 'desc' },
-        take: 5,
-        select: {
-          id: true,
-          title: true,
-          category: true,
-          published: true,
-          createdAt: true,
+      prisma.voucher.count({
+        where: {
+          ...whereClause,
+          itinerary: {
+            company: 'TRAVEL_TRAIL_HOLIDAYS',
+          },
         },
       }),
-      prisma.contact.findMany({
+      prisma.voucher.findMany({
         where: whereClause,
-        orderBy: { createdAt: 'desc' },
-        take: 5,
         select: {
-          id: true,
-          name: true,
-          email: true,
-          subject: true,
-          isRead: true,
-          createdAt: true,
-        },
-      }),
-      prisma.quote.findMany({
-        where: whereClause,
-        orderBy: { createdAt: 'desc' },
-        take: 5,
-        select: {
-          id: true,
-          name: true,
-          destination: true,
-          days: true,
-          isRead: true,
-          createdAt: true,
-        },
-      }),
-      prisma.itinerary.findMany({
-        where: whereClause,
-        orderBy: { createdAt: 'desc' },
-        take: 5,
-        select: {
-          id: true,
-          travelId: true,
-          clientName: true,
-          packageTitle: true,
-          company: true,
-          tripAdvisorName: true,
-          quotePrice: true,
-          createdAt: true,
+          hotelStays: true,
+          totalNights: true,
+          adultNo: true,
+          childrenNo: true,
         },
       }),
     ]);
 
-    // Get packages by category
+    const vouchersWithHotels = allVouchers.filter((v) => Array.isArray(v.hotelStays) && v.hotelStays.length > 0).length;
+    const vouchersWithoutHotels = totalVouchers - vouchersWithHotels;
+    const totalVoucherNights = allVouchers.reduce((sum, v) => sum + v.totalNights, 0);
+    const totalVoucherGuests = allVouchers.reduce((sum, v) => sum + v.adultNo + v.childrenNo, 0);
+
+    // ============================================
+    // PART 2: Recent Items (Existing + New Vouchers)
+    // ============================================
+    const [recentPackages, recentBlogs, recentContacts, recentQuotes, recentItineraries, recentVouchers] =
+      await Promise.all([
+        prisma.listing.findMany({
+          where: whereClause,
+          orderBy: { createdAt: 'desc' },
+          take: 5,
+          select: {
+            id: true,
+            title: true,
+            category: true,
+            price: true,
+            createdAt: true,
+          },
+        }),
+        prisma.blog.findMany({
+          where: whereClause,
+          orderBy: { createdAt: 'desc' },
+          take: 5,
+          select: {
+            id: true,
+            title: true,
+            category: true,
+            published: true,
+            createdAt: true,
+          },
+        }),
+        prisma.contact.findMany({
+          where: whereClause,
+          orderBy: { createdAt: 'desc' },
+          take: 5,
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            subject: true,
+            isRead: true,
+            createdAt: true,
+          },
+        }),
+        prisma.quote.findMany({
+          where: whereClause,
+          orderBy: { createdAt: 'desc' },
+          take: 5,
+          select: {
+            id: true,
+            name: true,
+            destination: true,
+            days: true,
+            isRead: true,
+            createdAt: true,
+          },
+        }),
+        prisma.itinerary.findMany({
+          where: whereClause,
+          orderBy: { createdAt: 'desc' },
+          take: 5,
+          select: {
+            id: true,
+            travelId: true,
+            clientName: true,
+            packageTitle: true,
+            company: true,
+            tripAdvisorName: true,
+            quotePrice: true,
+            createdAt: true,
+          },
+        }),
+        prisma.voucher.findMany({
+          where: whereClause,
+          orderBy: { createdAt: 'desc' },
+          take: 5,
+          select: {
+            id: true,
+            voucherId: true,
+            clientName: true,
+            totalNights: true,
+            adultNo: true,
+            childrenNo: true,
+            itineraryTravelId: true,
+            createdAt: true,
+            itinerary: {
+              select: {
+                company: true,
+                packageTitle: true,
+              },
+            },
+          },
+        }),
+      ]);
+
+    // ============================================
+    // PART 3: Existing Category Groupings
+    // ============================================
     const packagesGrouped = await prisma.listing.groupBy({
       by: ['category'],
       where: whereClause,
@@ -199,7 +341,6 @@ export async function getDashboardStats(dateRange?: { from: Date; to: Date }): P
       count: item._count,
     }));
 
-    // Get blogs by category
     const blogsGrouped = await prisma.blog.groupBy({
       by: ['category'],
       where: whereClause,
@@ -211,7 +352,6 @@ export async function getDashboardStats(dateRange?: { from: Date; to: Date }): P
       count: item._count,
     }));
 
-    // Get itineraries by company
     const itinerariesByCompanyGrouped = await prisma.itinerary.groupBy({
       by: ['company'],
       where: whereClause,
@@ -223,7 +363,6 @@ export async function getDashboardStats(dateRange?: { from: Date; to: Date }): P
       count: item._count,
     }));
 
-    // Get itineraries by trip advisor
     const itinerariesByAdvisorGrouped = await prisma.itinerary.groupBy({
       by: ['tripAdvisorName'],
       where: {
@@ -250,62 +389,238 @@ export async function getDashboardStats(dateRange?: { from: Date; to: Date }): P
         count: item._count.tripAdvisorName,
       }));
 
-    // Get monthly stats for the last 6 months
+    // ============================================
+    // PART 4: NEW Voucher Analytics
+    // ============================================
+
+    // Vouchers by company
+    const vouchersByCompany = [
+      { company: 'TRL', count: tourilloVouchers },
+      { company: 'TTH', count: tthVouchers },
+    ];
+
+    // Get all itineraries with their voucher counts
+    const itinerariesWithVouchers = await prisma.itinerary.findMany({
+      where: whereClause,
+      select: {
+        id: true,
+        travelId: true,
+        clientName: true,
+        packageTitle: true,
+        company: true,
+        numberOfNights: true,
+        quotePrice: true,
+        tripAdvisorName: true,
+        _count: {
+          select: {
+            vouchers: true,
+          },
+        },
+        vouchers: {
+          select: {
+            totalNights: true,
+            adultNo: true,
+            childrenNo: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    // Top itineraries by voucher count
+    const topItinerariesByVouchers = itinerariesWithVouchers
+      .filter((i) => i._count.vouchers > 0)
+      .sort((a, b) => b._count.vouchers - a._count.vouchers)
+      .slice(0, 10)
+      .map((itinerary) => {
+        const totalNights = itinerary.vouchers.reduce((sum, v) => sum + v.totalNights, 0);
+        const totalGuests = itinerary.vouchers.reduce((sum, v) => sum + v.adultNo + v.childrenNo, 0);
+
+        return {
+          travelId: itinerary.travelId,
+          clientName: itinerary.clientName,
+          packageTitle: itinerary.packageTitle,
+          company: itinerary.company === 'TOURILLO' ? 'TRL' : 'TTH',
+          voucherCount: itinerary._count.vouchers,
+          totalNights,
+          totalGuests,
+        };
+      });
+
+    // Itinerary-Voucher relationship data
+    const itineraryVoucherRelation = itinerariesWithVouchers.slice(0, 20).map((itinerary) => {
+      const totalVoucherNights = itinerary.vouchers.reduce((sum, v) => sum + v.totalNights, 0);
+
+      return {
+        itineraryId: itinerary.id,
+        travelId: itinerary.travelId,
+        clientName: itinerary.clientName,
+        packageTitle: itinerary.packageTitle,
+        company: itinerary.company === 'TOURILLO' ? 'TRL' : 'TTH',
+        hasVoucher: itinerary._count.vouchers > 0,
+        voucherCount: itinerary._count.vouchers,
+        totalItineraryNights: itinerary.numberOfNights,
+        totalVoucherNights,
+      };
+    });
+
+    // ============================================
+    // PART 5: NEW Business Metrics
+    // ============================================
+    const itinerariesForRevenue = await prisma.itinerary.findMany({
+      where: whereClause,
+      select: {
+        quotePrice: true,
+        company: true,
+        _count: {
+          select: {
+            vouchers: true,
+          },
+        },
+      },
+    });
+
+    const totalItineraryRevenue = itinerariesForRevenue.reduce((sum, i) => sum + i.quotePrice, 0);
+    const averageItineraryPrice =
+      itinerariesForRevenue.length > 0 ? totalItineraryRevenue / itinerariesForRevenue.length : 0;
+
+    const itinerariesWithVoucherCount = itinerariesForRevenue.filter((i) => i._count.vouchers > 0).length;
+    const conversionRate =
+      itinerariesForRevenue.length > 0 ? (itinerariesWithVoucherCount / itinerariesForRevenue.length) * 100 : 0;
+
+    const totalVoucherCount = itinerariesForRevenue.reduce((sum, i) => sum + i._count.vouchers, 0);
+    const averageVouchersPerItinerary =
+      itinerariesForRevenue.length > 0 ? totalVoucherCount / itinerariesForRevenue.length : 0;
+
+    const tourilloRevenue = itinerariesForRevenue
+      .filter((i) => i.company === 'TOURILLO')
+      .reduce((sum, i) => sum + i.quotePrice, 0);
+
+    const tthRevenue = itinerariesForRevenue
+      .filter((i) => i.company === 'TRAVEL_TRAIL_HOLIDAYS')
+      .reduce((sum, i) => sum + i.quotePrice, 0);
+
+    const businessMetrics = {
+      totalItineraryRevenue,
+      averageItineraryPrice,
+      averageVouchersPerItinerary,
+      conversionRate,
+      tourilloRevenue,
+      tthRevenue,
+    };
+
+    // ============================================
+    // PART 6: NEW Advisor Performance
+    // ============================================
+    const advisorData = await prisma.itinerary.groupBy({
+      by: ['tripAdvisorName'],
+      where: {
+        ...whereClause,
+        tripAdvisorName: {
+          not: '',
+        },
+      },
+      _count: {
+        id: true,
+      },
+      _sum: {
+        quotePrice: true,
+      },
+    });
+
+    const advisorPerformancePromises = advisorData.map(async (advisor) => {
+      const voucherCount = await prisma.voucher.count({
+        where: {
+          ...whereClause,
+          itinerary: {
+            tripAdvisorName: advisor.tripAdvisorName,
+          },
+        },
+      });
+
+      const totalRevenue = advisor._sum.quotePrice || 0;
+      const averagePrice = advisor._count.id > 0 ? totalRevenue / advisor._count.id : 0;
+
+      return {
+        advisorName: advisor.tripAdvisorName,
+        itineraryCount: advisor._count.id,
+        voucherCount,
+        totalRevenue,
+        averagePrice,
+      };
+    });
+
+    const advisorPerformance = (await Promise.all(advisorPerformancePromises))
+      .filter((a) => a.advisorName && a.advisorName.trim() !== '')
+      .sort((a, b) => b.totalRevenue - a.totalRevenue)
+      .slice(0, 10);
+
+    // ============================================
+    // PART 7: Monthly Stats (Existing + Vouchers)
+    // ============================================
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
-    const monthlyPackages = await prisma.$queryRaw<Array<{ month: string; count: bigint }>>`
-      SELECT 
-        TO_CHAR(created_at, 'Mon') as month,
-        COUNT(*) as count
-      FROM listings
-      WHERE created_at >= ${sixMonthsAgo}
-      GROUP BY TO_CHAR(created_at, 'Mon'), EXTRACT(MONTH FROM created_at)
-      ORDER BY EXTRACT(MONTH FROM created_at)
-    `;
+    const [monthlyPackages, monthlyBlogs, monthlyContacts, monthlyQuotes, monthlyItineraries, monthlyVouchers] =
+      await Promise.all([
+        prisma.$queryRaw<Array<{ month: string; count: bigint }>>`
+          SELECT 
+            TO_CHAR(created_at, 'Mon') as month,
+            COUNT(*) as count
+          FROM listings
+          WHERE created_at >= ${sixMonthsAgo}
+          GROUP BY TO_CHAR(created_at, 'Mon'), EXTRACT(MONTH FROM created_at)
+          ORDER BY EXTRACT(MONTH FROM created_at)
+        `,
+        prisma.$queryRaw<Array<{ month: string; count: bigint }>>`
+          SELECT 
+            TO_CHAR("createdAt", 'Mon') as month,
+            COUNT(*) as count
+          FROM blogs
+          WHERE "createdAt" >= ${sixMonthsAgo}
+          GROUP BY TO_CHAR("createdAt", 'Mon'), EXTRACT(MONTH FROM "createdAt")
+          ORDER BY EXTRACT(MONTH FROM "createdAt")
+        `,
+        prisma.$queryRaw<Array<{ month: string; count: bigint }>>`
+          SELECT 
+            TO_CHAR(created_at, 'Mon') as month,
+            COUNT(*) as count
+          FROM contacts
+          WHERE created_at >= ${sixMonthsAgo}
+          GROUP BY TO_CHAR(created_at, 'Mon'), EXTRACT(MONTH FROM created_at)
+          ORDER BY EXTRACT(MONTH FROM created_at)
+        `,
+        prisma.$queryRaw<Array<{ month: string; count: bigint }>>`
+          SELECT 
+            TO_CHAR(created_at, 'Mon') as month,
+            COUNT(*) as count
+          FROM quotes
+          WHERE created_at >= ${sixMonthsAgo}
+          GROUP BY TO_CHAR(created_at, 'Mon'), EXTRACT(MONTH FROM created_at)
+          ORDER BY EXTRACT(MONTH FROM created_at)
+        `,
+        prisma.$queryRaw<Array<{ month: string; count: bigint }>>`
+          SELECT 
+            TO_CHAR(created_at, 'Mon') as month,
+            COUNT(*) as count
+          FROM itineraries
+          WHERE created_at >= ${sixMonthsAgo}
+          GROUP BY TO_CHAR(created_at, 'Mon'), EXTRACT(MONTH FROM created_at)
+          ORDER BY EXTRACT(MONTH FROM created_at)
+        `,
+        prisma.$queryRaw<Array<{ month: string; count: bigint }>>`
+          SELECT 
+            TO_CHAR(created_at, 'Mon') as month,
+            COUNT(*) as count
+          FROM vouchers
+          WHERE created_at >= ${sixMonthsAgo}
+          GROUP BY TO_CHAR(created_at, 'Mon'), EXTRACT(MONTH FROM created_at)
+          ORDER BY EXTRACT(MONTH FROM created_at)
+        `,
+      ]);
 
-    const monthlyBlogs = await prisma.$queryRaw<Array<{ month: string; count: bigint }>>`
-      SELECT 
-        TO_CHAR("createdAt", 'Mon') as month,
-        COUNT(*) as count
-      FROM blogs
-      WHERE "createdAt" >= ${sixMonthsAgo}
-      GROUP BY TO_CHAR("createdAt", 'Mon'), EXTRACT(MONTH FROM "createdAt")
-      ORDER BY EXTRACT(MONTH FROM "createdAt")
-    `;
-
-    const monthlyContacts = await prisma.$queryRaw<Array<{ month: string; count: bigint }>>`
-      SELECT 
-        TO_CHAR(created_at, 'Mon') as month,
-        COUNT(*) as count
-      FROM contacts
-      WHERE created_at >= ${sixMonthsAgo}
-      GROUP BY TO_CHAR(created_at, 'Mon'), EXTRACT(MONTH FROM created_at)
-      ORDER BY EXTRACT(MONTH FROM created_at)
-    `;
-
-    const monthlyQuotes = await prisma.$queryRaw<Array<{ month: string; count: bigint }>>`
-      SELECT 
-        TO_CHAR(created_at, 'Mon') as month,
-        COUNT(*) as count
-      FROM quotes
-      WHERE created_at >= ${sixMonthsAgo}
-      GROUP BY TO_CHAR(created_at, 'Mon'), EXTRACT(MONTH FROM created_at)
-      ORDER BY EXTRACT(MONTH FROM created_at)
-    `;
-
-    // FIXED: Use created_at instead of createdAt
-    const monthlyItineraries = await prisma.$queryRaw<Array<{ month: string; count: bigint }>>`
-      SELECT 
-        TO_CHAR(created_at, 'Mon') as month,
-        COUNT(*) as count
-      FROM itineraries
-      WHERE created_at >= ${sixMonthsAgo}
-      GROUP BY TO_CHAR(created_at, 'Mon'), EXTRACT(MONTH FROM created_at)
-      ORDER BY EXTRACT(MONTH FROM created_at)
-    `;
-
-    // Combine monthly stats
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const currentMonth = new Date().getMonth();
     const last6Months = [];
@@ -321,6 +636,7 @@ export async function getDashboardStats(dateRange?: { from: Date; to: Date }): P
       const contactsData = monthlyContacts.find((m) => m.month === month);
       const quotesData = monthlyQuotes.find((m) => m.month === month);
       const itinerariesData = monthlyItineraries.find((m) => m.month === month);
+      const vouchersData = monthlyVouchers.find((m) => m.month === month);
 
       return {
         month,
@@ -329,10 +645,17 @@ export async function getDashboardStats(dateRange?: { from: Date; to: Date }): P
         contacts: contactsData ? Number(contactsData.count) : 0,
         quotes: quotesData ? Number(quotesData.count) : 0,
         itineraries: itinerariesData ? Number(itinerariesData.count) : 0,
+        vouchers: vouchersData ? Number(vouchersData.count) : 0,
       };
     });
 
+    console.log('✅ Dashboard stats fetched successfully');
+
+    // ============================================
+    // PART 8: Return Complete Stats
+    // ============================================
     return {
+      // Existing counts
       totalPackages,
       totalBlogs,
       totalContacts,
@@ -344,6 +667,17 @@ export async function getDashboardStats(dateRange?: { from: Date; to: Date }): P
       featuredBlogs,
       tourilloItineraries,
       tthItineraries,
+
+      // NEW Voucher counts
+      totalVouchers,
+      tourilloVouchers,
+      tthVouchers,
+      vouchersWithHotels,
+      vouchersWithoutHotels,
+      totalVoucherNights,
+      totalVoucherGuests,
+
+      // Existing recent items
       recentPackages: recentPackages.map((p) => ({
         ...p,
         createdAt: p.createdAt.toISOString(),
@@ -364,14 +698,43 @@ export async function getDashboardStats(dateRange?: { from: Date; to: Date }): P
         ...i,
         createdAt: i.createdAt.toISOString(),
       })),
+
+      // NEW Recent vouchers
+      recentVouchers: recentVouchers.map((v) => ({
+        id: v.id,
+        voucherId: v.voucherId,
+        clientName: v.clientName,
+        totalNights: v.totalNights,
+        adultNo: v.adultNo,
+        childrenNo: v.childrenNo,
+        company: v.itinerary.company === 'TOURILLO' ? 'TRL' : 'TTH',
+        itineraryTravelId: v.itineraryTravelId,
+        packageTitle: v.itinerary.packageTitle,
+        createdAt: v.createdAt.toISOString(),
+      })),
+
+      // Existing categories
       packagesByCategory,
       blogsByCategory,
       itinerariesByCompany,
       itinerariesByAdvisor,
+
+      // NEW Voucher analytics
+      vouchersByCompany,
+      topItinerariesByVouchers,
+      itineraryVoucherRelation,
+
+      // Existing + Enhanced monthly stats
       monthlyStats,
+
+      // NEW Business metrics
+      businessMetrics,
+
+      // NEW Advisor performance
+      advisorPerformance,
     };
   } catch (error) {
-    console.error('Dashboard stats error:', error);
+    console.error('❌ Dashboard stats error:', error);
     throw new Error('Failed to fetch dashboard stats');
   }
 }
