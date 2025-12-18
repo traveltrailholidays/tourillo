@@ -170,18 +170,19 @@ model Itinerary {
 }
 
 model Voucher {
-  id           String   @id @default(uuid())
-  travelId     String   @unique @map("travel_id") // Make it unique, use as primary identifier
-  itinerary    Itinerary @relation(fields: [travelId], references: [travelId], onDelete: Cascade)
-  clientName   String   @map("client_name")
-  adultNo      Int      @map("adult_no")
-  childrenNo   Int      @map("children_no")
-  totalNights  Int      @map("total_nights")
-  hotelStays   Json     @map("hotel_stays")
-  cabDetails   String   @map("cab_details")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  id                String    @id @default(uuid())
+  voucherId         String    @unique // New unique voucher ID (e.g., TRLC1412202512302809001)
+  itineraryTravelId String // Changed from travelId, removed @unique
+  itinerary         Itinerary @relation(fields: [itineraryTravelId], references: [travelId])
+  clientName        String    @map("client_name")
+  adultNo           Int       @map("adult_no")
+  childrenNo        Int       @map("children_no")
+  totalNights       Int       @map("total_nights")
+  hotelStays        Json      @map("hotel_stays")
+  cabDetails        String    @map("cab_details")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
 
+  @@index([itineraryTravelId])
   @@map("vouchers")
 }
-

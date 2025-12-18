@@ -14,7 +14,9 @@ export interface HotelStay {
 
 export interface VoucherData {
   id: string;
-  travelId: string;
+  voucherId: string;
+  travelId: string; // ✅ Added for form compatibility
+  itineraryTravelId: string;
   clientName: string;
   adultNo: number;
   childrenNo: number;
@@ -25,21 +27,78 @@ export interface VoucherData {
   updatedAt: string;
 }
 
+export interface VoucherConfirmationData {
+  existingVouchersCount: number;
+  itinerary: {
+    travelId: string;
+    clientName: string;
+    clientPhone: string;
+    clientEmail: string | null;
+    packageTitle: string;
+    numberOfNights: number;
+    numberOfHotels: number;
+  };
+  nextVoucherId: string;
+}
+
 const voucherSchema = z.object({
   travelId: z.string().min(1, 'Travel ID is required'),
   clientName: z.string().min(1, 'Client name is required'),
   adultNo: z.number().min(1, 'At least 1 adult is required'),
   childrenNo: z.number().min(0),
   totalNights: z.number().min(0, 'Nights cannot be negative'),
-  hotelStays: z.array(z.any()),
+  hotelStays: z.array(z.any()).default([]),
   cabDetails: z.string().min(1, 'Cab details are required'),
 });
+
+// Generate voucher ID based on itinerary travelId
+function generateVoucherId(itineraryTravelId: string, voucherCount: number): string {
+  const companyPrefix = itineraryTravelId.substring(0, 3); // TRL or TTH
+  const remainingId = itineraryTravelId.substring(3);
+  const voucherNumber = (voucherCount + 1).toString().padStart(3, '0');
+  return `${companyPrefix}C${remainingId}${voucherNumber}`;
+}
+
+// Check if vouchers exist and get confirmation data
+export async function checkVoucherExists(travelId: string): Promise<VoucherConfirmationData | null> {
+  try {
+    const itinerary = await prisma.itinerary.findUnique({
+      where: { travelId },
+      select: {
+        travelId: true,
+        clientName: true,
+        clientPhone: true,
+        clientEmail: true,
+        packageTitle: true,
+        numberOfNights: true,
+        numberOfHotels: true,
+      },
+    });
+
+    if (!itinerary) {
+      throw new Error(`Itinerary with Travel ID ${travelId} not found`);
+    }
+
+    const existingVouchersCount = await prisma.voucher.count({
+      where: { itineraryTravelId: travelId },
+    });
+
+    const nextVoucherId = generateVoucherId(travelId, existingVouchersCount);
+
+    return {
+      existingVouchersCount,
+      itinerary,
+      nextVoucherId,
+    };
+  } catch (error) {
+    throw new Error(error instanceof Error ? error.message : 'Failed to check voucher existence');
+  }
+}
 
 export async function createVoucher(data: z.infer<typeof voucherSchema>) {
   try {
     const validatedData = voucherSchema.parse(data);
 
-    // Check if itinerary exists
     const itinerary = await prisma.itinerary.findUnique({
       where: { travelId: validatedData.travelId },
     });
@@ -48,22 +107,28 @@ export async function createVoucher(data: z.infer<typeof voucherSchema>) {
       throw new Error(`Itinerary with Travel ID ${validatedData.travelId} not found`);
     }
 
-    // Check if voucher already exists for this travelId
-    const existingVoucher = await prisma.voucher.findUnique({
-      where: { travelId: validatedData.travelId },
+    const existingVouchersCount = await prisma.voucher.count({
+      where: { itineraryTravelId: validatedData.travelId },
     });
 
-    if (existingVoucher) {
-      throw new Error(`Voucher already exists for Travel ID ${validatedData.travelId}`);
-    }
+    const voucherId = generateVoucherId(validatedData.travelId, existingVouchersCount);
 
     const voucher = await prisma.voucher.create({
-      data: validatedData,
+      data: {
+        voucherId,
+        itineraryTravelId: validatedData.travelId,
+        clientName: validatedData.clientName,
+        adultNo: validatedData.adultNo,
+        childrenNo: validatedData.childrenNo,
+        totalNights: validatedData.totalNights,
+        hotelStays: validatedData.hotelStays,
+        cabDetails: validatedData.cabDetails,
+      },
     });
 
     revalidatePath('/admin/voucher/voucher-list');
 
-    return { success: true, travelId: voucher.travelId, id: voucher.id };
+    return { success: true, voucherId: voucher.voucherId, id: voucher.id };
   } catch (error) {
     if (error instanceof z.ZodError) {
       throw new Error('Invalid data: ' + error.issues.map((e) => e.message).join(', '));
@@ -81,6 +146,7 @@ export async function getAllVouchers() {
             packageTitle: true,
             clientPhone: true,
             clientEmail: true,
+            numberOfHotels: true,
           },
         },
       },
@@ -91,6 +157,7 @@ export async function getAllVouchers() {
 
     return vouchers.map((voucher) => ({
       ...voucher,
+      travelId: voucher.itineraryTravelId, // ✅ Added for compatibility
       hotelStays: voucher.hotelStays as unknown as HotelStay[],
       createdAt: voucher.createdAt.toISOString(),
       updatedAt: voucher.updatedAt.toISOString(),
@@ -101,10 +168,11 @@ export async function getAllVouchers() {
   }
 }
 
-export async function getVoucherByTravelId(travelId: string): Promise<VoucherData | null> {
+// ✅ Get voucher by database ID
+export async function getVoucherById(id: string): Promise<VoucherData | null> {
   try {
     const voucher = await prisma.voucher.findUnique({
-      where: { travelId },
+      where: { id },
     });
 
     if (!voucher) {
@@ -113,7 +181,9 @@ export async function getVoucherByTravelId(travelId: string): Promise<VoucherDat
 
     return {
       id: voucher.id,
-      travelId: voucher.travelId,
+      voucherId: voucher.voucherId,
+      travelId: voucher.itineraryTravelId, // ✅ Added for form compatibility
+      itineraryTravelId: voucher.itineraryTravelId,
       clientName: voucher.clientName,
       adultNo: voucher.adultNo,
       childrenNo: voucher.childrenNo,
@@ -129,19 +199,57 @@ export async function getVoucherByTravelId(travelId: string): Promise<VoucherDat
   }
 }
 
-export async function updateVoucher(travelId: string, data: z.infer<typeof voucherSchema>) {
+// ✅ NEW: Get voucher by voucher ID (TRLC... or TTHC...)
+export async function getVoucherByVoucherId(voucherId: string): Promise<VoucherData | null> {
+  try {
+    const voucher = await prisma.voucher.findUnique({
+      where: { voucherId },
+    });
+
+    if (!voucher) {
+      return null;
+    }
+
+    return {
+      id: voucher.id,
+      voucherId: voucher.voucherId,
+      travelId: voucher.itineraryTravelId,
+      itineraryTravelId: voucher.itineraryTravelId,
+      clientName: voucher.clientName,
+      adultNo: voucher.adultNo,
+      childrenNo: voucher.childrenNo,
+      totalNights: voucher.totalNights,
+      hotelStays: voucher.hotelStays as unknown as HotelStay[],
+      cabDetails: voucher.cabDetails,
+      createdAt: voucher.createdAt.toISOString(),
+      updatedAt: voucher.updatedAt.toISOString(),
+    };
+  } catch (error) {
+    console.error(error);
+    throw new Error('Failed to fetch voucher');
+  }
+}
+
+export async function updateVoucher(id: string, data: z.infer<typeof voucherSchema>) {
   try {
     const validatedData = voucherSchema.parse(data);
 
     const voucher = await prisma.voucher.update({
-      where: { travelId },
-      data: validatedData,
+      where: { id },
+      data: {
+        clientName: validatedData.clientName,
+        adultNo: validatedData.adultNo,
+        childrenNo: validatedData.childrenNo,
+        totalNights: validatedData.totalNights,
+        hotelStays: validatedData.hotelStays,
+        cabDetails: validatedData.cabDetails,
+      },
     });
 
     revalidatePath('/admin/voucher/voucher-list');
-    revalidatePath(`/admin/voucher/edit-voucher/${travelId}`);
+    revalidatePath(`/admin/voucher/edit-voucher/${id}`);
 
-    return { success: true, travelId: voucher.travelId, id: voucher.id };
+    return { success: true, voucherId: voucher.voucherId, id: voucher.id };
   } catch (error) {
     if (error instanceof z.ZodError) {
       throw new Error('Invalid data: ' + error.issues.map((e) => e.message).join(', '));
@@ -173,6 +281,7 @@ export async function getAllItinerariesForDropdown() {
         packageTitle: true,
         clientPhone: true,
         clientEmail: true,
+        numberOfHotels: true,
       },
       orderBy: {
         createdAt: 'desc',
@@ -197,6 +306,7 @@ export async function getItineraryForVoucher(travelId: string) {
         clientEmail: true,
         packageTitle: true,
         numberOfNights: true,
+        numberOfHotels: true,
         hotels: true,
         cabs: true,
       },
@@ -210,5 +320,41 @@ export async function getItineraryForVoucher(travelId: string) {
   } catch (error) {
     console.error(error);
     throw new Error('Failed to fetch itinerary details');
+  }
+}
+
+export async function getItineraryByTravelId(travelId: string) {
+  try {
+    const itinerary = await prisma.itinerary.findUnique({
+      where: { travelId },
+    });
+
+    if (!itinerary) {
+      return null;
+    }
+
+    return {
+      ...itinerary,
+      days: itinerary.days as unknown as Array<{
+        dayNumber: number;
+        summary: string;
+        imageSrc: string;
+        description: string;
+      }>,
+      hotels: itinerary.hotels as unknown as Array<{
+        placeName: string;
+        placeDescription: string;
+        hotelName: string;
+        roomType: string;
+        hotelDescription: string;
+      }>,
+      inclusions: itinerary.inclusions as string[],
+      exclusions: itinerary.exclusions as string[],
+      createdAt: itinerary.createdAt.toISOString(),
+      updatedAt: itinerary.updatedAt.toISOString(),
+    };
+  } catch (error) {
+    console.error('Error fetching itinerary:', error);
+    throw new Error('Failed to fetch itinerary');
   }
 }

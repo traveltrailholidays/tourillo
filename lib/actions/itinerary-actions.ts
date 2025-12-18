@@ -85,7 +85,7 @@ export interface ItineraryData {
   updatedAt: string;
 }
 
-// Itinerary validation schema
+// Itinerary validation schema - ✅ UPDATED: numberOfHotels now allows 0
 const itinerarySchema = z.object({
   travelId: z.string().min(1, 'Travel ID is required'),
   company: z.enum(['TOURILLO', 'TRAVEL_TRAIL_HOLIDAYS']),
@@ -93,15 +93,15 @@ const itinerarySchema = z.object({
   clientPhone: z.string().min(10, 'Phone number must be at least 10 digits'),
   clientEmail: z.string().email('Invalid email').optional().or(z.literal('')),
   packageTitle: z.string().min(1, 'Package title is required'),
-  numberOfDays: z.number().min(1),
-  numberOfNights: z.number().min(0),
-  numberOfHotels: z.number().min(1),
+  numberOfDays: z.number().min(1, 'At least 1 day is required'),
+  numberOfNights: z.number().min(0, 'Nights cannot be negative'),
+  numberOfHotels: z.number().min(0, 'Hotels cannot be negative'), // ✅ Changed from min(1) to min(0)
   tripAdvisorName: z.string().min(1, 'Trip advisor name is required'),
   tripAdvisorNumber: z.string().min(1, 'Trip advisor number is required'),
   cabs: z.string().min(1, 'Cab details required'),
   flights: z.string().min(1, 'Flight details required'),
-  quotePrice: z.number().min(0),
-  pricePerPerson: z.number().min(0),
+  quotePrice: z.number().min(0, 'Quote price cannot be negative'),
+  pricePerPerson: z.number().min(0, 'Price per person cannot be negative'),
   days: z.array(z.any()),
   hotels: z.array(z.any()),
   inclusions: z.array(z.string()),
@@ -175,9 +175,11 @@ export async function createItinerary(formData: FormData) {
       });
     }
 
-    // Parse hotels data
+    // Parse hotels data - ✅ Now handles 0 hotels gracefully
     const numberOfHotels = parseInt(formData.get('numberOfHotels') as string);
     const hotels: HotelData[] = [];
+
+    // If numberOfHotels is 0, this loop won't execute - hotels array remains empty
     for (let i = 0; i < numberOfHotels; i++) {
       hotels.push({
         placeName: formData.get(`hotels[${i}][placeName]`) as string,
@@ -280,9 +282,11 @@ export async function updateItineraryWithFormData(travelId: string, formData: Fo
       });
     }
 
-    // Parse hotels data
+    // Parse hotels data - ✅ Now handles 0 hotels gracefully
     const numberOfHotels = parseInt(formData.get('numberOfHotels') as string);
     const hotels: HotelData[] = [];
+
+    // If numberOfHotels is 0, this loop won't execute - hotels array remains empty
     for (let i = 0; i < numberOfHotels; i++) {
       hotels.push({
         placeName: formData.get(`hotels[${i}][placeName]`) as string,

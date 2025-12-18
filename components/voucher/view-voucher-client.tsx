@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import { Noto_Sans } from 'next/font/google';
 import {
   FaPhoneAlt,
@@ -13,9 +13,10 @@ import {
 } from 'react-icons/fa';
 import { MdRateReview, MdPeople } from 'react-icons/md';
 import { AiFillThunderbolt } from 'react-icons/ai';
+import { BadgeCheck, FileCheck2, Info, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import type { VoucherData } from '@/lib/actions/voucher-actions';
-import LogoFull from '../logo-full';
+import { getCompanyConfig, type CompanyType } from '@/lib/config/company-config';
 
 const notoSans = Noto_Sans({
   subsets: ['latin'],
@@ -42,6 +43,7 @@ const BulletPoints: React.FC<BulletPointsProps> = ({ icon: Icon, text, size, col
 
 interface ViewVoucherClientProps {
   voucher: VoucherData;
+  company: CompanyType;
   itinerary?: {
     packageTitle?: string;
     clientPhone?: string;
@@ -51,8 +53,15 @@ interface ViewVoucherClientProps {
   };
 }
 
-export default function ViewVoucherClient({ voucher, itinerary }: ViewVoucherClientProps) {
+export default function ViewVoucherClient({ voucher, company, itinerary }: ViewVoucherClientProps) {
   const [showButtons, setShowButtons] = useState(true);
+
+  // Get company configuration
+  const companyConfig = useMemo(() => getCompanyConfig(company), [company]);
+  const CompanyLogo = companyConfig.LogoComponent;
+
+  // ✅ Check if hotels exist
+  const hasHotels = voucher.hotelStays && voucher.hotelStays.length > 0;
 
   const handlePrint = useCallback(() => {
     setShowButtons(false);
@@ -179,11 +188,11 @@ export default function ViewVoucherClient({ voucher, itinerary }: ViewVoucherCli
       <div className={`w-full flex justify-center items-center ${notoSans.className} bg-white text-black`}>
         <div className="max-w-[894px] w-full">
           <div id="voucher-content" className="bg-white">
-            {/* Header + Travel ID - Keep together */}
+            {/* Header + Voucher ID - Keep together */}
             <div className="print-avoid-break">
               {/* Header */}
               <header className="bg-slate-800 text-white w-full flex p-4 justify-between items-center border-b-4 border-slate-600">
-                <LogoFull />
+                <CompanyLogo />
                 <div className="flex items-center gap-3">
                   <div className="bg-slate-700 rounded-lg w-10 h-10 flex justify-center items-center text-white">
                     <FaPhoneAlt size={16} />
@@ -193,7 +202,7 @@ export default function ViewVoucherClient({ voucher, itinerary }: ViewVoucherCli
                       <span className="font-semibold text-xs text-gray-300">Call Us</span>
                     </div>
                     <div>
-                      <span className="font-semibold text-sm">+91 9625992025</span>
+                      <span className="font-semibold text-sm">{companyConfig.contactPhone}</span>
                     </div>
                   </div>
                 </div>
@@ -205,7 +214,7 @@ export default function ViewVoucherClient({ voucher, itinerary }: ViewVoucherCli
                   <div className="flex items-start gap-2">
                     <div>
                       <span className="text-xs text-gray-500 uppercase tracking-wide">Travel Voucher ID</span>
-                      <p className="font-mono font-bold text-slate-700 text-lg">{voucher.travelId}</p>
+                      <p className="font-mono font-bold text-slate-700 text-lg">{voucher.voucherId}</p>
                     </div>
                   </div>
                   <div className="text-right">
@@ -223,7 +232,7 @@ export default function ViewVoucherClient({ voucher, itinerary }: ViewVoucherCli
                   <span className="text-base text-gray-800">
                     Dear <span className="font-semibold capitalize text-slate-800">{voucher.clientName}</span>,
                   </span>
-                  <span className="text-gray-700">Greetings from Tourillo!</span>
+                  <span className="text-gray-700">Greetings from {companyConfig.shortName}!</span>
                   <span className="text-gray-700">
                     Please find below your travel voucher details. This document confirms your booking and serves as
                     your official travel confirmation.
@@ -278,16 +287,16 @@ export default function ViewVoucherClient({ voucher, itinerary }: ViewVoucherCli
 
                   <div className="flex gap-8 items-center mt-4 print-avoid-break text-gray-600">
                     <div className="flex items-center gap-2 font-medium text-sm">
-                      <FaSuitcase size={14} className="text-slate-600" />
-                      500+ Trips
+                      <ShieldCheck size={14} className="text-slate-600" />
+                      Zero-Stress Guarantee Trips
                     </div>
                     <div className="flex items-center gap-2 font-medium text-sm">
-                      <MdRateReview size={14} className="text-slate-600" />
-                      350+ Reviews
+                      <FileCheck2 size={14} className="text-slate-600" />
+                      No Hidden Cost Guarantee
                     </div>
                     <div className="flex items-center gap-2 font-medium text-sm">
-                      <AiFillThunderbolt size={14} className="text-slate-600" />
-                      100% Satisfaction
+                      <BadgeCheck size={14} className="text-slate-600" />
+                      Surprise Appreciation for Our Guests
                     </div>
                   </div>
 
@@ -302,49 +311,75 @@ export default function ViewVoucherClient({ voucher, itinerary }: ViewVoucherCli
                 </div>
               </div>
 
-              {/* Hotel Accommodations */}
-              <div className="px-5 py-4 print-compact print-allow-break-before border-b border-gray-200">
-                <h2 className="text-xl font-bold text-slate-800 print-keep-with-next mb-4">Hotel Accommodations</h2>
-                <div className="flex flex-col gap-4 print-compact-gap">
-                  {voucher.hotelStays.map((hotel, index) => (
-                    <div
-                      key={index}
-                      className="border border-gray-300 rounded-lg p-4 hover:shadow-md transition print-avoid-break bg-white"
-                    >
-                      <div className="flex gap-4 items-start">
-                        <div className="shrink-0">
-                          <FaHotel size={40} className="text-gray-400" />
-                        </div>
-                        <div className="flex flex-col gap-2 flex-1">
-                          <span className="font-bold text-base text-slate-800">{hotel.hotelName}</span>
-
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <span className="text-xs text-gray-500 uppercase tracking-wide">Number of Nights</span>
-                              <p className="font-semibold text-slate-700 text-sm">
-                                {hotel.nights} Night{hotel.nights !== 1 ? 's' : ''}
-                              </p>
-                            </div>
-                            <div>
-                              <span className="text-xs text-gray-500 uppercase tracking-wide">
-                                Check-in / Check-out
-                              </span>
-                              <p className="font-semibold text-slate-700 text-sm">
-                                {formatDate(hotel.fromDate)} - {formatDate(hotel.toDate)}
-                              </p>
-                            </div>
+              {/* ✅ FIXED: Hotel Accommodations - Only show if hotels exist */}
+              {hasHotels ? (
+                <div className="px-5 py-4 print-compact print-allow-break-before border-b border-gray-200">
+                  <h2 className="text-xl font-bold text-slate-800 print-keep-with-next mb-4">
+                    Hotel Accommodations ({voucher.hotelStays.length}{' '}
+                    {voucher.hotelStays.length === 1 ? 'Hotel' : 'Hotels'})
+                  </h2>
+                  <div className="flex flex-col gap-4 print-compact-gap">
+                    {voucher.hotelStays.map((hotel, index) => (
+                      <div
+                        key={index}
+                        className="border border-gray-300 rounded-lg p-4 hover:shadow-md transition print-avoid-break bg-white"
+                      >
+                        <div className="flex gap-4 items-start">
+                          <div className="shrink-0">
+                            <FaHotel size={40} className="text-gray-400" />
                           </div>
+                          <div className="flex flex-col gap-2 flex-1">
+                            <span className="font-bold text-base text-slate-800">{hotel.hotelName}</span>
 
-                          <div className="mt-2">
-                            <span className="text-xs text-gray-500 uppercase tracking-wide">Hotel Details</span>
-                            <p className="text-gray-600 text-xs leading-relaxed mt-1">{hotel.description}</p>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <span className="text-xs text-gray-500 uppercase tracking-wide">Number of Nights</span>
+                                <p className="font-semibold text-slate-700 text-sm">
+                                  {hotel.nights} Night{hotel.nights !== 1 ? 's' : ''}
+                                </p>
+                              </div>
+                              <div>
+                                <span className="text-xs text-gray-500 uppercase tracking-wide">
+                                  Check-in / Check-out
+                                </span>
+                                <p className="font-semibold text-slate-700 text-sm">
+                                  {formatDate(hotel.fromDate)} - {formatDate(hotel.toDate)}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="mt-2">
+                              <span className="text-xs text-gray-500 uppercase tracking-wide">Hotel Details</span>
+                              <p className="text-gray-600 text-xs leading-relaxed mt-1 whitespace-pre-line">
+                                {hotel.description}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="px-5 py-4 print-compact print-allow-break-before border-b border-gray-200">
+                  <h2 className="text-xl font-bold text-slate-800 print-keep-with-next mb-4">Accommodation</h2>
+                  <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                    <div className="flex items-start gap-3">
+                      <Info className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
+                      <div>
+                        <h3 className="font-semibold text-blue-800 mb-1 flex items-center gap-2">
+                          <FaHotel className="h-4 w-4" />
+                          No Hotel Accommodations Included
+                        </h3>
+                        <p className="text-sm text-blue-700">
+                          This voucher does not include hotel accommodations. The package covers transportation and
+                          other services as specified. Guests are responsible for arranging their own lodging.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Transportation */}
               <div className="px-5 py-4 print-compact print-avoid-break border-b border-gray-200">
@@ -366,31 +401,41 @@ export default function ViewVoucherClient({ voucher, itinerary }: ViewVoucherCli
                       icon={FaRegArrowAltCircleRight}
                       size={11}
                       color="#475569"
-                      text="Please carry a valid government-issued ID proof for hotel check-in (Aadhaar Card, Passport, Driving License, or Voter ID)"
+                      text="Please carry a valid government-issued ID proof for verification (Aadhaar Card, Passport, Driving License, or Voter ID)"
+                    />
+                    {hasHotels && (
+                      <>
+                        <BulletPoints
+                          icon={FaRegArrowAltCircleRight}
+                          size={11}
+                          color="#475569"
+                          text="Standard check-in time is 2:00 PM and check-out time is 11:00 AM (subject to hotel policy)"
+                        />
+                        <BulletPoints
+                          icon={FaRegArrowAltCircleRight}
+                          size={11}
+                          color="#475569"
+                          text="Early check-in or late check-out is subject to availability and may incur additional charges"
+                        />
+                      </>
+                    )}
+                    <BulletPoints
+                      icon={FaRegArrowAltCircleRight}
+                      size={11}
+                      color="#475569"
+                      text="This voucher must be presented at the time of service commencement (print or digital copy)"
                     />
                     <BulletPoints
                       icon={FaRegArrowAltCircleRight}
                       size={11}
                       color="#475569"
-                      text="Standard check-in time is 2:00 PM and check-out time is 11:00 AM (subject to hotel policy)"
+                      text="Please verify all booking details before your travel date and report any discrepancies immediately"
                     />
                     <BulletPoints
                       icon={FaRegArrowAltCircleRight}
                       size={11}
                       color="#475569"
-                      text="Early check-in or late check-out is subject to availability and may incur additional charges"
-                    />
-                    <BulletPoints
-                      icon={FaRegArrowAltCircleRight}
-                      size={11}
-                      color="#475569"
-                      text="This voucher must be presented at the time of check-in (print or digital copy)"
-                    />
-                    <BulletPoints
-                      icon={FaRegArrowAltCircleRight}
-                      size={11}
-                      color="#475569"
-                      text="Please verify all booking details before your travel date"
+                      text="For any last-minute changes or emergencies, contact our 24/7 support team"
                     />
                   </div>
                 </div>
@@ -400,24 +445,8 @@ export default function ViewVoucherClient({ voucher, itinerary }: ViewVoucherCli
               <div className="px-5 py-4 print-compact print-avoid-break border-b border-gray-200">
                 <div className="px-4 py-4 bg-gray-50 rounded-lg border border-gray-300">
                   <div className="flex flex-col gap-3 font-medium text-xs text-gray-700">
-                    <div className="flex items-start gap-3">
-                      <div className="bg-slate-700 text-white p-1.5 rounded mt-0.5 shrink-0">
-                        <FaPhoneAlt size={11} />
-                      </div>
-                      <p>
-                        For any queries, modifications, or assistance during your trip, please contact us at{' '}
-                        <span className="font-bold text-slate-800">+91 9625992025</span>
-                        {itinerary?.clientEmail && (
-                          <>
-                            {' '}
-                            or email <span className="font-bold text-slate-800">{itinerary.clientEmail}</span>
-                          </>
-                        )}
-                        .
-                      </p>
-                    </div>
                     {itinerary?.tripAdvisorName && itinerary?.tripAdvisorNumber && (
-                      <div className="flex items-start gap-3">
+                      <div className="flex items-center gap-3">
                         <div className="bg-slate-700 text-white p-1.5 rounded mt-0.5 shrink-0">
                           <FaEnvelope size={11} />
                         </div>
@@ -449,13 +478,21 @@ export default function ViewVoucherClient({ voucher, itinerary }: ViewVoucherCli
                       icon={FaRegArrowAltCircleRight}
                       size={11}
                       color="#475569"
-                      text="Any changes to the itinerary must be approved by Tourillo in advance"
+                      text={`Any changes to the itinerary must be approved by ${companyConfig.shortName} in advance`}
                     />
+                    {hasHotels && (
+                      <BulletPoints
+                        icon={FaRegArrowAltCircleRight}
+                        size={11}
+                        color="#475569"
+                        text="Room allocation is subject to availability at the time of check-in"
+                      />
+                    )}
                     <BulletPoints
                       icon={FaRegArrowAltCircleRight}
                       size={11}
                       color="#475569"
-                      text="Room allocation is subject to availability at the time of check-in"
+                      text="This voucher is non-transferable and can only be used by the named guest(s)"
                     />
                   </div>
 
@@ -497,7 +534,7 @@ export default function ViewVoucherClient({ voucher, itinerary }: ViewVoucherCli
                       icon={FaRegArrowAltCircleRight}
                       size={11}
                       color="#475569"
-                      text="Tourillo is not responsible for any loss, damage, or theft of personal belongings during the trip"
+                      text={`${companyConfig.shortName} is not responsible for any loss, damage, or theft of personal belongings during the trip`}
                     />
                     <BulletPoints
                       icon={FaRegArrowAltCircleRight}
@@ -505,17 +542,25 @@ export default function ViewVoucherClient({ voucher, itinerary }: ViewVoucherCli
                       color="#475569"
                       text="All services are subject to the terms and conditions of the respective service providers"
                     />
+                    {hasHotels && (
+                      <BulletPoints
+                        icon={FaRegArrowAltCircleRight}
+                        size={11}
+                        color="#475569"
+                        text="Any additional services availed at hotels or during travel will be billed separately"
+                      />
+                    )}
                     <BulletPoints
                       icon={FaRegArrowAltCircleRight}
                       size={11}
                       color="#475569"
-                      text="Any additional services availed at hotels or during travel will be billed separately"
+                      text={`${companyConfig.shortName} reserves the right to modify arrangements due to unforeseen circumstances, ensuring comparable alternatives`}
                     />
                     <BulletPoints
                       icon={FaRegArrowAltCircleRight}
                       size={11}
                       color="#475569"
-                      text="Tourillo reserves the right to modify arrangements due to unforeseen circumstances, ensuring comparable alternatives"
+                      text="Passengers must comply with all local laws, regulations, and customs during the trip"
                     />
                   </div>
                 </div>
@@ -523,9 +568,11 @@ export default function ViewVoucherClient({ voucher, itinerary }: ViewVoucherCli
 
               {/* Footer Note */}
               <div className="px-5 py-4 bg-slate-800 text-white text-center print-compact">
-                <p className="text-sm font-medium">Thank you for choosing Tourillo. Have a wonderful trip!</p>
+                <p className="text-sm font-medium">
+                  Thank you for choosing {companyConfig.shortName}. Have a wonderful trip!
+                </p>
                 <p className="text-xs mt-1 text-gray-300">
-                  For 24/7 support, call +91 9625992025 | Email: support@tourillo.com
+                  For 24/7 support, call {companyConfig.contactPhone} | Email: {companyConfig.email}
                 </p>
               </div>
             </div>
@@ -541,7 +588,7 @@ export default function ViewVoucherClient({ voucher, itinerary }: ViewVoucherCli
                 Print / Save as PDF
               </button>
 
-              <Link href={`/admin/voucher/edit-voucher/${voucher.travelId}`}>
+              <Link href={`/admin/voucher/edit-voucher/${voucher.id}`}>
                 <button className="py-3 px-8 bg-slate-600 rounded-lg font-semibold text-white hover:bg-slate-500 transition-colors shadow-lg">
                   Edit Voucher
                 </button>

@@ -3,7 +3,18 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { updateItineraryWithFormData } from '@/lib/actions/itinerary-actions';
-import { Upload, Trash2, Image as ImageIcon, Plus, Minus, Copy, Clipboard, RefreshCw, FileImage } from 'lucide-react';
+import {
+  Upload,
+  Trash2,
+  Image as ImageIcon,
+  Plus,
+  Minus,
+  Copy,
+  Clipboard,
+  RefreshCw,
+  FileImage,
+  Hotel,
+} from 'lucide-react';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { DEFAULT_INCLUSIONS, DEFAULT_EXCLUSIONS, ROOM_TYPES, CAB_OPTIONS } from '@/data/itinerary';
@@ -194,11 +205,12 @@ export default function EditItineraryForm({ itinerary }: EditItineraryFormProps)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [numberOfDays]);
 
-  // Handle number of hotels changes
+  // ✅ UPDATED: Handle hotels changes - now supports 0 hotels
   useEffect(() => {
     const currentHotels = hotelFields.length;
 
     if (numberOfHotels > currentHotels) {
+      // Adding hotels
       const hotelsToAdd = numberOfHotels - currentHotels;
       const newHotels = [...hotelFields];
       for (let i = 0; i < hotelsToAdd; i++) {
@@ -212,7 +224,10 @@ export default function EditItineraryForm({ itinerary }: EditItineraryFormProps)
       }
       setHotelFields(newHotels);
     } else if (numberOfHotels < currentHotels) {
-      setHotelFields(hotelFields.slice(0, numberOfHotels));
+      // Removing hotels (including reducing to 0)
+      setHotelFields(numberOfHotels === 0 ? [] : hotelFields.slice(0, numberOfHotels));
+
+      // Clean up room type states for removed hotels
       const newSelectedRoomTypes = { ...selectedRoomTypes };
       const newCustomRoomTypes = { ...customRoomTypes };
       for (let i = numberOfHotels; i < currentHotels; i++) {
@@ -447,7 +462,7 @@ export default function EditItineraryForm({ itinerary }: EditItineraryFormProps)
         formData.append(`days[${index}][imageSrc]`, day.imageSrc);
       });
 
-      // Add hotels data with custom room type handling
+      // ✅ Add hotels data - only if hotels exist
       hotelFields.forEach((hotel, index) => {
         formData.append(
           `hotels[${index}][placeName]`,
@@ -615,19 +630,22 @@ export default function EditItineraryForm({ itinerary }: EditItineraryFormProps)
                   <p className="text-xs text-gray-500 mt-1">Auto-calculated (Days - 1)</p>
                 </div>
 
+                {/* ✅ UPDATED: Number of Hotels - now allows 0 */}
                 <div>
                   <label className={labelClassName}>
                     Number of Hotels <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
-                    min="1"
+                    min="0"
                     required
                     value={numberOfHotels}
-                    onChange={(e) => setNumberOfHotels(parseInt(e.target.value) || 1)}
+                    onChange={(e) => setNumberOfHotels(Math.max(0, parseInt(e.target.value) || 0))}
                     className={inputClassName}
                     disabled={isSubmitting}
                   />
+                  {/* ✅ Added helper text */}
+                  <p className="text-xs text-gray-500 mt-1">Set to 0 for day trips or transportation-only packages</p>
                 </div>
               </div>
 
@@ -921,122 +939,148 @@ export default function EditItineraryForm({ itinerary }: EditItineraryFormProps)
             ))}
           </div>
 
-          {/* Hotels */}
-          <div className="border-t-2 border-gray-200 dark:border-gray-700 pt-6">
-            <h3 className="text-2xl font-bold mb-6 text-purple-600">Hotel Details</h3>
-            {hotelFields.map((field, index) => (
-              <div
-                key={index}
-                className="mb-6 p-6 border-2 border-gray-300 dark:border-gray-700 rounded-sm bg-gray-50 dark:bg-gray-900"
-              >
-                <h4 className="font-semibold text-lg mb-4 text-purple-600">Hotel {index + 1}</h4>
+          {/* ✅ UPDATED: Hotels Section - only show if numberOfHotels > 0 */}
+          {numberOfHotels > 0 && (
+            <div className="border-t-2 border-gray-200 dark:border-gray-700 pt-6">
+              <div className="flex items-center gap-2 mb-6">
+                <Hotel className="h-6 w-6 text-purple-600" />
+                <h3 className="text-2xl font-bold text-purple-600">Hotel Details</h3>
+                <span className="text-sm text-gray-500">
+                  ({numberOfHotels} hotel{numberOfHotels !== 1 ? 's' : ''})
+                </span>
+              </div>
+              {hotelFields.map((field, index) => (
+                <div
+                  key={index}
+                  className="mb-6 p-6 border-2 border-gray-300 dark:border-gray-700 rounded-sm bg-gray-50 dark:bg-gray-900"
+                >
+                  <h4 className="font-semibold text-lg mb-4 text-purple-600">Hotel {index + 1}</h4>
 
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className={labelClassName}>
-                        Place Name <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        name={`hotels[${index}][placeName]`}
-                        type="text"
-                        required
-                        defaultValue={field.placeName}
-                        className={inputClassName}
-                        disabled={isSubmitting}
-                        placeholder="e.g., Srinagar"
-                      />
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className={labelClassName}>
+                          Place Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          name={`hotels[${index}][placeName]`}
+                          type="text"
+                          required
+                          defaultValue={field.placeName}
+                          className={inputClassName}
+                          disabled={isSubmitting}
+                          placeholder="e.g., Srinagar"
+                        />
+                      </div>
+
+                      <div>
+                        <label className={labelClassName}>
+                          Night Details <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          name={`hotels[${index}][placeDescription]`}
+                          type="text"
+                          required
+                          defaultValue={field.placeDescription}
+                          className={inputClassName}
+                          disabled={isSubmitting}
+                          placeholder="e.g., 1st Night, 2nd Night"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className={labelClassName}>
+                          Hotel Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          name={`hotels[${index}][hotelName]`}
+                          type="text"
+                          required
+                          defaultValue={field.hotelName}
+                          className={inputClassName}
+                          disabled={isSubmitting}
+                          placeholder="e.g., Hotel Paradise"
+                        />
+                      </div>
+
+                      <div>
+                        <label className={labelClassName}>
+                          Room Type <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          name={`hotels[${index}][roomType]`}
+                          required
+                          value={selectedRoomTypes[index] || field.roomType || ''}
+                          onChange={(e) => handleRoomTypeChange(index, e.target.value)}
+                          className={inputClassName}
+                          disabled={isSubmitting}
+                        >
+                          <option value="">Select Room Type</option>
+                          {ROOM_TYPES.map((type) => (
+                            <option key={type} value={type}>
+                              {type}
+                            </option>
+                          ))}
+                        </select>
+
+                        {selectedRoomTypes[index] === 'Custom' && (
+                          <div className="mt-3">
+                            <label className="text-sm font-semibold mb-2 block text-blue-600">
+                              Enter Custom Room Type <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={customRoomTypes[index] || ''}
+                              onChange={(e) => setCustomRoomTypes((prev) => ({ ...prev, [index]: e.target.value }))}
+                              required
+                              className={inputClassName}
+                              disabled={isSubmitting}
+                              placeholder="e.g., Presidential Suite, Garden View Room, etc."
+                            />
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     <div>
                       <label className={labelClassName}>
-                        Place Description <span className="text-red-500">*</span>
+                        Hotel Description <span className="text-red-500">*</span>
                       </label>
-                      <input
-                        name={`hotels[${index}][placeDescription]`}
-                        type="text"
+                      <textarea
+                        name={`hotels[${index}][hotelDescription]`}
+                        rows={3}
                         required
-                        defaultValue={field.placeDescription}
+                        defaultValue={field.hotelDescription}
                         className={inputClassName}
                         disabled={isSubmitting}
-                        placeholder="e.g., Summer Capital of Kashmir"
+                        placeholder="Describe the hotel amenities and features..."
                       />
                     </div>
                   </div>
+                </div>
+              ))}
+            </div>
+          )}
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className={labelClassName}>
-                        Hotel Name <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        name={`hotels[${index}][hotelName]`}
-                        type="text"
-                        required
-                        defaultValue={field.hotelName}
-                        className={inputClassName}
-                        disabled={isSubmitting}
-                        placeholder="e.g., Hotel Paradise"
-                      />
-                    </div>
-
-                    <div>
-                      <label className={labelClassName}>
-                        Room Type <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        name={`hotels[${index}][roomType]`}
-                        required
-                        value={selectedRoomTypes[index] || field.roomType || ''}
-                        onChange={(e) => handleRoomTypeChange(index, e.target.value)}
-                        className={inputClassName}
-                        disabled={isSubmitting}
-                      >
-                        <option value="">Select Room Type</option>
-                        {ROOM_TYPES.map((type) => (
-                          <option key={type} value={type}>
-                            {type}
-                          </option>
-                        ))}
-                      </select>
-
-                      {selectedRoomTypes[index] === 'Custom' && (
-                        <div className="mt-3">
-                          <label className="text-sm font-semibold mb-2 block text-blue-600">
-                            Enter Custom Room Type <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            value={customRoomTypes[index] || ''}
-                            onChange={(e) => setCustomRoomTypes((prev) => ({ ...prev, [index]: e.target.value }))}
-                            required
-                            className={inputClassName}
-                            disabled={isSubmitting}
-                            placeholder="e.g., Presidential Suite, Garden View Room, etc."
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
+          {/* ✅ Added message when no hotels */}
+          {numberOfHotels === 0 && (
+            <div className="border-t-2 border-gray-200 dark:border-gray-700 pt-6">
+              <div className="p-6 bg-blue-50 dark:bg-blue-900/20 rounded-sm border-2 border-blue-200 dark:border-blue-700">
+                <div className="flex items-center gap-3">
+                  <Hotel className="h-6 w-6 text-blue-600" />
                   <div>
-                    <label className={labelClassName}>
-                      Hotel Description <span className="text-red-500">*</span>
-                    </label>
-                    <textarea
-                      name={`hotels[${index}][hotelDescription]`}
-                      rows={3}
-                      required
-                      defaultValue={field.hotelDescription}
-                      className={inputClassName}
-                      disabled={isSubmitting}
-                      placeholder="Describe the hotel amenities and features..."
-                    />
+                    <p className="font-semibold text-blue-700 dark:text-blue-300">No Hotels Added</p>
+                    <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
+                      This itinerary doesn't include hotel accommodations. Perfect for day trips, flight-only bookings,
+                      or custom arrangements.
+                    </p>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
+            </div>
+          )}
 
           {/* Inclusions */}
           <div className="border-t-2 border-gray-200 dark:border-gray-700 pt-6">

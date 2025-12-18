@@ -7,10 +7,13 @@ export interface DashboardStats {
   totalBlogs: number;
   totalContacts: number;
   totalQuotes: number;
+  totalItineraries: number;
   unreadContacts: number;
   unreadQuotes: number;
   publishedBlogs: number;
   featuredBlogs: number;
+  tourilloItineraries: number;
+  tthItineraries: number;
   recentPackages: Array<{
     id: string;
     title: string;
@@ -41,6 +44,16 @@ export interface DashboardStats {
     isRead: boolean;
     createdAt: string;
   }>;
+  recentItineraries: Array<{
+    id: string;
+    travelId: string;
+    clientName: string;
+    packageTitle: string;
+    company: string;
+    tripAdvisorName: string;
+    quotePrice: number;
+    createdAt: string;
+  }>;
   packagesByCategory: Array<{
     category: string;
     count: number;
@@ -49,12 +62,21 @@ export interface DashboardStats {
     category: string;
     count: number;
   }>;
+  itinerariesByCompany: Array<{
+    company: string;
+    count: number;
+  }>;
+  itinerariesByAdvisor: Array<{
+    advisor: string;
+    count: number;
+  }>;
   monthlyStats: Array<{
     month: string;
     packages: number;
     blogs: number;
     contacts: number;
     quotes: number;
+    itineraries: number;
   }>;
 }
 
@@ -75,23 +97,29 @@ export async function getDashboardStats(dateRange?: { from: Date; to: Date }): P
       totalBlogs,
       totalContacts,
       totalQuotes,
+      totalItineraries,
       unreadContacts,
       unreadQuotes,
       publishedBlogs,
       featuredBlogs,
+      tourilloItineraries,
+      tthItineraries,
     ] = await Promise.all([
       prisma.listing.count({ where: whereClause }),
       prisma.blog.count({ where: whereClause }),
       prisma.contact.count({ where: whereClause }),
       prisma.quote.count({ where: whereClause }),
+      prisma.itinerary.count({ where: whereClause }),
       prisma.contact.count({ where: { ...whereClause, isRead: false } }),
       prisma.quote.count({ where: { ...whereClause, isRead: false } }),
       prisma.blog.count({ where: { ...whereClause, published: true } }),
       prisma.blog.count({ where: { ...whereClause, featured: true } }),
+      prisma.itinerary.count({ where: { ...whereClause, company: 'TOURILLO' } }),
+      prisma.itinerary.count({ where: { ...whereClause, company: 'TRAVEL_TRAIL_HOLIDAYS' } }),
     ]);
 
     // Get recent items
-    const [recentPackages, recentBlogs, recentContacts, recentQuotes] = await Promise.all([
+    const [recentPackages, recentBlogs, recentContacts, recentQuotes, recentItineraries] = await Promise.all([
       prisma.listing.findMany({
         where: whereClause,
         orderBy: { createdAt: 'desc' },
@@ -142,6 +170,21 @@ export async function getDashboardStats(dateRange?: { from: Date; to: Date }): P
           createdAt: true,
         },
       }),
+      prisma.itinerary.findMany({
+        where: whereClause,
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        select: {
+          id: true,
+          travelId: true,
+          clientName: true,
+          packageTitle: true,
+          company: true,
+          tripAdvisorName: true,
+          quotePrice: true,
+          createdAt: true,
+        },
+      }),
     ]);
 
     // Get packages by category
@@ -167,6 +210,45 @@ export async function getDashboardStats(dateRange?: { from: Date; to: Date }): P
       category: item.category,
       count: item._count,
     }));
+
+    // Get itineraries by company
+    const itinerariesByCompanyGrouped = await prisma.itinerary.groupBy({
+      by: ['company'],
+      where: whereClause,
+      _count: true,
+    });
+
+    const itinerariesByCompany = itinerariesByCompanyGrouped.map((item) => ({
+      company: item.company === 'TOURILLO' ? 'TRL' : 'TTH',
+      count: item._count,
+    }));
+
+    // Get itineraries by trip advisor
+    const itinerariesByAdvisorGrouped = await prisma.itinerary.groupBy({
+      by: ['tripAdvisorName'],
+      where: {
+        ...whereClause,
+        tripAdvisorName: {
+          not: '',
+        },
+      },
+      _count: {
+        tripAdvisorName: true,
+      },
+      orderBy: {
+        _count: {
+          tripAdvisorName: 'desc',
+        },
+      },
+      take: 10,
+    });
+
+    const itinerariesByAdvisor = itinerariesByAdvisorGrouped
+      .filter((item) => item.tripAdvisorName && item.tripAdvisorName.trim() !== '')
+      .map((item) => ({
+        advisor: item.tripAdvisorName,
+        count: item._count.tripAdvisorName,
+      }));
 
     // Get monthly stats for the last 6 months
     const sixMonthsAgo = new Date();
@@ -212,6 +294,17 @@ export async function getDashboardStats(dateRange?: { from: Date; to: Date }): P
       ORDER BY EXTRACT(MONTH FROM created_at)
     `;
 
+    // FIXED: Use created_at instead of createdAt
+    const monthlyItineraries = await prisma.$queryRaw<Array<{ month: string; count: bigint }>>`
+      SELECT 
+        TO_CHAR(created_at, 'Mon') as month,
+        COUNT(*) as count
+      FROM itineraries
+      WHERE created_at >= ${sixMonthsAgo}
+      GROUP BY TO_CHAR(created_at, 'Mon'), EXTRACT(MONTH FROM created_at)
+      ORDER BY EXTRACT(MONTH FROM created_at)
+    `;
+
     // Combine monthly stats
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const currentMonth = new Date().getMonth();
@@ -227,6 +320,7 @@ export async function getDashboardStats(dateRange?: { from: Date; to: Date }): P
       const blogsData = monthlyBlogs.find((m) => m.month === month);
       const contactsData = monthlyContacts.find((m) => m.month === month);
       const quotesData = monthlyQuotes.find((m) => m.month === month);
+      const itinerariesData = monthlyItineraries.find((m) => m.month === month);
 
       return {
         month,
@@ -234,6 +328,7 @@ export async function getDashboardStats(dateRange?: { from: Date; to: Date }): P
         blogs: blogsData ? Number(blogsData.count) : 0,
         contacts: contactsData ? Number(contactsData.count) : 0,
         quotes: quotesData ? Number(quotesData.count) : 0,
+        itineraries: itinerariesData ? Number(itinerariesData.count) : 0,
       };
     });
 
@@ -242,10 +337,13 @@ export async function getDashboardStats(dateRange?: { from: Date; to: Date }): P
       totalBlogs,
       totalContacts,
       totalQuotes,
+      totalItineraries,
       unreadContacts,
       unreadQuotes,
       publishedBlogs,
       featuredBlogs,
+      tourilloItineraries,
+      tthItineraries,
       recentPackages: recentPackages.map((p) => ({
         ...p,
         createdAt: p.createdAt.toISOString(),
@@ -262,8 +360,14 @@ export async function getDashboardStats(dateRange?: { from: Date; to: Date }): P
         ...q,
         createdAt: q.createdAt.toISOString(),
       })),
+      recentItineraries: recentItineraries.map((i) => ({
+        ...i,
+        createdAt: i.createdAt.toISOString(),
+      })),
       packagesByCategory,
       blogsByCategory,
+      itinerariesByCompany,
+      itinerariesByAdvisor,
       monthlyStats,
     };
   } catch (error) {

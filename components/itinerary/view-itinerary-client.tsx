@@ -6,6 +6,7 @@ import { FaPhoneAlt, FaRegArrowAltCircleRight, FaCheck, FaHotel, FaSuitcase, FaE
 import { RxCrossCircled } from 'react-icons/rx';
 import { MdRateReview } from 'react-icons/md';
 import { AiFillThunderbolt } from 'react-icons/ai';
+import { BadgeCheck, FileCheck2, Info, ShieldCheck } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { ItineraryData } from '@/lib/actions/itinerary-actions';
@@ -44,6 +45,9 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
   // Get company configuration based on itinerary company
   const companyConfig = useMemo(() => getCompanyConfig(itinerary.company), [itinerary.company]);
   const CompanyLogo = companyConfig.LogoComponent;
+
+  // ✅ Check if hotels exist
+  const hasHotels = itinerary.hotels && itinerary.hotels.length > 0;
 
   const handlePrint = useCallback(() => {
     setShowButtons(false);
@@ -264,16 +268,16 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
 
                   <div className="flex gap-8 items-center mt-4 print-avoid-break text-gray-600">
                     <div className="flex items-center gap-2 font-medium text-sm">
-                      <FaSuitcase size={14} className="text-slate-600" />
-                      {companyConfig.stats.trips} Trips
+                      <ShieldCheck size={14} className="text-slate-600" />
+                      Zero-Stress Guarantee Trips
                     </div>
                     <div className="flex items-center gap-2 font-medium text-sm">
-                      <MdRateReview size={14} className="text-slate-600" />
-                      {companyConfig.stats.reviews} Reviews
+                      <FileCheck2 size={14} className="text-slate-600" />
+                      No Hidden Cost Guarantee
                     </div>
                     <div className="flex items-center gap-2 font-medium text-sm">
-                      <AiFillThunderbolt size={14} className="text-slate-600" />
-                      {companyConfig.stats.satisfaction} Satisfaction
+                      <BadgeCheck size={14} className="text-slate-600" />
+                      Surprise Appreciation for Our Guests
                     </div>
                   </div>
 
@@ -299,45 +303,67 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
                 </div>
               </div>
 
-              {/* Hotel Summary */}
-              <div className="px-5 py-4 print-compact print-allow-break-before border-b border-gray-200">
-                <h2 className="text-xl font-bold text-slate-800 print-keep-with-next">Hotel Summary</h2>
-                <div className="flex flex-col gap-4 print-compact-gap">
-                  {itinerary.hotels.map((hotel, index) => (
-                    <div
-                      key={index}
-                      className="border border-gray-300 rounded-lg p-4 hover:shadow-md transition print-avoid-break bg-white"
-                    >
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="text-base font-bold text-slate-800">{hotel.placeName}</span>
-                        <span className="text-gray-400">•</span>
-                        <span className="text-sm text-gray-600">{hotel.placeDescription}</span>
-                      </div>
-                      <div className="flex gap-4 items-start">
-                        <div className="shrink-0">
-                          <FaHotel size={40} className="text-gray-400" />
+              {/* ✅ FIXED: Hotel Summary - Only show if hotels exist */}
+              {hasHotels ? (
+                <div className="px-5 py-4 print-compact print-allow-break-before border-b border-gray-200">
+                  <h2 className="text-xl font-bold text-slate-800 print-keep-with-next mb-4">
+                    Hotel Summary ({itinerary.hotels.length} {itinerary.hotels.length === 1 ? 'Hotel' : 'Hotels'})
+                  </h2>
+                  <div className="flex flex-col gap-4 print-compact-gap">
+                    {itinerary.hotels.map((hotel, index) => (
+                      <div
+                        key={index}
+                        className="border border-gray-300 rounded-lg p-4 hover:shadow-md transition print-avoid-break bg-white"
+                      >
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="text-base font-bold text-slate-800">{hotel.placeName}</span>
+                          <span className="text-gray-400">•</span>
+                          <span className="text-sm text-gray-600">{hotel.placeDescription}</span>
                         </div>
-                        <div className="flex flex-col gap-2">
-                          <span className="font-semibold text-base text-slate-800">{hotel.hotelName}</span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-medium text-gray-500">Room Type:</span>
-                            <span className="text-xs font-semibold text-slate-700 bg-gray-100 px-3 py-1 rounded border border-gray-300">
-                              {hotel.roomType}
-                            </span>
+                        <div className="flex gap-4 items-start">
+                          <div className="shrink-0">
+                            <FaHotel size={40} className="text-gray-400" />
                           </div>
-                          <p className="text-gray-600 text-xs leading-relaxed">{hotel.hotelDescription}</p>
+                          <div className="flex flex-col gap-2">
+                            <span className="font-semibold text-base text-slate-800">{hotel.hotelName}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-medium text-gray-500">Room Type:</span>
+                              <span className="text-xs font-semibold text-slate-700 bg-gray-100 px-3 py-1 rounded border border-gray-300">
+                                {hotel.roomType}
+                              </span>
+                            </div>
+                            <p className="text-gray-600 text-xs leading-relaxed">{hotel.hotelDescription}</p>
+                          </div>
                         </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="px-5 py-4 print-compact print-allow-break-before border-b border-gray-200">
+                  <h2 className="text-xl font-bold text-slate-800 print-keep-with-next mb-4">Accommodation</h2>
+                  <div className="p-4 bg-slate-50 rounded-lg border-2 border-slate-200">
+                    <div className="flex items-start gap-3">
+                      <div>
+                        <h3 className="font-semibold text-slate-800 mb-1 flex items-center gap-2">
+                          <FaHotel className="h-4 w-4" />
+                          No Hotel Accommodations Included
+                        </h3>
+                        <p className="text-sm text-slate-700">
+                          This package does not include hotel accommodations. Guests are responsible for arranging their
+                          own lodging. This package focuses on transportation and tour services.
+                        </p>
                       </div>
                     </div>
-                  ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Flights */}
               <div className="px-5 py-4 print-compact print-avoid-break border-b border-gray-200">
                 <h2 className="text-xl font-bold text-slate-800 print-keep-with-next mb-4">Flight Details</h2>
                 <div className="p-4 bg-gray-50 rounded-lg border border-gray-300">
-                  <span className="text-sm text-gray-700">{itinerary.flights}</span>
+                  <span className="text-sm text-gray-700 whitespace-pre-line">{itinerary.flights}</span>
                 </div>
               </div>
 
@@ -345,7 +371,7 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
               <div className="px-5 py-4 print-compact print-avoid-break border-b border-gray-200">
                 <h2 className="text-xl font-bold text-slate-800 print-keep-with-next mb-4">Transportation</h2>
                 <div className="p-4 bg-gray-50 rounded-lg border border-gray-300">
-                  <span className="text-sm text-gray-700">{itinerary.cabs}</span>
+                  <span className="text-sm text-gray-700 whitespace-pre-line">{itinerary.cabs}</span>
                 </div>
               </div>
 
@@ -359,7 +385,7 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
                       className="border border-gray-300 rounded-lg p-4 hover:shadow-md transition print-avoid-break bg-white"
                     >
                       <div className="flex gap-3 items-start mb-3">
-                        <div className="bg-slate-700 text-white font-bold text-sm px-4 py-1.5 rounded">
+                        <div className="bg-slate-700 text-white font-bold text-sm px-4 py-1.5 rounded shrink-0">
                           Day {day.dayNumber}
                         </div>
                         <span className="text-base font-semibold text-slate-800 mt-0.5">{day.summary}</span>
@@ -438,9 +464,9 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
                       <div>
                         <span className="font-semibold">UPI ID:</span> {companyConfig.upiDetails.upiId}
                       </div>
-                      <div>
+                      {/* <div>
                         <span className="font-semibold">Number:</span> {companyConfig.upiDetails.phoneNumber}
-                      </div>
+                      </div> */}
                       <div className="relative w-[120px] h-[120px] mt-2 border border-gray-300 rounded overflow-hidden print-avoid-break">
                         <Image src={companyConfig.upiDetails.qrCodePath} alt="UPI QR" fill className="object-contain" />
                       </div>

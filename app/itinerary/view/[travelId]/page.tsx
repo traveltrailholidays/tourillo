@@ -1,11 +1,38 @@
 import { getItineraryByTravelId } from '@/lib/actions/itinerary-actions';
 import { notFound } from 'next/navigation';
 import ViewItineraryClient from '@/components/itinerary/view-itinerary-client';
+import type { Metadata } from 'next';
 
 interface PageProps {
   params: Promise<{
     travelId: string;
   }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { travelId } = await params;
+
+  try {
+    const itinerary = await getItineraryByTravelId(travelId);
+
+    if (!itinerary) {
+      return {
+        title: 'itinerary Not Found',
+        description: 'The requested itinerary could not be found',
+      };
+    }
+
+    return {
+      title: `${itinerary.clientName} - ${itinerary.travelId}`,
+      description: `Travel itinerary for ${itinerary.clientName}`,
+    };
+  } catch (error) {
+    console.error('Error generating metadata:', error);
+    return {
+      title: 'itinerary Not Found',
+      description: 'The requested itinerary could not be found',
+    };
+  }
 }
 
 export default async function ViewItineraryPage({ params }: PageProps) {

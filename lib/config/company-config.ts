@@ -31,11 +31,6 @@ export interface CompanyConfig {
     state: string;
     pincode: string;
   };
-  stats: {
-    trips: string;
-    reviews: string;
-    satisfaction: string;
-  };
 }
 
 export const COMPANY_CONFIGS: Record<CompanyType, CompanyConfig> = {
@@ -67,32 +62,27 @@ export const COMPANY_CONFIGS: Record<CompanyType, CompanyConfig> = {
       state: 'Delhi',
       pincode: '110001',
     },
-    stats: {
-      trips: '500+',
-      reviews: '350+',
-      satisfaction: '100%',
-    },
   },
   TRAVEL_TRAIL_HOLIDAYS: {
-    name: 'Travel Trail Holidays Private Limited',
+    name: 'Travel Trail Holidays',
     shortName: 'Travel Trail Holidays',
     LogoComponent: LogoTTH,
-    contactPhone: '+91 9876543210',
-    supportPhone: '9876543210',
+    contactPhone: '+91 9625992025',
+    supportPhone: '9625992025',
     email: 'support@traveltrailholidays.com',
     website: 'www.traveltrailholidays.com',
     bankDetails: {
-      bankName: 'HDFC Bank',
-      accountName: 'Travel Trail Holidays Private Limited',
-      accountNumber: '50200012345678',
-      ifsc: 'HDFC0001234',
+      bankName: 'Axis Bank',
+      accountName: 'TRAVEL TRAIL HOLIDAYS',
+      accountNumber: '925020040226231',
+      ifsc: 'UTIB0004799',
       accountType: 'Current',
     },
     upiDetails: {
       merchantName: 'Travel Trail Holidays',
-      upiId: '9876543210@paytm',
+      upiId: 'tra5165@axisbank',
       phoneNumber: '9876543210',
-      qrCodePath: '/images/payment/tth-upi.webp',
+      qrCodePath: '/images/payment/tth-upi.png',
     },
     address: {
       line1: 'Travel Trail Office',
@@ -100,11 +90,6 @@ export const COMPANY_CONFIGS: Record<CompanyType, CompanyConfig> = {
       city: 'Gurgaon',
       state: 'Haryana',
       pincode: '122001',
-    },
-    stats: {
-      trips: '800+',
-      reviews: '600+',
-      satisfaction: '98%',
     },
   },
 };

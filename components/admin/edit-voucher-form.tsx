@@ -8,7 +8,7 @@ import * as z from 'zod';
 import { updateVoucher } from '@/lib/actions/voucher-actions';
 import type { VoucherData } from '@/lib/actions/voucher-actions';
 import toast from 'react-hot-toast';
-import { Calendar, Users, Hotel, Car } from 'lucide-react';
+import { Calendar, Users, Hotel, Car, Info } from 'lucide-react';
 import { Button } from '../ui/button';
 
 const VoucherSchema = z.object({
@@ -62,7 +62,7 @@ export default function EditVoucherForm({ voucher, itineraries }: EditVoucherFor
       adultNo: voucher.adultNo,
       childrenNo: voucher.childrenNo,
       totalNights: voucher.totalNights,
-      hotelStays: voucher.hotelStays,
+      hotelStays: voucher.hotelStays || [],
       cabDetails: voucher.cabDetails,
     },
   });
@@ -73,10 +73,13 @@ export default function EditVoucherForm({ voucher, itineraries }: EditVoucherFor
   });
 
   const totalNights = watch('totalNights');
+  const hotelStays = watch('hotelStays');
 
   const handleNightChange = useCallback(
     (index: number, value: number) => {
-      const currentHotelStays = [...watch('hotelStays')];
+      if (hotelStays.length === 0) return;
+
+      const currentHotelStays = [...hotelStays];
       value = Math.max(0, value);
 
       const previousHotelsNights = currentHotelStays.slice(0, index).reduce((sum, hotel) => sum + hotel.nights, 0);
@@ -99,15 +102,16 @@ export default function EditVoucherForm({ voucher, itineraries }: EditVoucherFor
 
       replace(currentHotelStays);
     },
-    [totalNights, watch, replace]
+    [totalNights, hotelStays, replace]
   );
 
   const onSubmit = async (data: VoucherFormValues) => {
     setIsSubmitting(true);
     try {
-      await updateVoucher(voucher.travelId, data);
+      await updateVoucher(voucher.id, data);
       toast.success('Voucher updated successfully!');
       router.push('/admin/voucher/voucher-list');
+      router.refresh();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to update voucher');
     } finally {
@@ -116,7 +120,7 @@ export default function EditVoucherForm({ voucher, itineraries }: EditVoucherFor
   };
 
   const inputClassName =
-    'w-full p-3 border-2 border-gray-300 dark:border-gray-700 rounded-sm focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200 bg-foreground';
+    'w-full p-3 border-2 border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200 bg-foreground';
   const labelClassName = 'block text-sm font-semibold mb-2';
   const errorClassName = 'text-red-500 text-sm mt-1';
 
@@ -124,20 +128,24 @@ export default function EditVoucherForm({ voucher, itineraries }: EditVoucherFor
     <div className="container mx-auto p-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Edit Voucher</h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-1">Edit vouchers quickly and efficiently</p>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">Update voucher details for {voucher.voucherId}</p>
       </div>
-      <div className="bg-foreground rounded-sm shadow-lg p-6">
+      <div className="bg-foreground rounded-lg shadow-lg p-6">
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
-          {/* Travel ID Display */}
-          <div className="p-6 bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-sm border-2 border-blue-200 dark:border-blue-700">
+          {/* Voucher & Itinerary Information */}
+          <div className="p-6 bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border-2 border-blue-200 dark:border-blue-700">
             <h3 className="font-semibold text-lg mb-4 text-blue-700 dark:text-blue-300 flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              Itinerary Information
+              Voucher & Itinerary Information
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Voucher ID</p>
+                <p className="font-mono font-bold text-green-600 dark:text-green-400">{voucher.voucherId}</p>
+              </div>
+              <div>
                 <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Travel ID</p>
-                <p className="font-mono font-bold">{voucher.travelId}</p>
+                <p className="font-mono font-bold text-purple-600 dark:text-purple-400">{voucher.travelId}</p>
               </div>
               {selectedItinerary && (
                 <>
@@ -149,6 +157,12 @@ export default function EditVoucherForm({ voucher, itineraries }: EditVoucherFor
                     <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Phone</p>
                     <p className="font-medium">{selectedItinerary.clientPhone}</p>
                   </div>
+                  {selectedItinerary.clientEmail && (
+                    <div className="md:col-span-2">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Email</p>
+                      <p className="font-medium">{selectedItinerary.clientEmail}</p>
+                    </div>
+                  )}
                 </>
               )}
             </div>
@@ -165,7 +179,13 @@ export default function EditVoucherForm({ voucher, itineraries }: EditVoucherFor
                 <label className={labelClassName}>
                   Client Name <span className="text-red-500">*</span>
                 </label>
-                <input {...register('clientName')} type="text" className={inputClassName} disabled={isSubmitting} />
+                <input
+                  {...register('clientName')}
+                  type="text"
+                  placeholder="Enter client name"
+                  className={inputClassName}
+                  disabled={isSubmitting}
+                />
                 {errors.clientName && <p className={errorClassName}>{errors.clientName.message}</p>}
               </div>
 
@@ -212,100 +232,125 @@ export default function EditVoucherForm({ voucher, itineraries }: EditVoucherFor
           </div>
 
           {/* Hotel Stays Section */}
-          <div className="border-t-2 border-purple-200 dark:border-purple-800 pt-6">
-            <h3 className="text-2xl font-bold mb-6 text-purple-600 flex items-center gap-2">
-              <Hotel className="h-6 w-6" />
-              Hotel Accommodations
-            </h3>
-            {fields.map((field, index) => (
-              <div
-                key={field.id}
-                className="mb-6 p-6 border-2 border-purple-200 dark:border-purple-800 rounded-sm bg-gray-50 dark:bg-gray-900"
-              >
-                <h4 className="font-semibold text-lg mb-4 text-purple-600">Hotel {index + 1}</h4>
-                <div className="space-y-4">
-                  <div>
-                    <label className={labelClassName}>
-                      Hotel Name <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      {...register(`hotelStays.${index}.hotelName`)}
-                      type="text"
-                      className={inputClassName}
-                      disabled={isSubmitting}
-                    />
-                    {errors.hotelStays?.[index]?.hotelName && (
-                      <p className={errorClassName}>{errors.hotelStays[index]?.hotelName?.message}</p>
-                    )}
+          {hotelStays.length > 0 ? (
+            <div className="border-t-2 border-purple-200 dark:border-purple-800 pt-6">
+              <h3 className="text-2xl font-bold mb-6 text-purple-600 flex items-center gap-2">
+                <Hotel className="h-6 w-6" />
+                Hotel Accommodations
+                <span className="text-sm text-gray-500 font-normal">
+                  ({hotelStays.length} hotel{hotelStays.length !== 1 ? 's' : ''})
+                </span>
+              </h3>
+              {fields.map((field, index) => (
+                <div
+                  key={field.id}
+                  className="mb-6 p-6 border-2 border-purple-200 dark:border-purple-800 rounded-lg bg-gray-50 dark:bg-gray-900"
+                >
+                  <h4 className="font-semibold text-lg mb-4 text-purple-600">Hotel {index + 1}</h4>
+                  <div className="space-y-4">
+                    <div>
+                      <label className={labelClassName}>
+                        Hotel Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        {...register(`hotelStays.${index}.hotelName`)}
+                        type="text"
+                        placeholder="Enter hotel name"
+                        className={inputClassName}
+                        disabled={isSubmitting}
+                      />
+                      {errors.hotelStays?.[index]?.hotelName && (
+                        <p className={errorClassName}>{errors.hotelStays[index]?.hotelName?.message}</p>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className={labelClassName}>
+                          Number of Nights <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          {...register(`hotelStays.${index}.nights`, { valueAsNumber: true })}
+                          type="number"
+                          min="0"
+                          onChange={(e) => handleNightChange(index, parseInt(e.target.value) || 0)}
+                          className={inputClassName}
+                          disabled={isSubmitting}
+                        />
+                        {errors.hotelStays?.[index]?.nights && (
+                          <p className={errorClassName}>{errors.hotelStays[index]?.nights?.message}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className={labelClassName}>
+                          Check-in Date <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          {...register(`hotelStays.${index}.fromDate`)}
+                          type="date"
+                          className={inputClassName}
+                          disabled={isSubmitting}
+                        />
+                        {errors.hotelStays?.[index]?.fromDate && (
+                          <p className={errorClassName}>{errors.hotelStays[index]?.fromDate?.message}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className={labelClassName}>
+                          Check-out Date <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          {...register(`hotelStays.${index}.toDate`)}
+                          type="date"
+                          className={inputClassName}
+                          disabled={isSubmitting}
+                        />
+                        {errors.hotelStays?.[index]?.toDate && (
+                          <p className={errorClassName}>{errors.hotelStays[index]?.toDate?.message}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className={labelClassName}>
+                        Hotel Description <span className="text-red-500">*</span>
+                      </label>
+                      <textarea
+                        {...register(`hotelStays.${index}.description`)}
+                        rows={3}
+                        placeholder="Enter hotel description, amenities, and additional details"
+                        className={inputClassName}
+                        disabled={isSubmitting}
+                      />
+                      {errors.hotelStays?.[index]?.description && (
+                        <p className={errorClassName}>{errors.hotelStays[index]?.description?.message}</p>
+                      )}
+                    </div>
                   </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className={labelClassName}>
-                        Number of Nights <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        {...register(`hotelStays.${index}.nights`, { valueAsNumber: true })}
-                        type="number"
-                        min="0"
-                        onChange={(e) => handleNightChange(index, parseInt(e.target.value) || 0)}
-                        className={inputClassName}
-                        disabled={isSubmitting}
-                      />
-                      {errors.hotelStays?.[index]?.nights && (
-                        <p className={errorClassName}>{errors.hotelStays[index]?.nights?.message}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className={labelClassName}>
-                        Check-in Date <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        {...register(`hotelStays.${index}.fromDate`)}
-                        type="date"
-                        className={inputClassName}
-                        disabled={isSubmitting}
-                      />
-                      {errors.hotelStays?.[index]?.fromDate && (
-                        <p className={errorClassName}>{errors.hotelStays[index]?.fromDate?.message}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className={labelClassName}>
-                        Check-out Date <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        {...register(`hotelStays.${index}.toDate`)}
-                        type="date"
-                        className={inputClassName}
-                        disabled={isSubmitting}
-                      />
-                      {errors.hotelStays?.[index]?.toDate && (
-                        <p className={errorClassName}>{errors.hotelStays[index]?.toDate?.message}</p>
-                      )}
-                    </div>
-                  </div>
-
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="border-t-2 border-purple-200 dark:border-purple-800 pt-6">
+              <div className="p-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-2 border-blue-200 dark:border-blue-700">
+                <div className="flex items-start gap-3">
+                  <Info className="h-6 w-6 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
                   <div>
-                    <label className={labelClassName}>
-                      Hotel Description <span className="text-red-500">*</span>
-                    </label>
-                    <textarea
-                      {...register(`hotelStays.${index}.description`)}
-                      rows={3}
-                      className={inputClassName}
-                      disabled={isSubmitting}
-                    />
-                    {errors.hotelStays?.[index]?.description && (
-                      <p className={errorClassName}>{errors.hotelStays[index]?.description?.message}</p>
-                    )}
+                    <h3 className="font-semibold text-blue-800 dark:text-blue-300 mb-2 flex items-center gap-2">
+                      <Hotel className="h-5 w-5" />
+                      No Hotel Accommodations
+                    </h3>
+                    <p className="text-sm text-blue-700 dark:text-blue-400">
+                      This voucher doesn't include hotel accommodations. It covers transportation and other services
+                      only.
+                    </p>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
+            </div>
+          )}
 
           {/* Transportation Section */}
           <div className="border-t-2 border-purple-200 dark:border-purple-800 pt-6">
@@ -317,7 +362,13 @@ export default function EditVoucherForm({ voucher, itineraries }: EditVoucherFor
               <label className={labelClassName}>
                 Cab Details <span className="text-red-500">*</span>
               </label>
-              <textarea {...register('cabDetails')} rows={4} className={inputClassName} disabled={isSubmitting} />
+              <textarea
+                {...register('cabDetails')}
+                rows={4}
+                placeholder="Enter transportation details, cab information, routes, etc."
+                className={inputClassName}
+                disabled={isSubmitting}
+              />
               {errors.cabDetails && <p className={errorClassName}>{errors.cabDetails.message}</p>}
             </div>
           </div>
@@ -328,14 +379,14 @@ export default function EditVoucherForm({ voucher, itineraries }: EditVoucherFor
               type="button"
               onClick={() => router.push('/admin/voucher/voucher-list')}
               disabled={isSubmitting}
-              className="py-4 px-10 bg-gray-500 rounded-sm font-semibold text-white hover:bg-gray-600 transition-colors disabled:opacity-50 cursor-pointer"
+              className="py-3 px-8 bg-gray-500 rounded-lg font-semibold text-white hover:bg-gray-600 transition-colors disabled:opacity-50 cursor-pointer"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="py-4 px-10 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-sm font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transform cursor-pointer"
+              className="py-3 px-8 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-lg font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-lg cursor-pointer"
             >
               {isSubmitting ? 'Updating Voucher...' : 'Update Voucher'}
             </Button>
