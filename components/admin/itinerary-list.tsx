@@ -19,6 +19,9 @@ import {
   CalendarIcon,
   X,
   UserCheck,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react';
 import { deleteItinerary } from '@/lib/actions/itinerary-actions';
 import {
@@ -80,6 +83,20 @@ interface ItineraryListProps {
   itineraries: Itinerary[];
 }
 
+type SortField =
+  | 'company'
+  | 'travelId'
+  | 'clientName'
+  | 'tripAdvisorName'
+  | 'packageTitle'
+  | 'numberOfDays'
+  | 'numberOfNights'
+  | 'quotePrice'
+  | 'pricePerPerson'
+  | 'createdAt';
+
+type SortDirection = 'asc' | 'desc' | null;
+
 // Helper to format full date objects to dd/mm/yyyy
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
@@ -136,6 +153,10 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
   const [isMounted, setIsMounted] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
+  // Sorting states
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+
   // Date Range Filter States
   const [showDateRangeDialog, setShowDateRangeDialog] = useState(false);
   const [exportType, setExportType] = useState<'csv' | 'excel' | 'pdf'>('csv');
@@ -182,18 +203,37 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
       .map(([name, count]) => ({ name, count }));
   }, [itineraries]);
 
-  // Filter Logic
+  // Sorting handler
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else if (sortDirection === 'desc') {
+        setSortField(null);
+        setSortDirection(null);
+      }
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+    setPage(1);
+  };
+
+  // Filter and Sort Logic
   const filtered = useMemo(() => {
     let result = itineraries;
 
+    // Company Filter
     if (companyFilter !== 'ALL') {
       result = result.filter((i) => i.company === companyFilter);
     }
 
+    // Agent Filter
     if (agentFilter !== 'ALL') {
       result = result.filter((i) => i.tripAdvisorName === agentFilter);
     }
 
+    // Search Filter
     if (search.trim()) {
       result = result.filter((i) =>
         [i.travelId, i.clientName, i.clientPhone, i.packageTitle, i.tripAdvisorName].some((v) =>
@@ -202,6 +242,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
       );
     }
 
+    // Date Range Filter
     if (applyDateFilter && startDate && endDate) {
       const start = new Date(startDate);
       const end = new Date(endDate);
@@ -213,8 +254,36 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
       });
     }
 
+    // Sorting
+    if (sortField && sortDirection) {
+      result = [...result].sort((a, b) => {
+        let aVal: string | number;
+        let bVal: string | number;
+
+        if (sortField === 'tripAdvisorName') {
+          aVal = (a.tripAdvisorName || '').toLowerCase();
+          bVal = (b.tripAdvisorName || '').toLowerCase();
+        } else if (sortField === 'createdAt') {
+          aVal = new Date(a.createdAt).getTime();
+          bVal = new Date(b.createdAt).getTime();
+        } else {
+          aVal = a[sortField];
+          bVal = b[sortField];
+        }
+
+        if (typeof aVal === 'string' && sortField !== 'createdAt') {
+          aVal = aVal.toLowerCase();
+          bVal = (bVal as string).toLowerCase();
+        }
+
+        if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
     return result;
-  }, [search, itineraries, companyFilter, agentFilter, applyDateFilter, startDate, endDate]);
+  }, [search, itineraries, companyFilter, agentFilter, applyDateFilter, startDate, endDate, sortField, sortDirection]);
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const pageData = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -230,6 +299,17 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
     });
   };
 
+  // Render sort icon
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="h-3.5 w-3.5 ml-1 text-gray-400" />;
+    }
+    if (sortDirection === 'asc') {
+      return <ArrowUp className="h-3.5 w-3.5 ml-1 text-purple-600" />;
+    }
+    return <ArrowDown className="h-3.5 w-3.5 ml-1 text-purple-600" />;
+  };
+
   // ✅ Export to CSV - Complete Data with CORRECT DB Fields
   const exportToCSV = (data: Itinerary[]) => {
     const filteredData = getDateFilteredData(data);
@@ -238,7 +318,6 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
       return;
     }
 
-    // Find max number of days for dynamic columns
     const maxDays = Math.max(...filteredData.map((item) => (Array.isArray(item.days) ? item.days.length : 0)), 1);
     const maxHotels = Math.max(...filteredData.map((item) => (Array.isArray(item.hotels) ? item.hotels.length : 0)), 1);
 
@@ -281,7 +360,6 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
         const inclusionsArray = Array.isArray(item.inclusions) ? item.inclusions : [];
         const exclusionsArray = Array.isArray(item.exclusions) ? item.exclusions : [];
 
-        // ✅ Days data - Using SUMMARY field
         const daysSummaries = Array.from({ length: maxDays }, (_, i) => {
           const day = daysArray[i];
           return day?.summary ? `"${day.summary.replace(/"/g, '""')}"` : '';
@@ -295,7 +373,6 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
           return day?.imageSrc ? `"${day.imageSrc.replace(/"/g, '""')}"` : '';
         });
 
-        // ✅ Hotels data - Using CORRECT DB Fields
         const hotelsNames = Array.from({ length: maxHotels }, (_, i) => {
           const hotel = hotelsArray[i];
           return hotel?.hotelName ? `"${hotel.hotelName.replace(/"/g, '""')}"` : '';
@@ -380,7 +457,6 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
       setIsExporting(true);
       const XLSX = await import('xlsx');
 
-      // Find max days and hotels
       const maxDays = Math.max(...filteredData.map((item) => (Array.isArray(item.days) ? item.days.length : 0)), 1);
       const maxHotels = Math.max(
         ...filteredData.map((item) => (Array.isArray(item.hotels) ? item.hotels.length : 0)),
@@ -412,7 +488,6 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
           'Price Per Person (₹)': item.pricePerPerson,
         };
 
-        // ✅ Add days - Using SUMMARY field
         for (let i = 0; i < maxDays; i++) {
           const day = daysArray[i];
           row[`Day ${i + 1} Summary`] = day?.summary || '';
@@ -420,7 +495,6 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
           row[`Day ${i + 1} Image`] = day?.imageSrc || '';
         }
 
-        // ✅ Add hotels - Using CORRECT DB Fields
         for (let i = 0; i < maxHotels; i++) {
           const hotel = hotelsArray[i];
           row[`Hotel ${i + 1} Name`] = hotel?.hotelName || '';
@@ -442,30 +516,29 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Itineraries Complete');
 
-      // Dynamic column widths
       const columnWidths = [
-        { wch: 6 }, // S.No
-        { wch: 20 }, // Itinerary ID
-        { wch: 10 }, // Company
-        { wch: 20 }, // Client Name
-        { wch: 15 }, // Client Phone
-        { wch: 25 }, // Client Email
-        { wch: 20 }, // Trip Advisor Name
-        { wch: 15 }, // Trip Advisor Phone
-        { wch: 30 }, // Package Title
-        { wch: 12 }, // Number of Days
-        { wch: 12 }, // Number of Nights
-        { wch: 12 }, // Number of Hotels
-        { wch: 20 }, // Cabs
-        { wch: 20 }, // Flights
-        { wch: 15 }, // Quote Price
-        { wch: 18 }, // Price Per Person
-        ...Array.from({ length: maxDays * 3 }, () => ({ wch: 50 })), // Days (summary, description, image)
-        ...Array.from({ length: maxHotels * 5 }, () => ({ wch: 30 })), // Hotels (name, place, room, desc, place desc)
-        { wch: 60 }, // Inclusions
-        { wch: 60 }, // Exclusions
-        { wch: 15 }, // Created Date
-        { wch: 15 }, // Updated Date
+        { wch: 6 },
+        { wch: 20 },
+        { wch: 10 },
+        { wch: 20 },
+        { wch: 15 },
+        { wch: 25 },
+        { wch: 20 },
+        { wch: 15 },
+        { wch: 30 },
+        { wch: 12 },
+        { wch: 12 },
+        { wch: 12 },
+        { wch: 20 },
+        { wch: 20 },
+        { wch: 15 },
+        { wch: 18 },
+        ...Array.from({ length: maxDays * 3 }, () => ({ wch: 50 })),
+        ...Array.from({ length: maxHotels * 5 }, () => ({ wch: 30 })),
+        { wch: 60 },
+        { wch: 60 },
+        { wch: 15 },
+        { wch: 15 },
       ];
       worksheet['!cols'] = columnWidths;
 
@@ -505,7 +578,6 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
             ? 'Tourillo (TRL)'
             : 'Travel Trail Holidays (TTH)';
 
-      // Title page
       doc.setFontSize(18);
       doc.setTextColor(99, 102, 241);
       doc.text('Complete Itinerary Report', 14, 15);
@@ -518,7 +590,6 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
       }
       doc.text(subtitle, 14, 24);
 
-      // Summary Table
       const summaryData = filteredData.map((item, index) => [
         index + 1,
         item.company === 'TOURILLO' ? 'TRL' : 'TTH',
@@ -544,7 +615,6 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
         },
       });
 
-      // Detailed pages
       filteredData.forEach((item, index) => {
         doc.addPage();
 
@@ -556,7 +626,6 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
         doc.setFontSize(9);
         doc.setTextColor(0, 0, 0);
 
-        // Basic Details
         const details = [
           ['Company:', item.company === 'TOURILLO' ? 'Tourillo (TRL)' : 'Travel Trail Holidays (TTH)'],
           ['Client Name:', item.clientName],
@@ -582,7 +651,6 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
           yPos += lines.length * 5;
         });
 
-        // ✅ Itinerary Days - Using SUMMARY field
         if (Array.isArray(item.days) && item.days.length > 0) {
           yPos += 5;
           doc.setFont('helvetica', 'bold');
@@ -605,7 +673,6 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
           });
         }
 
-        // ✅ Hotels - Using CORRECT DB Fields
         if (Array.isArray(item.hotels) && item.hotels.length > 0) {
           if (yPos > 160) {
             doc.addPage();
@@ -643,7 +710,6 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
           });
         }
 
-        // Inclusions
         if (Array.isArray(item.inclusions) && item.inclusions.length > 0) {
           if (yPos > 160) {
             doc.addPage();
@@ -664,7 +730,6 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
           });
         }
 
-        // Exclusions
         if (Array.isArray(item.exclusions) && item.exclusions.length > 0) {
           if (yPos > 160) {
             doc.addPage();
@@ -686,7 +751,6 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
         }
       });
 
-      // Page numbers
       const pageCount = (doc as any).internal.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
@@ -724,13 +788,13 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
     setTimeout(() => {
       switch (exportType) {
         case 'csv':
-          exportToCSV(itineraries);
+          exportToCSV(filtered);
           break;
         case 'excel':
-          exportToExcel(itineraries);
+          exportToExcel(filtered);
           break;
         case 'pdf':
-          exportToPDF(itineraries);
+          exportToPDF(filtered);
           break;
       }
       setStartDate('');
@@ -751,6 +815,8 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
     setStartDate('');
     setEndDate('');
     setApplyDateFilter(false);
+    setSortField(null);
+    setSortDirection(null);
     setPage(1);
   };
 
@@ -918,7 +984,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
             </select>
           </div>
 
-          {/* Clear Filters Button - New Line */}
+          {/* Clear Filters Button */}
           {hasActiveFilters && (
             <div className="flex justify-start">
               <Button
@@ -1000,14 +1066,78 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
           <TableHeader>
             <TableRow className="bg-gray-50 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800">
               <TableHead className="font-bold text-gray-700 dark:text-gray-300 w-16 min-w-[60px]">S.No</TableHead>
-              <TableHead className="font-bold text-gray-700 dark:text-gray-300 min-w-[100px]">Company</TableHead>
-              <TableHead className="font-bold text-gray-700 dark:text-gray-300 min-w-[150px]">Itinerary ID</TableHead>
-              <TableHead className="font-bold text-gray-700 dark:text-gray-300 min-w-[140px]">Client</TableHead>
-              <TableHead className="font-bold text-gray-700 dark:text-gray-300 min-w-[140px]">Agent</TableHead>
-              <TableHead className="font-bold text-gray-700 dark:text-gray-300 min-w-[180px]">Package</TableHead>
-              <TableHead className="font-bold text-gray-700 dark:text-gray-300 min-w-[100px]">Duration</TableHead>
-              <TableHead className="font-bold text-gray-700 dark:text-gray-300 min-w-[120px]">Pricing</TableHead>
-              <TableHead className="font-bold text-gray-700 dark:text-gray-300 min-w-[100px]">Created</TableHead>
+              <TableHead
+                className="font-bold text-gray-700 dark:text-gray-300 min-w-[100px] cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={() => handleSort('company')}
+              >
+                <div className="flex items-center whitespace-nowrap">
+                  Company
+                  <SortIcon field="company" />
+                </div>
+              </TableHead>
+              <TableHead
+                className="font-bold text-gray-700 dark:text-gray-300 min-w-[150px] cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={() => handleSort('travelId')}
+              >
+                <div className="flex items-center whitespace-nowrap">
+                  Itinerary ID
+                  <SortIcon field="travelId" />
+                </div>
+              </TableHead>
+              <TableHead
+                className="font-bold text-gray-700 dark:text-gray-300 min-w-[140px] cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={() => handleSort('clientName')}
+              >
+                <div className="flex items-center whitespace-nowrap">
+                  Client
+                  <SortIcon field="clientName" />
+                </div>
+              </TableHead>
+              <TableHead
+                className="font-bold text-gray-700 dark:text-gray-300 min-w-[140px] cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={() => handleSort('tripAdvisorName')}
+              >
+                <div className="flex items-center whitespace-nowrap">
+                  Agent
+                  <SortIcon field="tripAdvisorName" />
+                </div>
+              </TableHead>
+              <TableHead
+                className="font-bold text-gray-700 dark:text-gray-300 min-w-[180px] cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={() => handleSort('packageTitle')}
+              >
+                <div className="flex items-center whitespace-nowrap">
+                  Package
+                  <SortIcon field="packageTitle" />
+                </div>
+              </TableHead>
+              <TableHead
+                className="font-bold text-gray-700 dark:text-gray-300 min-w-[100px] cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={() => handleSort('numberOfNights')}
+              >
+                <div className="flex items-center whitespace-nowrap">
+                  Duration
+                  <SortIcon field="numberOfNights" />
+                </div>
+              </TableHead>
+              <TableHead
+                className="font-bold text-gray-700 dark:text-gray-300 min-w-[120px] cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={() => handleSort('quotePrice')}
+              >
+                <div className="flex items-center whitespace-nowrap">
+                  Pricing
+                  <SortIcon field="quotePrice" />
+                </div>
+              </TableHead>
+              <TableHead
+                className="font-bold text-gray-700 dark:text-gray-300 min-w-[100px] cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={() => handleSort('createdAt')}
+              >
+                <div className="flex items-center whitespace-nowrap">
+                  Created
+                  <SortIcon field="createdAt" />
+                </div>
+              </TableHead>
               <TableHead className="font-bold text-gray-700 dark:text-gray-300 text-right min-w-[120px] sticky right-0 bg-gray-50 dark:bg-gray-800 z-10 shadow-[-2px_0_4px_rgba(0,0,0,0.05)]">
                 Actions
               </TableHead>
@@ -1043,7 +1173,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-purple-600 dark:text-purple-400">
+                    <span className="font-mono font-bold text-purple-600 dark:text-purple-400 text-sm">
                       {itinerary.travelId}
                     </span>
                     <Button
@@ -1176,11 +1306,13 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
                     <Download className="h-5 w-5 text-white" />
                   </div>
                   <div className="text-left">
-                    <p className="font-semibold text-base group-hover:text-purple-600 transition">Export All Data</p>
+                    <p className="font-semibold text-base group-hover:text-purple-600 transition">
+                      Export All Filtered Data
+                    </p>
                   </div>
                 </div>
                 <div className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
-                  {stats.total}
+                  {filtered.length}
                 </div>
               </button>
             </div>

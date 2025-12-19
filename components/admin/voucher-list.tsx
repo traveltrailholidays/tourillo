@@ -21,6 +21,9 @@ import {
   X,
   Package as PackageIcon,
   UserCheck,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react';
 import { deleteVoucher } from '@/lib/actions/voucher-actions';
 import {
@@ -83,6 +86,19 @@ interface VoucherListProps {
   vouchers: Voucher[];
 }
 
+type SortField =
+  | 'voucherId'
+  | 'itineraryTravelId'
+  | 'clientName'
+  | 'tripAdvisorName'
+  | 'packageTitle'
+  | 'adultNo'
+  | 'totalNights'
+  | 'createdAt'
+  | 'company';
+
+type SortDirection = 'asc' | 'desc' | null;
+
 // Helper to format date (dd/mm/yyyy)
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
@@ -137,6 +153,10 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
   const [isMounted, setIsMounted] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
+  // Sorting states
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+
   // Date Range Filter States
   const [showDateRangeDialog, setShowDateRangeDialog] = useState(false);
   const [exportType, setExportType] = useState<'csv' | 'excel' | 'pdf'>('csv');
@@ -172,14 +192,32 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
     };
   }, [vouchers]);
 
-  // Filter Logic
+  // Sorting handler
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else if (sortDirection === 'desc') {
+        setSortField(null);
+        setSortDirection(null);
+      }
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+    setPage(1);
+  };
+
+  // Filter and Sort Logic
   const filtered = useMemo(() => {
     let result = vouchers;
 
+    // Company Filter
     if (companyFilter !== 'ALL') {
       result = result.filter((v) => getCompanyFromId(v.voucherId, v.itineraryTravelId) === companyFilter);
     }
 
+    // Search Filter
     if (search.trim()) {
       result = result.filter((v) =>
         [
@@ -193,6 +231,7 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
       );
     }
 
+    // Date Range Filter
     if (applyDateFilter && startDate && endDate) {
       const start = new Date(startDate);
       const end = new Date(endDate);
@@ -204,8 +243,42 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
       });
     }
 
+    // Sorting
+    if (sortField && sortDirection) {
+      result = [...result].sort((a, b) => {
+        let aVal: string | number;
+        let bVal: string | number;
+
+        if (sortField === 'company') {
+          aVal = getCompanyFromId(a.voucherId, a.itineraryTravelId);
+          bVal = getCompanyFromId(b.voucherId, b.itineraryTravelId);
+        } else if (sortField === 'tripAdvisorName') {
+          aVal = (a.itinerary.tripAdvisorName || '').toLowerCase();
+          bVal = (b.itinerary.tripAdvisorName || '').toLowerCase();
+        } else if (sortField === 'packageTitle') {
+          aVal = a.itinerary.packageTitle.toLowerCase();
+          bVal = b.itinerary.packageTitle.toLowerCase();
+        } else if (sortField === 'createdAt') {
+          aVal = new Date(a.createdAt).getTime();
+          bVal = new Date(b.createdAt).getTime();
+        } else {
+          aVal = a[sortField];
+          bVal = b[sortField];
+        }
+
+        if (typeof aVal === 'string' && sortField !== 'createdAt') {
+          aVal = aVal.toLowerCase();
+          bVal = (bVal as string).toLowerCase();
+        }
+
+        if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
     return result;
-  }, [search, vouchers, companyFilter, applyDateFilter, startDate, endDate]);
+  }, [search, vouchers, companyFilter, applyDateFilter, startDate, endDate, sortField, sortDirection]);
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const pageData = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -221,7 +294,18 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
     });
   };
 
-  // ✅ Export to CSV - Complete Data with Trip Advisor
+  // Render sort icon
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="h-3.5 w-3.5 ml-1 text-gray-400" />;
+    }
+    if (sortDirection === 'asc') {
+      return <ArrowUp className="h-3.5 w-3.5 ml-1 text-purple-600" />;
+    }
+    return <ArrowDown className="h-3.5 w-3.5 ml-1 text-purple-600" />;
+  };
+
+  // ✅ Export to CSV - Complete Data with Hotel Stays
   const exportToCSV = (data: Voucher[]) => {
     const filteredData = getDateFilteredData(data);
     if (filteredData.length === 0) {
@@ -229,7 +313,6 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
       return;
     }
 
-    // Find max hotel stays
     const maxHotels = Math.max(...filteredData.map((item) => item.hotelStays.length), 1);
 
     const headers = [
@@ -246,7 +329,6 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
       'Adults',
       'Children',
       'Total Nights',
-      'Total Hotels',
       ...Array.from({ length: maxHotels }, (_, i) => `Hotel ${i + 1} Name`),
       ...Array.from({ length: maxHotels }, (_, i) => `Hotel ${i + 1} Nights`),
       ...Array.from({ length: maxHotels }, (_, i) => `Hotel ${i + 1} From Date`),
@@ -262,14 +344,13 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
         const company = getCompanyFromId(item.voucherId, item.itineraryTravelId);
         const hotelStays = item.hotelStays || [];
 
-        // Hotel data
         const hotelNames = Array.from({ length: maxHotels }, (_, i) => {
           const hotel = hotelStays[i];
           return hotel?.hotelName ? `"${hotel.hotelName.replace(/"/g, '""')}"` : '';
         });
         const hotelNights = Array.from({ length: maxHotels }, (_, i) => {
           const hotel = hotelStays[i];
-          return hotel?.nights ?? '';
+          return hotel?.nights || '';
         });
         const hotelFromDates = Array.from({ length: maxHotels }, (_, i) => {
           const hotel = hotelStays[i];
@@ -292,13 +373,12 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
           `"${item.clientName.replace(/"/g, '""')}"`,
           item.itinerary.clientPhone,
           item.itinerary.clientEmail || '',
-          item.itinerary.tripAdvisorName ? `"${item.itinerary.tripAdvisorName.replace(/"/g, '""')}"` : '',
+          `"${(item.itinerary.tripAdvisorName || '').replace(/"/g, '""')}"`,
           item.itinerary.tripAdvisorNumber || '',
           `"${item.itinerary.packageTitle.replace(/"/g, '""')}"`,
           item.adultNo,
           item.childrenNo,
           item.totalNights,
-          hotelStays.length,
           ...hotelNames,
           ...hotelNights,
           ...hotelFromDates,
@@ -328,7 +408,7 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
     toast.success(`${filteredData.length} vouchers exported to CSV with complete data!`);
   };
 
-  // ✅ Export to Excel - Complete Data with Trip Advisor
+  // ✅ Export to Excel - Complete Data with Hotel Stays
   const exportToExcel = async (data: Voucher[]) => {
     const filteredData = getDateFilteredData(data);
     if (filteredData.length === 0) {
@@ -340,7 +420,6 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
       setIsExporting(true);
       const XLSX = await import('xlsx');
 
-      // Find max hotels
       const maxHotels = Math.max(...filteredData.map((item) => item.hotelStays.length), 1);
 
       const excelData = filteredData.map((item, index) => {
@@ -355,20 +434,18 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
           'Client Name': item.clientName,
           'Client Phone': item.itinerary.clientPhone,
           'Client Email': item.itinerary.clientEmail || '',
-          'Trip Advisor Name': item.itinerary.tripAdvisorName || '',
-          'Trip Advisor Phone': item.itinerary.tripAdvisorNumber || '',
+          'Trip Advisor Name': item.itinerary.tripAdvisorName || 'N/A',
+          'Trip Advisor Phone': item.itinerary.tripAdvisorNumber || 'N/A',
           'Package Title': item.itinerary.packageTitle,
           Adults: item.adultNo,
           Children: item.childrenNo,
           'Total Nights': item.totalNights,
-          'Total Hotels': hotelStays.length,
         };
 
-        // Add hotel stays
         for (let i = 0; i < maxHotels; i++) {
           const hotel = hotelStays[i];
           row[`Hotel ${i + 1} Name`] = hotel?.hotelName || '';
-          row[`Hotel ${i + 1} Nights`] = hotel?.nights ?? '';
+          row[`Hotel ${i + 1} Nights`] = hotel?.nights || '';
           row[`Hotel ${i + 1} From Date`] = hotel?.fromDate || '';
           row[`Hotel ${i + 1} To Date`] = hotel?.toDate || '';
           row[`Hotel ${i + 1} Description`] = hotel?.description || '';
@@ -384,25 +461,23 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Vouchers Complete');
 
-      // Dynamic column widths
       const columnWidths = [
-        { wch: 6 }, // S.No
-        { wch: 10 }, // Company
-        { wch: 25 }, // Voucher ID
-        { wch: 20 }, // Itinerary ID
-        { wch: 20 }, // Client Name
-        { wch: 15 }, // Client Phone
-        { wch: 25 }, // Client Email
-        { wch: 20 }, // Trip Advisor Name
-        { wch: 15 }, // Trip Advisor Phone
-        { wch: 30 }, // Package Title
-        { wch: 8 }, // Adults
-        { wch: 8 }, // Children
-        { wch: 12 }, // Total Nights
-        { wch: 12 }, // Total Hotels
-        ...Array.from({ length: maxHotels * 5 }, () => ({ wch: 25 })), // Hotels
-        { wch: 15 }, // Created Date
-        { wch: 15 }, // Updated Date
+        { wch: 6 },
+        { wch: 10 },
+        { wch: 25 },
+        { wch: 20 },
+        { wch: 20 },
+        { wch: 15 },
+        { wch: 25 },
+        { wch: 20 },
+        { wch: 15 },
+        { wch: 30 },
+        { wch: 8 },
+        { wch: 8 },
+        { wch: 12 },
+        ...Array.from({ length: maxHotels * 5 }, () => ({ wch: 25 })),
+        { wch: 15 },
+        { wch: 15 },
       ];
       worksheet['!cols'] = columnWidths;
 
@@ -420,7 +495,7 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
     }
   };
 
-  // ✅ Export to PDF - Summary + Details with Trip Advisor
+  // ✅ Export to PDF - Summary + Details
   const exportToPDF = async (data: Voucher[]) => {
     const filteredData = getDateFilteredData(data);
     if (filteredData.length === 0) {
@@ -442,7 +517,6 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
             ? 'Tourillo (TRL)'
             : 'Travel Trail Holidays (TTH)';
 
-      // Title page
       doc.setFontSize(18);
       doc.setTextColor(99, 102, 241);
       doc.text('Complete Voucher Report', 14, 15);
@@ -455,7 +529,6 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
       }
       doc.text(subtitle, 14, 24);
 
-      // Summary Table
       const summaryData = filteredData.map((item, index) => {
         const company = getCompanyFromId(item.voucherId, item.itineraryTravelId);
         return [
@@ -485,7 +558,6 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
         },
       });
 
-      // Detailed pages
       filteredData.forEach((item, index) => {
         doc.addPage();
 
@@ -499,7 +571,6 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
         doc.setFontSize(9);
         doc.setTextColor(0, 0, 0);
 
-        // Basic Details
         const details = [
           ['Company:', company === 'TOURILLO' ? 'Tourillo (TRL)' : 'Travel Trail Holidays (TTH)'],
           ['Voucher ID:', item.voucherId],
@@ -509,15 +580,12 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
           ['Client Email:', item.itinerary.clientEmail || 'N/A'],
           [
             'Trip Advisor:',
-            item.itinerary.tripAdvisorName
-              ? `${item.itinerary.tripAdvisorName} (${item.itinerary.tripAdvisorNumber || 'N/A'})`
-              : 'N/A',
+            `${item.itinerary.tripAdvisorName || 'N/A'} (${item.itinerary.tripAdvisorNumber || 'N/A'})`,
           ],
           ['Package:', item.itinerary.packageTitle],
           ['Adults:', `${item.adultNo}`],
           ['Children:', `${item.childrenNo}`],
           ['Total Nights:', `${item.totalNights}`],
-          ['Total Hotels:', `${item.hotelStays.length}`],
           ['Created:', formatDate(item.createdAt)],
           ['Updated:', item.updatedAt ? formatDate(item.updatedAt) : formatDate(item.createdAt)],
         ];
@@ -531,7 +599,6 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
           yPos += lines.length * 5;
         });
 
-        // Hotel Stays
         if (item.hotelStays && item.hotelStays.length > 0) {
           if (yPos > 160) {
             doc.addPage();
@@ -575,7 +642,6 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
         }
       });
 
-      // Page numbers
       const pageCount = (doc as any).internal.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
@@ -639,6 +705,8 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
     setStartDate('');
     setEndDate('');
     setApplyDateFilter(false);
+    setSortField(null);
+    setSortDirection(null);
     setPage(1);
   };
 
@@ -861,19 +929,91 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
       </div>
 
       {/* Table Section */}
-      <div className="overflow-x-auto rounded border border-gray-200 dark:border-gray-700">
+      <div className="overflow-x-auto rounded border border-gray-200 dark:border-gray-700 scrollbar-visible">
         <Table>
           <TableHeader>
             <TableRow className="bg-gray-50 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800">
-              <TableHead className="font-bold text-gray-700 dark:text-gray-300 min-w-[100px]">Company</TableHead>
-              <TableHead className="font-bold text-gray-700 dark:text-gray-300 min-w-[200px]">Voucher ID</TableHead>
-              <TableHead className="font-bold text-gray-700 dark:text-gray-300 min-w-[150px]">Itinerary ID</TableHead>
-              <TableHead className="font-bold text-gray-700 dark:text-gray-300 min-w-[140px]">Client</TableHead>
-              <TableHead className="font-bold text-gray-700 dark:text-gray-300 min-w-[140px]">Agent</TableHead>
-              <TableHead className="font-bold text-gray-700 dark:text-gray-300 min-w-[180px]">Package</TableHead>
-              <TableHead className="font-bold text-gray-700 dark:text-gray-300 min-w-[100px]">Guests</TableHead>
-              <TableHead className="font-bold text-gray-700 dark:text-gray-300 min-w-[120px]">Details</TableHead>
-              <TableHead className="font-bold text-gray-700 dark:text-gray-300 min-w-[100px]">Created</TableHead>
+              <TableHead
+                className="font-bold text-gray-700 dark:text-gray-300 min-w-[100px] cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={() => handleSort('company')}
+              >
+                <div className="flex items-center whitespace-nowrap">
+                  Company
+                  <SortIcon field="company" />
+                </div>
+              </TableHead>
+              <TableHead
+                className="font-bold text-gray-700 dark:text-gray-300 min-w-[200px] cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={() => handleSort('voucherId')}
+              >
+                <div className="flex items-center whitespace-nowrap">
+                  Voucher ID
+                  <SortIcon field="voucherId" />
+                </div>
+              </TableHead>
+              <TableHead
+                className="font-bold text-gray-700 dark:text-gray-300 min-w-[150px] cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={() => handleSort('itineraryTravelId')}
+              >
+                <div className="flex items-center whitespace-nowrap">
+                  Itinerary ID
+                  <SortIcon field="itineraryTravelId" />
+                </div>
+              </TableHead>
+              <TableHead
+                className="font-bold text-gray-700 dark:text-gray-300 min-w-[140px] cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={() => handleSort('clientName')}
+              >
+                <div className="flex items-center whitespace-nowrap">
+                  Client
+                  <SortIcon field="clientName" />
+                </div>
+              </TableHead>
+              <TableHead
+                className="font-bold text-gray-700 dark:text-gray-300 min-w-[140px] cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={() => handleSort('tripAdvisorName')}
+              >
+                <div className="flex items-center whitespace-nowrap">
+                  Agent
+                  <SortIcon field="tripAdvisorName" />
+                </div>
+              </TableHead>
+              <TableHead
+                className="font-bold text-gray-700 dark:text-gray-300 min-w-[180px] cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={() => handleSort('packageTitle')}
+              >
+                <div className="flex items-center whitespace-nowrap">
+                  Package
+                  <SortIcon field="packageTitle" />
+                </div>
+              </TableHead>
+              <TableHead
+                className="font-bold text-gray-700 dark:text-gray-300 min-w-[100px] cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={() => handleSort('adultNo')}
+              >
+                <div className="flex items-center whitespace-nowrap">
+                  Guests
+                  <SortIcon field="adultNo" />
+                </div>
+              </TableHead>
+              <TableHead
+                className="font-bold text-gray-700 dark:text-gray-300 min-w-[120px] cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={() => handleSort('totalNights')}
+              >
+                <div className="flex items-center whitespace-nowrap">
+                  Details
+                  <SortIcon field="totalNights" />
+                </div>
+              </TableHead>
+              <TableHead
+                className="font-bold text-gray-700 dark:text-gray-300 min-w-[100px] cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={() => handleSort('createdAt')}
+              >
+                <div className="flex items-center whitespace-nowrap">
+                  Created
+                  <SortIcon field="createdAt" />
+                </div>
+              </TableHead>
               <TableHead className="font-bold text-gray-700 dark:text-gray-300 text-right min-w-[120px] sticky right-0 bg-gray-50 dark:bg-gray-800 z-10 shadow-[-2px_0_4px_rgba(0,0,0,0.05)]">
                 Actions
               </TableHead>
@@ -950,11 +1090,9 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
                       <p className="font-semibold text-sm text-indigo-600 dark:text-indigo-400">
                         {voucher.itinerary.tripAdvisorName || 'N/A'}
                       </p>
-                      {voucher.itinerary.tripAdvisorNumber && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {voucher.itinerary.tripAdvisorNumber}
-                        </p>
-                      )}
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {voucher.itinerary.tripAdvisorNumber || '-'}
+                      </p>
                     </div>
                   </TableCell>
 
@@ -965,9 +1103,11 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
 
                   {/* Guests */}
                   <TableCell>
-                    <p className="font-semibold text-blue-600 dark:text-blue-400 text-sm">
-                      {voucher.adultNo}A{voucher.childrenNo > 0 && ` / ${voucher.childrenNo}C`}
-                    </p>
+                    <div className="space-y-1">
+                      <p className="font-semibold text-blue-600 dark:text-blue-400 text-sm">
+                        {voucher.adultNo}A{voucher.childrenNo > 0 && ` / ${voucher.childrenNo}C`}
+                      </p>
+                    </div>
                   </TableCell>
 
                   {/* Details */}
@@ -975,7 +1115,9 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
                     <div className="space-y-1">
                       <div className="flex items-center gap-1.5">
                         <Calendar className="h-3.5 w-3.5 text-gray-400" />
-                        <span className="font-semibold text-sm">{voucher.totalNights}N</span>
+                        <span className="font-semibold text-sm">
+                          {voucher.totalNights > 1 ? `${voucher.totalNights} Nights` : `${voucher.totalNights} Night`}
+                        </span>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <Hotel className="h-3.5 w-3.5 text-gray-400" />
@@ -1031,8 +1173,7 @@ export const VoucherList: React.FC<VoucherListProps> = ({ vouchers }) => {
       {/* Pagination */}
       <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4">
         <span className="text-sm text-gray-600 dark:text-gray-400">
-          Showing {pageData.length > 0 ? (page - 1) * PAGE_SIZE + 1 : 0} to{' '}
-          {Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length} results
+          Page {totalPages > 0 ? page : 0} of {totalPages}
         </span>
         <div className="flex gap-2">
           <Button
