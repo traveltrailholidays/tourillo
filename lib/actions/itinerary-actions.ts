@@ -41,7 +41,7 @@ async function generateUniqueTravelId(company: 'TOURILLO' | 'TRAVEL_TRAIL_HOLIDA
     attempts++;
   }
 
-  throw new Error('Failed to generate unique travel ID');
+  throw new Error('Failed to generate unique Itinerary ID');
 }
 
 // Type definitions for structured data
@@ -87,7 +87,7 @@ export interface ItineraryData {
 
 // Itinerary validation schema - ✅ UPDATED: numberOfHotels now allows 0
 const itinerarySchema = z.object({
-  travelId: z.string().min(1, 'Travel ID is required'),
+  travelId: z.string().min(1, 'Itinerary ID is required'),
   company: z.enum(['TOURILLO', 'TRAVEL_TRAIL_HOLIDAYS']),
   clientName: z.string().min(1, 'Client name is required'),
   clientPhone: z.string().min(10, 'Phone number must be at least 10 digits'),
@@ -108,7 +108,7 @@ const itinerarySchema = z.object({
   exclusions: z.array(z.string()),
 });
 
-// Generate new Travel ID
+// Generate new Itinerary ID
 export async function generateNewTravelId(company: 'TOURILLO' | 'TRAVEL_TRAIL_HOLIDAYS' = 'TOURILLO'): Promise<string> {
   return await generateUniqueTravelId(company);
 }
@@ -225,7 +225,7 @@ export async function createItinerary(formData: FormData) {
     });
 
     if (existingTravelId) {
-      throw new Error(`Travel ID ${validatedData.travelId} already exists. Please use a different ID.`);
+      throw new Error(`Itinerary ID ${validatedData.travelId} already exists. Please use a different ID.`);
     }
 
     // Convert empty email to null

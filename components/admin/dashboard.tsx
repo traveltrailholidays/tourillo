@@ -910,7 +910,7 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 dark:bg-gray-800">
                     <tr>
-                      <th className="px-4 py-3 text-left font-bold text-gray-700 dark:text-gray-300">Travel ID</th>
+                      <th className="px-4 py-3 text-left font-bold text-gray-700 dark:text-gray-300">Itinerary ID</th>
                       <th className="px-4 py-3 text-left font-bold text-gray-700 dark:text-gray-300">Client</th>
                       <th className="px-4 py-3 text-center font-bold text-gray-700 dark:text-gray-300">Company</th>
                       <th className="px-4 py-3 text-center font-bold text-gray-700 dark:text-gray-300">Vouchers</th>
@@ -1038,7 +1038,7 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 dark:bg-gray-800">
                     <tr>
-                      <th className="px-4 py-3 text-left font-bold text-gray-700 dark:text-gray-300">Travel ID</th>
+                      <th className="px-4 py-3 text-left font-bold text-gray-700 dark:text-gray-300">Itinerary ID</th>
                       <th className="px-4 py-3 text-left font-bold text-gray-700 dark:text-gray-300">Client</th>
                       <th className="px-4 py-3 text-center font-bold text-gray-700 dark:text-gray-300">Company</th>
                       <th className="px-4 py-3 text-center font-bold text-gray-700 dark:text-gray-300">Has Voucher</th>

@@ -515,9 +515,9 @@ export default function EditItineraryForm({ itinerary }: EditItineraryFormProps)
       </div>
       <div className="bg-foreground rounded-sm p-6">
         <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col gap-6">
-          {/* Travel ID - Read Only */}
+          {/* Itinerary ID - Read Only */}
           <div>
-            <label className={labelClassName}>Travel ID (Read Only)</label>
+            <label className={labelClassName}>Itinerary ID (Read Only)</label>
             <input
               type="text"
               value={itinerary.travelId}
@@ -525,7 +525,7 @@ export default function EditItineraryForm({ itinerary }: EditItineraryFormProps)
               className={`${inputClassName} font-mono text-lg font-bold bg-gray-100 dark:bg-gray-800 cursor-not-allowed`}
               disabled
             />
-            <p className="text-xs text-gray-500 mt-2">Travel ID cannot be changed after creation</p>
+            <p className="text-xs text-gray-500 mt-2">Itinerary ID cannot be changed after creation</p>
           </div>
 
           {/* Client Information */}

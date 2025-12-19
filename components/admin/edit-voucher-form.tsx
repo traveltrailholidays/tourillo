@@ -12,7 +12,7 @@ import { Calendar, Users, Hotel, Car, Info } from 'lucide-react';
 import { Button } from '../ui/button';
 
 const VoucherSchema = z.object({
-  travelId: z.string().min(1, 'Travel ID is required'),
+  travelId: z.string().min(1, 'Itinerary ID is required'),
   clientName: z.string().min(1, 'Client name is required'),
   adultNo: z.number().min(1, 'At least 1 adult is required'),
   childrenNo: z.number().min(0),
@@ -144,7 +144,7 @@ export default function EditVoucherForm({ voucher, itineraries }: EditVoucherFor
                 <p className="font-mono font-bold text-green-600 dark:text-green-400">{voucher.voucherId}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Travel ID</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Itinerary ID</p>
                 <p className="font-mono font-bold text-purple-600 dark:text-purple-400">{voucher.travelId}</p>
               </div>
               {selectedItinerary && (

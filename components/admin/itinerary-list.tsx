@@ -234,7 +234,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
 
     const headers = [
       'Company',
-      'Travel ID',
+      'Itinerary ID',
       'Client Name',
       'Client Phone',
       'Client Email',
@@ -300,7 +300,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
       const XLSX = await import('xlsx');
       const excelData = filteredData.map((item) => ({
         Company: item.company === 'TOURILLO' ? 'TRL' : 'TTH',
-        'Travel ID': item.travelId,
+        'Itinerary ID': item.travelId,
         'Client Name': item.clientName,
         'Client Phone': item.clientPhone,
         'Client Email': item.clientEmail || '',
@@ -393,7 +393,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
       ]);
 
       autoTable(doc, {
-        head: [['Company', 'Travel ID', 'Client', 'Agent', 'Package', 'Duration', 'Price', 'Created']],
+        head: [['Company', 'Itinerary ID', 'Client', 'Agent', 'Package', 'Duration', 'Price', 'Created']],
         body: tableData,
         startY: startDate && endDate ? 32 : 28,
         theme: 'grid',
@@ -479,7 +479,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
 
   const copyTravelId = (travelId: string) => {
     navigator.clipboard.writeText(travelId);
-    toast.success('Travel ID copied to clipboard!');
+    toast.success('Itinerary ID copied to clipboard!');
   };
 
   const openDeleteDialog = (id: string) => {
@@ -683,7 +683,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
           <TableHeader>
             <TableRow className="bg-gray-50 dark:bg-gray-800">
               <TableHead className="text-primary font-bold">Company</TableHead>
-              <TableHead className="text-primary font-bold">Travel ID</TableHead>
+              <TableHead className="text-primary font-bold">Itinerary ID</TableHead>
               <TableHead className="text-primary font-bold">Client</TableHead>
               <TableHead className="text-primary font-bold">Agent</TableHead>
               <TableHead className="text-primary font-bold">Package</TableHead>

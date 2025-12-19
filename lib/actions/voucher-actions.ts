@@ -42,7 +42,7 @@ export interface VoucherConfirmationData {
 }
 
 const voucherSchema = z.object({
-  travelId: z.string().min(1, 'Travel ID is required'),
+  travelId: z.string().min(1, 'Itinerary ID is required'),
   clientName: z.string().min(1, 'Client name is required'),
   adultNo: z.number().min(1, 'At least 1 adult is required'),
   childrenNo: z.number().min(0),
@@ -76,7 +76,7 @@ export async function checkVoucherExists(travelId: string): Promise<VoucherConfi
     });
 
     if (!itinerary) {
-      throw new Error(`Itinerary with Travel ID ${travelId} not found`);
+      throw new Error(`Itinerary with Itinerary ID ${travelId} not found`);
     }
 
     const existingVouchersCount = await prisma.voucher.count({
@@ -104,7 +104,7 @@ export async function createVoucher(data: z.infer<typeof voucherSchema>) {
     });
 
     if (!itinerary) {
-      throw new Error(`Itinerary with Travel ID ${validatedData.travelId} not found`);
+      throw new Error(`Itinerary with Itinerary ID ${validatedData.travelId} not found`);
     }
 
     const existingVouchersCount = await prisma.voucher.count({

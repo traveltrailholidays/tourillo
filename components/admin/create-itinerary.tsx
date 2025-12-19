@@ -103,7 +103,7 @@ const CreateItinerary = ({ itinerariesForClone = [] }: CreateItineraryProps) => 
     }>
   >([]);
 
-  // Generate Travel ID on mount
+  // Generate Itinerary ID on mount
   useEffect(() => {
     const initTravelId = async () => {
       const newId = await generateNewTravelId(selectedCompany);
@@ -316,9 +316,9 @@ const CreateItinerary = ({ itinerariesForClone = [] }: CreateItineraryProps) => 
     try {
       const newTravelId = await generateNewTravelId(selectedCompany);
       setTravelId(newTravelId);
-      toast.success('Travel ID generated successfully!');
+      toast.success('Itinerary ID generated successfully!');
     } catch (error) {
-      toast.error('Failed to generate Travel ID');
+      toast.error('Failed to generate Itinerary ID');
     } finally {
       setIsGeneratingId(false);
     }
@@ -327,7 +327,7 @@ const CreateItinerary = ({ itinerariesForClone = [] }: CreateItineraryProps) => 
   const handleCopyTravelId = () => {
     if (travelId) {
       navigator.clipboard.writeText(travelId);
-      toast.success('Travel ID copied to clipboard!');
+      toast.success('Itinerary ID copied to clipboard!');
     }
   };
 
@@ -685,8 +685,8 @@ const CreateItinerary = ({ itinerariesForClone = [] }: CreateItineraryProps) => 
               </div>
             </label>
             <p className="text-xs text-gray-600 dark:text-gray-400 mb-4">
-              Choose the company for this itinerary. This will determine the Travel ID prefix (TRL for Tourillo, TTH for
-              Travel Trail Holidays).
+              Choose the company for this itinerary. This will determine the Itinerary ID prefix (TRL for Tourillo, TTH
+              for Travel Trail Holidays).
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <button
@@ -710,7 +710,7 @@ const CreateItinerary = ({ itinerariesForClone = [] }: CreateItineraryProps) => 
                   <div className="text-left flex-1">
                     <p className="font-bold text-lg text-purple-600 dark:text-purple-400">Tourillo</p>
                     <p className="text-xs text-gray-600 dark:text-gray-400">
-                      Travel ID Prefix: <span className="font-mono font-bold">TRL</span>
+                      Itinerary ID Prefix: <span className="font-mono font-bold">TRL</span>
                     </p>
                   </div>
                 </div>
@@ -739,7 +739,7 @@ const CreateItinerary = ({ itinerariesForClone = [] }: CreateItineraryProps) => 
                   <div className="text-left flex-1">
                     <p className="font-bold text-lg text-blue-600 dark:text-blue-400">Travel Trail Holidays</p>
                     <p className="text-xs text-gray-600 dark:text-gray-400">
-                      Travel ID Prefix: <span className="font-mono font-bold">TTH</span>
+                      Itinerary ID Prefix: <span className="font-mono font-bold">TTH</span>
                     </p>
                   </div>
                 </div>
@@ -758,7 +758,7 @@ const CreateItinerary = ({ itinerariesForClone = [] }: CreateItineraryProps) => 
                   </div>
                 </label>
                 <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
-                  Clone an itinerary to copy all details. Search by Travel ID, Client Name, Phone Number, or Package
+                  Clone an itinerary to copy all details. Search by Itinerary ID, Client Name, Phone Number, or Package
                   Title. Perfect for similar packages!
                 </p>
 
@@ -767,7 +767,7 @@ const CreateItinerary = ({ itinerariesForClone = [] }: CreateItineraryProps) => 
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none" />
                     <input
                       type="text"
-                      placeholder="Search by Travel ID, Name, Phone, or Package..."
+                      placeholder="Search by Itinerary ID, Name, Phone, or Package..."
                       value={searchTerm}
                       onChange={(e) => {
                         setSearchTerm(e.target.value);
@@ -861,10 +861,10 @@ const CreateItinerary = ({ itinerariesForClone = [] }: CreateItineraryProps) => 
             </>
           )}
 
-          {/* Travel ID Section */}
+          {/* Itinerary ID Section */}
           <div>
             <label className={labelClassName}>
-              Travel ID <span className="text-red-500">*</span>
+              Itinerary ID <span className="text-red-500">*</span>
             </label>
             <div className="flex gap-2">
               <input

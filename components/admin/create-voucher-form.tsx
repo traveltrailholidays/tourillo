@@ -17,7 +17,7 @@ import { Button } from '../ui/button';
 
 // ✅ FIXED: Removed .default([]) to make hotelStays always an array (never undefined)
 const VoucherSchema = z.object({
-  travelId: z.string().min(1, 'Travel ID is required'),
+  travelId: z.string().min(1, 'Itinerary ID is required'),
   clientName: z.string().min(1, 'Client name is required'),
   adultNo: z.number().min(1, 'At least 1 adult is required'),
   childrenNo: z.number().min(0),
@@ -254,17 +254,17 @@ export default function CreateVoucherForm({ itineraries }: CreateVoucherFormProp
         </div>
         <div className="bg-foreground rounded-lg shadow-lg p-6">
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
-            {/* Travel ID Search Section */}
+            {/* Itinerary ID Search Section */}
             <div>
               <label className={labelClassName}>
-                Select Travel ID <span className="text-red-500">*</span>
+                Select Itinerary ID <span className="text-red-500">*</span>
               </label>
               <div className="relative" ref={dropdownRef}>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none" />
                   <input
                     type="text"
-                    placeholder="Search by Travel ID, Client Name, Phone, Email, or Package..."
+                    placeholder="Search by Itinerary ID, Client Name, Phone, Email, or Package..."
                     value={searchTerm}
                     onChange={(e) => {
                       setSearchTerm(e.target.value);
@@ -352,7 +352,9 @@ export default function CreateVoucherForm({ itineraries }: CreateVoucherFormProp
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Travel ID</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
+                      Itinerary ID
+                    </p>
                     <p className="font-mono font-bold">{selectedItinerary.travelId}</p>
                   </div>
                   <div>
@@ -650,7 +652,7 @@ export default function CreateVoucherForm({ itineraries }: CreateVoucherFormProp
               </h4>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Travel ID</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Itinerary ID</p>
                   <p className="font-mono font-bold text-sm">{confirmationData.itinerary.travelId}</p>
                 </div>
                 <div>

@@ -191,7 +191,7 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
       <div className={`w-full flex justify-center items-center ${notoSans.className} bg-white text-black`}>
         <div className="max-w-[894px] w-full">
           <div id="itinerary-content" className="bg-white">
-            {/* Header + Travel ID - Keep together */}
+            {/* Header + Itinerary ID - Keep together */}
             <div className="print-avoid-break">
               {/* Header */}
               <header className="bg-slate-800 text-white w-full flex p-4 justify-between items-center border-b-4 border-slate-600">
@@ -211,12 +211,12 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
                 </div>
               </header>
 
-              {/* Travel ID & Date Section */}
+              {/* Itinerary ID & Date Section */}
               <div className="px-5 py-3 bg-gray-50 border-b-2 border-gray-200">
                 <div className="flex justify-between items-center">
                   <div className="flex items-start gap-2">
                     <div>
-                      <span className="text-xs text-gray-500 uppercase tracking-wide">Travel ID</span>
+                      <span className="text-xs text-gray-500 uppercase tracking-wide">Itinerary ID</span>
                       <p className="font-mono font-bold text-slate-700 text-lg">{itinerary.travelId}</p>
                     </div>
                   </div>

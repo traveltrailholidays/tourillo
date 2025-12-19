@@ -158,8 +158,6 @@ export interface DashboardStats {
 
 export async function getDashboardStats(dateRange?: { from: Date; to: Date }): Promise<DashboardStats> {
   try {
-    console.log('🔄 Fetching dashboard stats...');
-
     const whereClause = dateRange
       ? {
           createdAt: {
@@ -648,8 +646,6 @@ export async function getDashboardStats(dateRange?: { from: Date; to: Date }): P
         vouchers: vouchersData ? Number(vouchersData.count) : 0,
       };
     });
-
-    console.log('✅ Dashboard stats fetched successfully');
 
     // ============================================
     // PART 8: Return Complete Stats
