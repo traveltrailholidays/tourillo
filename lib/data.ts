@@ -105,6 +105,11 @@ const DATA = {
       url: '/admin/contact',
       icon: Icon.Mail,
     },
+    {
+      title: 'Reviews',
+      url: '/admin/review-list',
+      icon: Icon.Star,
+    },
   ],
 
   uNav: {
