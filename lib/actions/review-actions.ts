@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { uploadBlogImage, deleteBlogImage } from './file-actions';
 
 // UUID validation schema
-const uuidSchema = z.string().uuid('Invalid UUID format');
+const uuidSchema = z.uuid('Invalid UUID format');
 
 // Review validation schema
 const reviewSchema = z.object({
@@ -70,12 +70,12 @@ export async function createReviewWithState(prevState: ActionState, formData: Fo
       },
     });
 
-    revalidatePath('/admin/reviews');
+    revalidatePath('/admin/review/review-list');
     revalidatePath('/');
 
     return {
       error: null,
-      message: 'Review submitted successfully! It will be displayed after admin approval.',
+      message: 'Review submitted!',
       success: true,
       reviewId: review.id,
     };
@@ -153,7 +153,7 @@ export async function updateReviewWithState(prevState: ActionState, formData: Fo
       },
     });
 
-    revalidatePath('/admin/reviews');
+    revalidatePath('/admin/review/review-list');
     revalidatePath('/');
 
     return {
@@ -180,30 +180,57 @@ export async function updateReviewWithState(prevState: ActionState, formData: Fo
   }
 }
 
-// Delete review - ADMIN ONLY (client-side me admin check karna)
+// Delete review - ADMIN ONLY (Fixed version)
 export async function deleteReview(id: string): Promise<void> {
   try {
-    const validatedId = validateUUID(id);
+    // Trim and validate ID
+    const trimmedId = id.trim();
 
+    // Check if ID is empty
+    if (!trimmedId) {
+      throw new Error('Review ID is required');
+    }
+
+    // Validate UUID format
+    const validatedId = validateUUID(trimmedId);
+
+    // Find review first
     const review = await prisma.review.findUnique({
       where: { id: validatedId },
     });
 
-    // Delete image only if it's not the default avatar
-    if (review?.image && review.image !== '/images/avatar.webp') {
-      await deleteBlogImage(review.image);
+    if (!review) {
+      throw new Error('Review not found');
     }
 
+    // Delete image only if it's not the default avatar
+    if (review.image && review.image !== '/images/avatar.webp') {
+      try {
+        await deleteBlogImage(review.image);
+      } catch (imageError) {
+        console.error('Failed to delete image:', imageError);
+        // Continue with review deletion even if image deletion fails
+      }
+    }
+
+    // Delete the review
     await prisma.review.delete({
       where: { id: validatedId },
     });
 
-    revalidatePath('/admin/reviews');
+    revalidatePath('/admin/review/review-list');
     revalidatePath('/');
   } catch (error) {
+    console.error('Delete review error:', error);
+
     if (error instanceof z.ZodError) {
-      throw new Error('Invalid UUID format');
+      throw new Error('Invalid review ID format');
     }
+
+    if (error instanceof Error) {
+      throw error;
+    }
+
     throw new Error('Failed to delete review');
   }
 }
@@ -245,61 +272,99 @@ export async function getDisplayedReviews() {
   }
 }
 
-// Toggle review display - ADMIN ONLY (client-side me admin check karna)
+// Toggle review display - ADMIN ONLY
 export async function toggleReviewDisplay(id: string) {
   try {
-    const review = await prisma.review.findUnique({ where: { id } });
-    if (!review) throw new Error('Review not found');
+    const trimmedId = id.trim();
+
+    if (!trimmedId) {
+      throw new Error('Review ID is required');
+    }
+
+    const review = await prisma.review.findUnique({ where: { id: trimmedId } });
+
+    if (!review) {
+      throw new Error('Review not found');
+    }
 
     const updated = await prisma.review.update({
-      where: { id },
+      where: { id: trimmedId },
       data: {
         isDisplay: !review.isDisplay,
       },
     });
 
-    revalidatePath('/admin/reviews');
+    revalidatePath('/admin/review/review-list');
     revalidatePath('/');
+
     return { success: true, data: updated };
   } catch (error) {
     console.error('Error toggling review display:', error);
-    throw new Error('Failed to toggle review display');
+    throw new Error(error instanceof Error ? error.message : 'Failed to toggle review display');
   }
 }
 
-// Toggle review read status - ADMIN ONLY (client-side me admin check karna)
+// Toggle review read status - ADMIN ONLY
 export async function toggleReviewRead(id: string) {
   try {
-    const review = await prisma.review.findUnique({ where: { id } });
-    if (!review) throw new Error('Review not found');
+    const trimmedId = id.trim();
+
+    if (!trimmedId) {
+      throw new Error('Review ID is required');
+    }
+
+    const review = await prisma.review.findUnique({ where: { id: trimmedId } });
+
+    if (!review) {
+      throw new Error('Review not found');
+    }
 
     const updated = await prisma.review.update({
-      where: { id },
+      where: { id: trimmedId },
       data: {
         isRead: !review.isRead,
       },
     });
 
-    revalidatePath('/admin/reviews');
+    revalidatePath('/admin/review/review-list');
+
     return { success: true, data: updated };
   } catch (error) {
     console.error('Error toggling review read status:', error);
-    throw new Error('Failed to toggle review read status');
+    throw new Error(error instanceof Error ? error.message : 'Failed to toggle review read status');
   }
 }
 
 // Get review by ID - ADMIN ONLY
 export async function getReviewById(id: string) {
   try {
-    const validatedId = validateUUID(id);
+    const trimmedId = id?.trim();
 
-    return await prisma.review.findUnique({
+    if (!trimmedId) {
+      throw new Error('Review ID is required');
+    }
+
+    const validatedId = validateUUID(trimmedId);
+
+    const review = await prisma.review.findUnique({
       where: { id: validatedId },
     });
+
+    if (!review) {
+      throw new Error('Review not found');
+    }
+
+    // Format reviewDate to YYYY-MM-DD for date input
+    const formattedReview = {
+      ...review,
+      reviewDate: new Date(review.reviewDate).toISOString().split('T')[0],
+    };
+
+    return formattedReview;
   } catch (error) {
     if (error instanceof z.ZodError) {
-      throw new Error('Invalid UUID format');
+      throw new Error('Invalid review ID format');
     }
-    throw new Error('Failed to fetch review');
+    throw new Error(error instanceof Error ? error.message : 'Failed to fetch review');
   }
 }

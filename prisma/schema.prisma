@@ -22,8 +22,8 @@ model User {
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
-  accounts Account[]
-  sessions Session[]
+  accounts        Account[]
+  sessions        Session[]
   createdPackages Listing[] @relation("PackageCreator")
 
   @@map("users")
@@ -74,11 +74,11 @@ model VerificationToken {
 }
 
 model Listing {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   title       String
   description String
-  imageSrc    String   @map("image_src")
-  createdAt   DateTime @default(now()) @map("created_at")
+  imageSrc    String    @map("image_src")
+  createdAt   DateTime  @default(now()) @map("created_at")
   category    String
   price       Int
   location    String
@@ -194,16 +194,16 @@ model Voucher {
 }
 
 model Review {
-  id          String   @id @default(cuid())
-  name        String
-  review      String   @db.Text
-  rating      Int      @default(5) // 1-5
-  image       String   @default("/images/avatar.webp") // Default avatar
-  reviewDate  String
-  isDisplay   Boolean  @default(false) // Website pe dikhana hai ya nahi
-  isRead      Boolean  @default(false) // Admin ne read kiya ya nahi
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String   @id @default(uuid())
+  name       String
+  review     String   @db.Text
+  rating     Int      @default(5) // 1-5
+  image      String   @default("/images/avatar.webp") // Default avatar
+  reviewDate String
+  isDisplay  Boolean  @default(false) // Website pe dikhana hai ya nahi
+  isRead     Boolean  @default(false) // Admin ne read kiya ya nahi
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@index([isDisplay])
   @@index([createdAt])

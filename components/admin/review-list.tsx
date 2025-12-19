@@ -215,7 +215,7 @@ export const ReviewList: React.FC<ReviewListProps> = ({ reviews }) => {
     try {
       await toggleReviewRead(review.id);
       toast.success(review.isRead ? 'Marked as unread' : 'Marked as read');
-      setViewReview(null); // Close modal
+      setViewReview(null);
       router.refresh();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to update status');
@@ -241,7 +241,7 @@ export const ReviewList: React.FC<ReviewListProps> = ({ reviews }) => {
   };
 
   const handleEdit = (reviewId: string) => {
-    router.push(`/admin/reviews/edit/${reviewId}`);
+    router.push(`/admin/review/edit/${reviewId}`);
   };
 
   const hasActiveFilters = statusFilter !== 'ALL' || displayFilter !== 'ALL' || search.trim();
@@ -447,7 +447,7 @@ export const ReviewList: React.FC<ReviewListProps> = ({ reviews }) => {
                 onClick={() => handleSort('createdAt')}
               >
                 <div className="flex items-center whitespace-nowrap">
-                  Created
+                  Created At
                   <SortIcon field="createdAt" />
                 </div>
               </TableHead>
@@ -488,14 +488,14 @@ export const ReviewList: React.FC<ReviewListProps> = ({ reviews }) => {
                       alt={review.name}
                       width={40}
                       height={40}
-                      className="rounded-full object-cover"
+                      className="rounded-full object-cover w-10 h-10"
                       unoptimized
                     />
-                    <span className={!review.isRead ? 'font-semibold' : ''}>{review.name}</span>
+                    <span className={!review.isRead ? 'font-semibold capitalize' : ' capitalize'}>{review.name}</span>
                   </div>
                 </TableCell>
                 <TableCell className="text-sm max-w-xs">
-                  <p className="line-clamp-2">{review.review}</p>
+                  <p className="line-clamp-2 capitalize truncate">{review.review}</p>
                 </TableCell>
                 <TableCell>
                   <div className="flex gap-0.5">
@@ -508,13 +508,14 @@ export const ReviewList: React.FC<ReviewListProps> = ({ reviews }) => {
                     ))}
                   </div>
                 </TableCell>
-                <TableCell className="text-sm text-gray-600 dark:text-gray-400">{review.reviewDate}</TableCell>
+                <TableCell className="text-sm text-gray-600 dark:text-gray-400">
+                  {formatDate(review.reviewDate)}
+                </TableCell>
                 <TableCell className="text-sm text-gray-600 dark:text-gray-400">
                   {formatDate(review.createdAt)}
                 </TableCell>
                 <TableCell className="sticky right-0 bg-white dark:bg-gray-900 z-10 shadow-[-2px_0_4px_rgba(0,0,0,0.05)]">
                   <div className="flex gap-2 justify-end">
-                    {/* View Button */}
                     <Button
                       size="sm"
                       variant="ghost"
@@ -525,7 +526,6 @@ export const ReviewList: React.FC<ReviewListProps> = ({ reviews }) => {
                       <FileText className="h-4 w-4 text-blue-600" />
                     </Button>
 
-                    {/* Toggle Display Button */}
                     <Button
                       size="sm"
                       variant="ghost"
@@ -540,7 +540,6 @@ export const ReviewList: React.FC<ReviewListProps> = ({ reviews }) => {
                       )}
                     </Button>
 
-                    {/* Edit Button - Admin Only */}
                     {isAdmin && (
                       <Button
                         size="sm"
@@ -553,7 +552,6 @@ export const ReviewList: React.FC<ReviewListProps> = ({ reviews }) => {
                       </Button>
                     )}
 
-                    {/* Delete Button - Admin Only */}
                     {isAdmin && (
                       <Dialog>
                         <DialogTrigger asChild>
@@ -633,126 +631,133 @@ export const ReviewList: React.FC<ReviewListProps> = ({ reviews }) => {
         </div>
       </div>
 
-      {/* View Review Modal - Perfect Design */}
+      {/* Compact View Review Modal - Fixed Header */}
       {viewReview && (
         <Dialog open={!!viewReview} onOpenChange={() => setViewReview(null)}>
-          <DialogContent className="sm:max-w-2xl rounded-lg">
-            <DialogHeader className="border-b pb-4">
-              <DialogTitle className="text-2xl font-bold flex items-center gap-2">
-                <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-full">
-                  <MessageSquare className="h-5 w-5 text-purple-600" />
+          <DialogContent className="max-w-[90vw] sm:max-w-lg max-h-[90vh] flex flex-col rounded p-0">
+            {/* Fixed Header */}
+            <DialogHeader className="border-b pb-3 px-6 pt-3 shrink-0">
+              <DialogTitle className="text-lg font-bold flex items-center gap-2">
+                <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded">
+                  <MessageSquare className="h-4 w-4 text-purple-600" />
                 </div>
                 Review Details
               </DialogTitle>
             </DialogHeader>
 
-            <div className="space-y-6 py-4">
+            {/* Scrollable Content */}
+            <div className="overflow-y-auto px-6 py-3 space-y-4 flex-1">
               {/* Customer Info */}
-              <div className="flex flex-col items-center text-center pb-6 border-b">
+              <div className="flex flex-col items-center text-center pb-4 border-b">
                 <Image
                   src={viewReview.image}
                   alt={viewReview.name}
-                  width={100}
-                  height={100}
-                  className="rounded-full object-cover border-4 border-purple-200 dark:border-purple-800 shadow-lg mb-4"
+                  width={80}
+                  height={80}
+                  className="rounded-full object-cover border-4 border-purple-200 dark:border-purple-800 shadow-lg mb-3 h-40 w-40"
                   unoptimized
                 />
-                <h3 className="text-xl font-bold mb-2">{viewReview.name}</h3>
-                <div className="flex items-center gap-1 mb-1">
+                <h3 className="text-lg font-bold mb-1">{viewReview.name}</h3>
+                <div className="flex items-center gap-0.5 mb-1">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <Star
                       key={i}
-                      size={20}
+                      size={16}
                       className={i < viewReview.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}
                     />
                   ))}
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">{viewReview.rating} out of 5 stars</p>
+                <p className="text-xs text-gray-600 dark:text-gray-400">{viewReview.rating} out of 5 stars</p>
               </div>
 
               {/* Review Message */}
               <div>
-                <label className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-2">
-                  <MessageSquare className="h-4 w-4" />
+                <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5 flex items-center gap-1.5">
+                  <MessageSquare className="h-3.5 w-3.5" />
                   Review Message
                 </label>
-                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border">
-                  <p className="text-base leading-relaxed whitespace-pre-wrap">{viewReview.review}</p>
+                <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded border">
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{viewReview.review}</p>
                 </div>
               </div>
 
               {/* Info Grid */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <label className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase flex items-center gap-1 mb-1">
-                    <Calendar className="h-3 w-3" />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-2.5 rounded border border-blue-200 dark:border-blue-800">
+                  <label className="text-[10px] font-semibold text-blue-600 dark:text-blue-400 uppercase flex items-center gap-1 mb-0.5">
+                    <Calendar className="h-2.5 w-2.5" />
                     Review Date
                   </label>
-                  <p className="text-base font-semibold">{viewReview.reviewDate}</p>
+                  <p className="text-sm font-semibold">{viewReview.reviewDate}</p>
                 </div>
 
-                <div className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg border border-purple-200 dark:border-purple-800">
-                  <label className="text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase flex items-center gap-1 mb-1">
-                    <Calendar className="h-3 w-3" />
+                <div className="bg-purple-50 dark:bg-purple-900/20 p-2.5 rounded border border-purple-200 dark:border-purple-800">
+                  <label className="text-[10px] font-semibold text-purple-600 dark:text-purple-400 uppercase flex items-center gap-1 mb-0.5">
+                    <Calendar className="h-2.5 w-2.5" />
                     Submitted On
                   </label>
-                  <p className="text-base font-semibold">{formatDate(viewReview.createdAt)}</p>
+                  <p className="text-sm font-semibold">{formatDate(viewReview.createdAt)}</p>
                 </div>
 
                 <div
-                  className={`p-3 rounded-lg border ${
+                  className={`p-2.5 rounded border ${
                     viewReview.isRead
                       ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
                       : 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800'
                   }`}
                 >
                   <label
-                    className={`text-xs font-semibold uppercase flex items-center gap-1 mb-1 ${
+                    className={`text-[10px] font-semibold uppercase flex items-center gap-1 mb-0.5 ${
                       viewReview.isRead ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'
                     }`}
                   >
-                    {viewReview.isRead ? <CheckCircle className="h-3 w-3" /> : <Circle className="h-3 w-3" />}
+                    {viewReview.isRead ? <CheckCircle className="h-2.5 w-2.5" /> : <Circle className="h-2.5 w-2.5" />}
                     Read Status
                   </label>
-                  <p className="text-base font-semibold">{viewReview.isRead ? 'Read' : 'Unread'}</p>
+                  <p className="text-sm font-semibold">{viewReview.isRead ? 'Read' : 'Unread'}</p>
                 </div>
 
                 <div
-                  className={`p-3 rounded-lg border ${
+                  className={`p-2.5 rounded border ${
                     viewReview.isDisplay
                       ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
                       : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700'
                   }`}
                 >
                   <label
-                    className={`text-xs font-semibold uppercase flex items-center gap-1 mb-1 ${
+                    className={`text-[10px] font-semibold uppercase flex items-center gap-1 mb-0.5 ${
                       viewReview.isDisplay ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'
                     }`}
                   >
-                    {viewReview.isDisplay ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                    {viewReview.isDisplay ? <Eye className="h-2.5 w-2.5" /> : <EyeOff className="h-2.5 w-2.5" />}
                     Display Status
                   </label>
-                  <p className="text-base font-semibold">{viewReview.isDisplay ? 'Visible' : 'Hidden'}</p>
+                  <p className="text-sm font-semibold">{viewReview.isDisplay ? 'Visible' : 'Hidden'}</p>
                 </div>
               </div>
             </div>
 
-            <DialogFooter className="gap-2 border-t pt-4">
-              <Button variant="outline" onClick={() => handleToggleRead(viewReview)} className="cursor-pointer rounded">
+            {/* Fixed Footer */}
+            <DialogFooter className="gap-2 border-t py-3 px-6 shrink-0">
+              <Button
+                variant="outline"
+                onClick={() => handleToggleRead(viewReview)}
+                className="cursor-pointer rounded text-sm h-9"
+              >
                 {viewReview.isRead ? (
                   <>
-                    <Circle className="h-4 w-4 mr-2" />
+                    <Circle className="h-3.5 w-3.5 mr-1.5" />
                     Mark as Unread
                   </>
                 ) : (
                   <>
-                    <CheckCircle className="h-4 w-4 mr-2" />
+                    <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
                     Mark as Read
                   </>
                 )}
               </Button>
               <DialogClose asChild>
-                <Button variant="secondary" className="cursor-pointer rounded">
+                <Button variant="secondary" className="cursor-pointer rounded text-sm h-9">
                   Close
                 </Button>
               </DialogClose>

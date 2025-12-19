@@ -107,7 +107,7 @@ const DATA = {
     },
     {
       title: 'Reviews',
-      url: '/admin/review-list',
+      url: '/admin/review/review-list',
       icon: Icon.Star,
     },
   ],

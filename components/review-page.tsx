@@ -37,6 +37,13 @@ export default function ReviewPage() {
   const [dragActive, setDragActive] = useState(false);
   const [compressedImageFile, setCompressedImageFile] = useState<File | null>(null);
 
+  // Form field states to persist data
+  const [formData, setFormData] = useState({
+    name: '',
+    review: '',
+    reviewDate: new Date().toISOString().split('T')[0],
+  });
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const hiddenImageInputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -54,6 +61,16 @@ export default function ReviewPage() {
   useEffect(() => {
     if (state.success) {
       toast.success(state.message);
+      // Clear form only on success
+      setFormData({
+        name: '',
+        review: '',
+        reviewDate: new Date().toISOString().split('T')[0],
+      });
+      setRating(5);
+      setImagePreview(null);
+      setCompressedImageFile(null);
+
       setTimeout(() => {
         router.push('/');
         router.refresh();
@@ -61,14 +78,14 @@ export default function ReviewPage() {
     }
   }, [state.success, state.message, router]);
 
-  // Handle error state
+  // Handle error state - DON'T clear form
   useEffect(() => {
-    if (state.message && !state.success) {
+    if (state.message && !state.success && state.message.trim()) {
       toast.error(state.message);
     }
   }, [state.message, state.success]);
 
-  // Client-side image compression function (same as blog)
+  // Client-side image compression function
   const compressImage = async (file: File): Promise<File> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -87,7 +104,6 @@ export default function ReviewPage() {
             return;
           }
 
-          // Calculate new dimensions (max 800x800 for profile images)
           let width = img.width;
           let height = img.height;
           const maxSize = 800;
@@ -223,10 +239,19 @@ export default function ReviewPage() {
     fileInputRef.current?.click();
   };
 
+  // Handle input changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
   return (
     <Section className="py-20">
-      <Container>
-        <div className="max-w-2xl mx-auto">
+      <Container className="w-full">
+        <div className="">
           <div className="text-center mb-10">
             <h1 className="text-3xl md:text-4xl font-bold bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">
               Share Your Experience
@@ -234,10 +259,10 @@ export default function ReviewPage() {
             <p className="text-gray-600 dark:text-gray-400 mt-2">We'd love to hear about your journey with us!</p>
           </div>
 
-          <div className="bg-foreground p-6 md:p-8 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+          <div className="bg-foreground p-6 md:p-8 rounded shadow-lg border border-gray-200 dark:border-gray-700">
             {/* Success Message */}
             {state.success && (
-              <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-green-700 dark:text-green-400 flex items-center">
+              <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded text-green-700 dark:text-green-400 flex items-center">
                 <CheckCircle className="h-5 w-5 mr-2" />
                 Review submitted successfully! Redirecting...
               </div>
@@ -256,6 +281,8 @@ export default function ReviewPage() {
                   type="text"
                   id="name"
                   name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
                   disabled={isPending}
                   className="w-full px-4 py-2.5 rounded border-2 border-gray-300 dark:border-gray-600 bg-background focus:outline-none focus:ring-2 focus:ring-purple-500 transition disabled:opacity-50"
                   placeholder="Enter your name"
@@ -267,16 +294,20 @@ export default function ReviewPage() {
               <div>
                 <label htmlFor="review" className="block text-sm font-semibold mb-2">
                   Your Review <span className="text-red-500">*</span>
+                  <span className="text-xs text-gray-500 ml-2">(minimum 10 characters)</span>
                 </label>
                 <textarea
                   id="review"
                   name="review"
+                  value={formData.review}
+                  onChange={handleInputChange}
                   disabled={isPending}
                   className="w-full px-4 py-2.5 rounded border-2 border-gray-300 dark:border-gray-600 bg-background focus:outline-none focus:ring-2 focus:ring-purple-500 transition min-h-[120px] disabled:opacity-50 resize-none"
-                  placeholder="Share your experience with us..."
+                  placeholder="Share your experience with us... (minimum 10 characters)"
                   required
                   rows={5}
                 />
+                <p className="text-xs text-gray-500 mt-1">{formData.review.length} / 10 characters minimum</p>
               </div>
 
               {/* Rating */}
@@ -291,7 +322,7 @@ export default function ReviewPage() {
                       onMouseEnter={() => setHoveredRating(star)}
                       onMouseLeave={() => setHoveredRating(0)}
                       disabled={isPending}
-                      className="transition-transform hover:scale-110 disabled:opacity-50"
+                      className="transition-transform hover:scale-110 disabled:opacity-50 cursor-pointer"
                     >
                       <Star
                         size={32}
@@ -351,7 +382,7 @@ export default function ReviewPage() {
                     onDragLeave={handleDrag}
                     onDragOver={handleDrag}
                     onDrop={handleDrop}
-                    className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 ${
+                    className={`border-2 border-dashed rounded p-8 text-center transition-all duration-200 ${
                       isPending ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                     } ${
                       dragActive
@@ -400,7 +431,8 @@ export default function ReviewPage() {
                   type="date"
                   id="reviewDate"
                   name="reviewDate"
-                  defaultValue={new Date().toISOString().split('T')[0]}
+                  value={formData.reviewDate}
+                  onChange={handleInputChange}
                   disabled={isPending}
                   className="w-full px-4 py-2.5 rounded border-2 border-gray-300 dark:border-gray-600 bg-background focus:outline-none focus:ring-2 focus:ring-purple-500 transition disabled:opacity-50"
                 />
@@ -410,7 +442,7 @@ export default function ReviewPage() {
               <Button
                 type="submit"
                 disabled={isPending}
-                className="w-full bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white font-semibold py-3 rounded-lg transition-all duration-300 disabled:opacity-50 flex items-center justify-center shadow-lg cursor-pointer"
+                className="w-full bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white font-semibold py-3 rounded transition-all duration-300 disabled:opacity-50 flex items-center justify-center shadow-lg cursor-pointer"
               >
                 {isPending ? (
                   <>
@@ -424,10 +456,6 @@ export default function ReviewPage() {
                   </>
                 )}
               </Button>
-
-              <p className="text-xs text-center text-gray-500">
-                Your review will be visible on the website after admin approval
-              </p>
             </form>
           </div>
         </div>
