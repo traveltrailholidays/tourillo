@@ -1,3 +1,4 @@
+// components/v1/home/testimonials.tsx
 'use client';
 
 import Section from '../section';
@@ -6,11 +7,23 @@ import Autoplay from 'embla-carousel-autoplay';
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/components/ui/carousel';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Testimonialcard from './testimonial-card';
-import DATA from '@/lib/data';
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 
-const Testimonials = () => {
+interface Review {
+  id: string;
+  name: string;
+  review: string;
+  rating: number;
+  image: string;
+  reviewDate: string;
+}
+
+interface TestimonialsProps {
+  reviews: Review[];
+}
+
+const Testimonials = ({ reviews }: TestimonialsProps) => {
   const [api, setApi] = useState<CarouselApi | null>(null);
   const [current, setCurrent] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -21,20 +34,23 @@ const Testimonials = () => {
   const autoplayPlugin = useRef(
     Autoplay({
       delay: autoplayDelay,
-      stopOnInteraction: true,
+      stopOnInteraction: false,
       stopOnMouseEnter: true,
       playOnInit: true,
     })
   );
 
+  // Debug log
+  useEffect(() => {
+    console.log('Testimonials reviews:', reviews);
+  }, [reviews]);
+
   // Handle slide selection and tracking
   useEffect(() => {
     if (!api) return;
 
-    // Set initial slide
     setCurrent(api.selectedScrollSnap());
 
-    // Track slide changes
     const onSelect = () => {
       setCurrent(api.selectedScrollSnap());
     };
@@ -48,13 +64,12 @@ const Testimonials = () => {
 
   // Progress timer effect
   useEffect(() => {
-    // Clear existing timer
     if (progressTimerRef.current !== null) {
       window.cancelAnimationFrame(progressTimerRef.current);
       progressTimerRef.current = null;
     }
 
-    if (!api || !isPlaying) return;
+    if (!api || !isPlaying || reviews.length <= 1) return;
 
     let startTime: number | null = null;
 
@@ -69,10 +84,7 @@ const Testimonials = () => {
       if (newProgress < 100) {
         progressTimerRef.current = window.requestAnimationFrame(updateProgress);
       } else {
-        // When progress reaches 100%, move to next slide
         startTime = null;
-
-        // Small delay to show completed circle before transition
         setTimeout(() => {
           if (api) {
             api.scrollNext();
@@ -88,9 +100,8 @@ const Testimonials = () => {
         window.cancelAnimationFrame(progressTimerRef.current);
       }
     };
-  }, [api, current, isPlaying, autoplayDelay]);
+  }, [api, current, isPlaying, autoplayDelay, reviews.length]);
 
-  // Mouse event handlers
   const handleMouseEnter = useCallback(() => {
     setIsPlaying(false);
     autoplayPlugin.current.stop();
@@ -100,6 +111,15 @@ const Testimonials = () => {
     setIsPlaying(true);
     autoplayPlugin.current.play();
   }, []);
+
+  // Calculate average rating
+  const avgRating =
+    reviews.length > 0 ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1) : '0.0';
+
+  // Don't show if no reviews
+  if (!reviews || reviews.length === 0) {
+    return null;
+  }
 
   return (
     <Section className="py-20">
@@ -129,9 +149,9 @@ const Testimonials = () => {
           <Carousel
             dir="ltr"
             className="w-full"
-            plugins={[autoplayPlugin.current]}
+            plugins={reviews.length > 1 ? [autoplayPlugin.current] : []}
             opts={{
-              loop: true,
+              loop: reviews.length > 1,
               align: 'start',
               containScroll: 'trimSnaps',
               skipSnaps: false,
@@ -142,7 +162,7 @@ const Testimonials = () => {
             setApi={setApi}
           >
             <CarouselContent className="pb-4 flex gap-1">
-              {DATA.TestimonialData.map((review) => (
+              {reviews.map((review) => (
                 <CarouselItem key={review.id} className="pl-4 basis-full sm:basis-1/2 lg:basis-1/2">
                   <Testimonialcard
                     name={review.name}
@@ -157,43 +177,30 @@ const Testimonials = () => {
           </Carousel>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="mt-5 flex items-center justify-center gap-4"
-        >
-          <button
-            onClick={() => api?.scrollPrev()}
-            disabled={!api}
-            className="group relative p-2 sm:p-3 transition-all duration-300 bg-linear-to-r from-purple-500/60 to-indigo-500/60 dark:from-purple-500/30 dark:to-indigo-500/30 text-white rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center hover:from-purple-600/80 hover:to-indigo-600/80 dark:hover:from-purple-500/50 dark:hover:to-indigo-500/50 cursor-pointer shadow-lg hover:shadow-xl transform hover:scale-105"
+        {reviews.length > 1 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="mt-5 flex items-center justify-center gap-4"
           >
-            <FiChevronLeft size={24} strokeWidth={3} />
-          </button>
-          <button
-            onClick={() => api?.scrollNext()}
-            disabled={!api}
-            className="group relative p-2 sm:p-3 transition-all duration-300 bg-linear-to-r from-purple-500/60 to-indigo-500/60 dark:from-purple-500/30 dark:to-indigo-500/30 text-white rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center hover:from-purple-600/80 hover:to-indigo-600/80 dark:hover:from-purple-500/50 dark:hover:to-indigo-500/50 cursor-pointer shadow-lg hover:shadow-xl transform hover:scale-105"
-          >
-            <FiChevronRight size={24} strokeWidth={3} />
-          </button>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          className="mt-10 text-sm flex flex-col items-center"
-        >
-          <span>
-            <strong>Google</strong> rating score: <strong>4.9</strong> of 5,
-          </span>
-          <span>
-            based on <strong>186 reviews</strong>
-          </span>
-        </motion.div>
+            <button
+              onClick={() => api?.scrollPrev()}
+              disabled={!api}
+              className="group relative p-2 sm:p-3 transition-all duration-300 bg-linear-to-r from-purple-500/60 to-indigo-500/60 dark:from-purple-500/30 dark:to-indigo-500/30 text-white rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center hover:from-purple-600/80 hover:to-indigo-600/80 dark:hover:from-purple-500/50 dark:hover:to-indigo-500/50 cursor-pointer shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              <FiChevronLeft size={24} strokeWidth={3} />
+            </button>
+            <button
+              onClick={() => api?.scrollNext()}
+              disabled={!api}
+              className="group relative p-2 sm:p-3 transition-all duration-300 bg-linear-to-r from-purple-500/60 to-indigo-500/60 dark:from-purple-500/30 dark:to-indigo-500/30 text-white rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center hover:from-purple-600/80 hover:to-indigo-600/80 dark:hover:from-purple-500/50 dark:hover:to-indigo-500/50 cursor-pointer shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              <FiChevronRight size={24} strokeWidth={3} />
+            </button>
+          </motion.div>
+        )}
       </Container>
     </Section>
   );
