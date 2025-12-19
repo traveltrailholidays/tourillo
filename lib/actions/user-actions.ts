@@ -5,17 +5,175 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { auth } from '@/auth';
 
-// User validation schema - UPDATED with phone
+// User validation schema
 const userSchema = z.object({
   name: z.string().min(1, 'Name is required').optional(),
   email: z.email('Invalid email').optional(),
-  phone: z.string().optional().nullable(), // Added phone
+  phone: z.string().optional().nullable(),
   isAdmin: z.boolean().optional(),
   isAgent: z.boolean().optional(),
   isActive: z.boolean().optional(),
 });
 
-// Get all users (non-admin, non-agent)
+// ✅ Get all users with accounts AND password field
+export async function getAllUsersWithAccounts() {
+  try {
+    const users = await prisma.user.findMany({
+      where: {
+        isAdmin: false,
+        isAgent: false,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        emailVerified: true,
+        phone: true,
+        image: true,
+        password: true, // ✅ Included
+        isActive: true,
+        lastLoginAt: true,
+        createdAt: true,
+        updatedAt: true,
+        wishlistId: true,
+        accounts: {
+          select: {
+            id: true,
+            provider: true,
+            type: true,
+            providerAccountId: true,
+            createdAt: true,
+          },
+        },
+      },
+    });
+
+    return users.map((user) => ({
+      ...user,
+      password: user.password || null, // ✅ Ensure it's always null if undefined
+      createdAt: user.createdAt.toISOString(),
+      updatedAt: user.updatedAt.toISOString(),
+      lastLoginAt: user.lastLoginAt?.toISOString() || null,
+      emailVerified: user.emailVerified?.toISOString() || null,
+      accounts: user.accounts.map((acc) => ({
+        ...acc,
+        createdAt: acc.createdAt.toISOString(),
+      })),
+    }));
+  } catch (error) {
+    console.error(error);
+    throw new Error('Failed to fetch users with accounts');
+  }
+}
+
+// ✅ Get all agents with accounts AND password field
+export async function getAllAgentsWithAccounts() {
+  try {
+    const agents = await prisma.user.findMany({
+      where: {
+        isAgent: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        emailVerified: true,
+        phone: true,
+        image: true,
+        password: true, // ✅ Included
+        isActive: true,
+        lastLoginAt: true,
+        createdAt: true,
+        updatedAt: true,
+        accounts: {
+          select: {
+            id: true,
+            provider: true,
+            type: true,
+            providerAccountId: true,
+            createdAt: true,
+          },
+        },
+      },
+    });
+
+    return agents.map((agent) => ({
+      ...agent,
+      password: agent.password || null, // ✅ Ensure it's always null if undefined
+      createdAt: agent.createdAt.toISOString(),
+      updatedAt: agent.updatedAt.toISOString(),
+      lastLoginAt: agent.lastLoginAt?.toISOString() || null,
+      emailVerified: agent.emailVerified?.toISOString() || null,
+      accounts: agent.accounts.map((acc) => ({
+        ...acc,
+        createdAt: acc.createdAt.toISOString(),
+      })),
+    }));
+  } catch (error) {
+    console.error(error);
+    throw new Error('Failed to fetch agents with accounts');
+  }
+}
+
+// ✅ Get all admins with accounts AND password field
+export async function getAllAdminsWithAccounts() {
+  try {
+    const admins = await prisma.user.findMany({
+      where: {
+        isAdmin: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        emailVerified: true,
+        phone: true,
+        image: true,
+        password: true, // ✅ Included
+        isActive: true,
+        lastLoginAt: true,
+        createdAt: true,
+        updatedAt: true,
+        accounts: {
+          select: {
+            id: true,
+            provider: true,
+            type: true,
+            providerAccountId: true,
+            createdAt: true,
+          },
+        },
+      },
+    });
+
+    return admins.map((admin) => ({
+      ...admin,
+      password: admin.password || null, // ✅ Ensure it's always null if undefined
+      createdAt: admin.createdAt.toISOString(),
+      updatedAt: admin.updatedAt.toISOString(),
+      lastLoginAt: admin.lastLoginAt?.toISOString() || null,
+      emailVerified: admin.emailVerified?.toISOString() || null,
+      accounts: admin.accounts.map((acc) => ({
+        ...acc,
+        createdAt: acc.createdAt.toISOString(),
+      })),
+    }));
+  } catch (error) {
+    console.error(error);
+    throw new Error('Failed to fetch admins with accounts');
+  }
+}
+
+// Get all users (non-admin, non-agent) - Basic info (kept for backward compatibility)
 export async function getAllUsers() {
   try {
     const users = await prisma.user.findMany({
@@ -30,7 +188,7 @@ export async function getAllUsers() {
         id: true,
         name: true,
         email: true,
-        phone: true, // Added phone
+        phone: true,
         image: true,
         isActive: true,
         lastLoginAt: true,
@@ -49,7 +207,7 @@ export async function getAllUsers() {
   }
 }
 
-// Get all agents
+// Get all agents - Basic info (kept for backward compatibility)
 export async function getAllAgents() {
   try {
     const agents = await prisma.user.findMany({
@@ -62,7 +220,7 @@ export async function getAllAgents() {
       select: {
         id: true,
         name: true,
-        phone: true, // Already existed, keeping it
+        phone: true,
         email: true,
         image: true,
         isActive: true,
@@ -82,7 +240,7 @@ export async function getAllAgents() {
   }
 }
 
-// Get all admins
+// Get all admins - Basic info (kept for backward compatibility)
 export async function getAllAdmins() {
   try {
     const admins = await prisma.user.findMany({
@@ -96,7 +254,7 @@ export async function getAllAdmins() {
         id: true,
         name: true,
         email: true,
-        phone: true, // Added phone
+        phone: true,
         image: true,
         isActive: true,
         lastLoginAt: true,
@@ -143,9 +301,9 @@ export async function updateUser(id: string, data: z.infer<typeof userSchema>) {
       data: validatedData,
     });
 
-    revalidatePath('/admin/users-list');
-    revalidatePath('/admin/agents-list');
-    revalidatePath('/admin/admins-list');
+    revalidatePath('/admin/users/users-list');
+    revalidatePath('/admin/users/agents-list');
+    revalidatePath('/admin/users/admins-list');
 
     return { success: true, user: updatedUser };
   } catch (error) {
@@ -175,9 +333,9 @@ export async function deactivateUser(id: string) {
       where: { userId: id },
     });
 
-    revalidatePath('/admin/users-list');
-    revalidatePath('/admin/agents-list');
-    revalidatePath('/admin/admins-list');
+    revalidatePath('/admin/users/users-list');
+    revalidatePath('/admin/users/agents-list');
+    revalidatePath('/admin/users/admins-list');
 
     return { success: true };
   } catch (error) {
@@ -203,9 +361,9 @@ export async function deleteUserPermanently(id: string) {
       where: { id },
     });
 
-    revalidatePath('/admin/users-list');
-    revalidatePath('/admin/agents-list');
-    revalidatePath('/admin/admins-list');
+    revalidatePath('/admin/users/users-list');
+    revalidatePath('/admin/users/agents-list');
+    revalidatePath('/admin/users/admins-list');
 
     return { success: true };
   } catch (error) {
@@ -227,9 +385,9 @@ export async function reactivateUser(id: string) {
       data: { isActive: true },
     });
 
-    revalidatePath('/admin/users-list');
-    revalidatePath('/admin/agents-list');
-    revalidatePath('/admin/admins-list');
+    revalidatePath('/admin/users/users-list');
+    revalidatePath('/admin/users/agents-list');
+    revalidatePath('/admin/users/admins-list');
 
     return { success: true };
   } catch (error) {

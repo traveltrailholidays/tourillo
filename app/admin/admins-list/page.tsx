@@ -1,7 +1,7 @@
 import AdminOnlyWrapper from '@/components/admin-only-layout-wrapper';
 import UserList from '@/components/admin/user-list';
 
-import { getAllAdmins } from '@/lib/actions/user-actions';
+import { getAllAdminsWithAccounts } from '@/lib/actions/user-actions';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminsPage() {
-  const admins = await getAllAdmins();
+  const admins = await getAllAdminsWithAccounts(); // ✅ Updated function
 
   return (
     <AdminOnlyWrapper>
@@ -19,7 +19,9 @@ export default async function AdminsPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Admins Management</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">Manage all administrators</p>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
+              Manage all administrators with complete authentication details
+            </p>
           </div>
         </div>
 

@@ -20,8 +20,6 @@ export const DEFAULT_EXCLUSIONS = [
   'Single / Triple',
   'Lunch',
   'SIC Cab',
-  'Entry Fees',
-  'Personal Expenses',
   'Trip Supplements',
   'Anything not mentioned in Inclusions',
 ];

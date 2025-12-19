@@ -70,7 +70,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({ user }) => {
   };
 
   return (
-    <div className="mx-auto p-6">
+    <div className="mx-auto w-full p-6">
       <div className="bg-foreground rounded-sm shadow-lg p-8">
         <div className="flex items-center gap-4 mb-8">
           {user.image ? (

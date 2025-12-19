@@ -1146,6 +1146,30 @@ const CreateItinerary = ({ itinerariesForClone = [] }: CreateItineraryProps) => 
                     </option>
                   ))}
                 </select>
+                {/* Quick Copy Helper */}
+                <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
+                  <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2 flex items-center gap-1">
+                    <Copy className="h-3 w-3" />
+                    Quick Copy Options (click to copy):
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {CAB_OPTIONS.map((option) => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(option);
+                          toast.success(`"${option}" copied!`);
+                        }}
+                        disabled={isSubmitting}
+                        className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-500 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <Copy className="h-3 w-3 text-gray-500" />
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
                 {selectedCab === 'Custom' && (
                   <div className="mt-3">
@@ -1392,6 +1416,30 @@ const CreateItinerary = ({ itinerariesForClone = [] }: CreateItineraryProps) => 
                             </option>
                           ))}
                         </select>
+
+                        <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
+                          <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2 flex items-center gap-1">
+                            <Copy className="h-3 w-3" />
+                            Quick Copy Options (click to copy):
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {ROOM_TYPES.map((type) => (
+                              <button
+                                key={type}
+                                type="button"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(type);
+                                  toast.success(`"${type}" copied!`);
+                                }}
+                                disabled={isSubmitting}
+                                className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded hover:bg-green-50 dark:hover:bg-green-900/30 hover:border-green-500 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                <Copy className="h-3 w-3 text-gray-500" />
+                                {type}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
 
                         {selectedRoomTypes[index] === 'Custom' && (
                           <div className="mt-3">
