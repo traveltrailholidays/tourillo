@@ -315,7 +315,7 @@ const BlogForm: React.FC<BlogFormProps> = ({ initialData, onCancel }) => {
   };
 
   return (
-    <div className="mx-auto p-3 sm:p-6">
+    <div className="mx-auto w-full p-3 sm:p-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
           {isEditMode ? 'Edit Blog Post' : 'Create Blog Post'}

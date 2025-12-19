@@ -906,56 +906,58 @@ export const PackageList: React.FC<PackageListProps> = ({ packages }) => {
               />
             </div>
 
-            {/* Export Button */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  size="sm"
-                  variant="default"
-                  disabled={filtered.length === 0 || isExporting}
-                  className="bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 cursor-pointer h-10 shrink-0 rounded"
-                >
-                  {isExporting ? (
-                    <>
-                      <LoadingSpinner />
-                      <span className="ml-2">Exporting...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Download className="h-4 w-4 mr-2" />
-                      Export ({filtered.length})
-                    </>
-                  )}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem
-                  onClick={() => handleExportClick('csv')}
-                  disabled={isExporting}
-                  className="cursor-pointer"
-                >
-                  <Sheet className="h-4 w-4 mr-2 text-blue-600" />
-                  <span>Export to CSV</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => handleExportClick('excel')}
-                  disabled={isExporting}
-                  className="cursor-pointer"
-                >
-                  <FileText className="h-4 w-4 mr-2 text-green-600" />
-                  <span>Export to Excel</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => handleExportClick('pdf')}
-                  disabled={isExporting}
-                  className="cursor-pointer"
-                >
-                  <File className="h-4 w-4 mr-2 text-red-600" />
-                  <span>Export to PDF</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {/* Export Button - Admin Only */}
+            {isAdmin && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="default"
+                    disabled={filtered.length === 0 || isExporting}
+                    className="bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 cursor-pointer h-10 shrink-0 rounded"
+                  >
+                    {isExporting ? (
+                      <>
+                        <LoadingSpinner />
+                        <span className="ml-2">Exporting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Download className="h-4 w-4 mr-2" />
+                        Export ({filtered.length})
+                      </>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem
+                    onClick={() => handleExportClick('csv')}
+                    disabled={isExporting}
+                    className="cursor-pointer"
+                  >
+                    <Sheet className="h-4 w-4 mr-2 text-blue-600" />
+                    <span>Export to CSV</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleExportClick('excel')}
+                    disabled={isExporting}
+                    className="cursor-pointer"
+                  >
+                    <FileText className="h-4 w-4 mr-2 text-green-600" />
+                    <span>Export to Excel</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => handleExportClick('pdf')}
+                    disabled={isExporting}
+                    className="cursor-pointer"
+                  >
+                    <File className="h-4 w-4 mr-2 text-red-600" />
+                    <span>Export to PDF</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
 
           {/* Second Row: Filters */}

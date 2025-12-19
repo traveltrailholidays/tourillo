@@ -28,11 +28,6 @@ const page = async () => {
           <h1 className="text-3xl font-bold mb-2 ">All Blogs</h1>
           <p className="text-gray-600 dark:text-gray-400">View and manage all blog posts in one place</p>
         </div>
-        <Link href="/admin/blog/create-blog">
-          <Button className="bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 text-white cursor-pointer rounded">
-            Create Blog
-          </Button>
-        </Link>
       </div>
       <BlogList blogs={serializedBlogs} />
     </div>

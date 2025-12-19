@@ -143,7 +143,9 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      <header className="h-14"></header>
+      <header className="bg-foreground px-2 border-b h-14 flex items-center">
+        <LogoFull />
+      </header>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
