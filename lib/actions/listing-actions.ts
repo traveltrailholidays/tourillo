@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { uploadBlogImage, deleteBlogImage } from './file-actions';
 import { Listing } from '@prisma/client';
+import { auth } from '@/auth';
 
 // Listing validation schema
 const listingSchema = z.object({
@@ -44,18 +45,158 @@ function toSafeListing(listing: Listing) {
     discount: listing.discount,
     itinary: listing.itinary,
     createdAt: listing.createdAt.toISOString(),
+    createdById: listing.createdById,
+    updatedAt: listing.updatedAt ? listing.updatedAt.toISOString() : listing.createdAt.toISOString(),
   };
 }
 
-// Create listing with image upload
+// ✅ Get current user with proper error handling
+async function getCurrentUserId() {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      console.error('❌ No session or user ID found');
+      return null;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        id: true,
+        isActive: true,
+        isAdmin: true,
+        isAgent: true,
+        email: true,
+        name: true,
+      },
+    });
+
+    if (!user) {
+      console.error('❌ User not found in database:', session.user.id);
+      return null;
+    }
+
+    if (!user.isActive) {
+      console.error('❌ User account is deactivated:', user.email);
+      return null;
+    }
+
+    console.log('✅ Current user:', {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      isAdmin: user.isAdmin,
+      isAgent: user.isAgent,
+    });
+
+    return user.id;
+  } catch (error) {
+    console.error('❌ Error getting current user:', error);
+    return null;
+  }
+}
+
+// ✅ Get current user details for verification
+async function getCurrentUserDetails() {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return null;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        isAdmin: true,
+        isAgent: true,
+        isActive: true,
+      },
+    });
+
+    return user;
+  } catch (error) {
+    console.error('❌ Error getting user details:', error);
+    return null;
+  }
+}
+
+// ✅ Find user by name and role (for bulk upload)
+async function findUserByNameAndRole(name: string, role: string): Promise<string | null> {
+  try {
+    console.log('🔍 Searching for user:', { name, role });
+
+    // Determine role flags
+    const isAdmin = role.toLowerCase() === 'admin';
+    const isAgent = role.toLowerCase() === 'agent';
+
+    // Search by name or email with role match
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [{ name: { equals: name, mode: 'insensitive' } }, { email: { equals: name, mode: 'insensitive' } }],
+        isActive: true,
+        ...(isAdmin && { isAdmin: true }),
+        ...(isAgent && { isAgent: true }),
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        isAdmin: true,
+        isAgent: true,
+      },
+    });
+
+    if (user) {
+      console.log('✅ User found:', {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        isAdmin: user.isAdmin,
+        isAgent: user.isAgent,
+      });
+      return user.id;
+    }
+
+    console.log('⚠️ User not found for:', { name, role });
+    return null;
+  } catch (error) {
+    console.error('❌ Error finding user:', error);
+    return null;
+  }
+}
+
+// ✅ Create listing with image upload and creator matching
 export async function createListing(formData: FormData) {
   try {
-    // Handle image upload first
+    const userId = await getCurrentUserId();
+
+    if (!userId) {
+      throw new Error('You must be logged in to create a package. Please log in and try again.');
+    }
+
+    const user = await getCurrentUserDetails();
+    if (!user) {
+      throw new Error('User session invalid. Please log in again.');
+    }
+
+    console.log('📦 Creating package for user:', {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.isAdmin ? 'Admin' : user.isAgent ? 'Agent' : 'User',
+    });
+
+    // Handle image upload or URL
     let imageSrc: string = '';
     const imageFile = formData.get('image') as File;
+    const imageUrl = formData.get('imageSrc') as string;
 
     if (imageFile && imageFile.size > 0) {
-      // console.log(`Processing image upload: ${imageFile.size} bytes`);
       const imageFormData = new FormData();
       imageFormData.append('file', imageFile);
 
@@ -64,7 +205,9 @@ export async function createListing(formData: FormData) {
         throw new Error(uploadResult.error || 'Image upload failed');
       }
       imageSrc = uploadResult.imagePath || '';
-      // console.log(`Image uploaded successfully: ${imageSrc}`);
+    } else if (imageUrl) {
+      // Use provided URL (for bulk upload)
+      imageSrc = imageUrl;
     }
 
     // Parse itinerary array
@@ -120,11 +263,52 @@ export async function createListing(formData: FormData) {
 
     const validatedData = listingSchema.parse(rawData);
 
+    // ✅ Handle creator matching for bulk upload
+    let createdById = userId;
+    const creatorName = formData.get('creatorName') as string | null;
+    const creatorRole = formData.get('creatorRole') as string | null;
+
+    if (creatorName && creatorRole) {
+      console.log('🔄 Bulk upload: Matching creator...', { creatorName, creatorRole });
+      const matchedUserId = await findUserByNameAndRole(creatorName, creatorRole);
+
+      if (matchedUserId) {
+        createdById = matchedUserId;
+        console.log('✅ Creator matched:', matchedUserId);
+      } else {
+        console.log('⚠️ Creator not found, using current user:', userId);
+      }
+    }
+
+    // ✅ Create listing with creator ID
     const listing = await prisma.listing.create({
       data: {
         ...validatedData,
         imageSrc,
+        createdById,
       },
+      include: {
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            isAdmin: true,
+            isAgent: true,
+          },
+        },
+      },
+    });
+
+    console.log('✅ Package created successfully:', {
+      listingId: listing.id,
+      title: listing.title,
+      createdById: listing.createdById,
+      creatorName: listing.createdBy?.name,
+      creatorEmail: listing.createdBy?.email,
+      creatorIsAdmin: listing.createdBy?.isAdmin,
+      creatorIsAgent: listing.createdBy?.isAgent,
+      role: listing.createdBy?.isAdmin ? 'Admin' : listing.createdBy?.isAgent ? 'Agent' : 'User',
     });
 
     revalidatePath('/admin/package/package-list');
@@ -135,7 +319,7 @@ export async function createListing(formData: FormData) {
       listing,
     };
   } catch (error) {
-    console.error('Create listing error:', error);
+    console.error('❌ Create listing error:', error);
     if (error instanceof z.ZodError) {
       throw new Error('Invalid form data: ' + formatZodError(error));
     }
@@ -143,17 +327,38 @@ export async function createListing(formData: FormData) {
   }
 }
 
-// Update listing with image upload
+// ✅ Update listing with image upload
 export async function updateListing(id: string, formData: FormData) {
   try {
     const validatedId = uuidSchema.parse(id);
 
+    const userId = await getCurrentUserId();
+    if (!userId) {
+      throw new Error('You must be logged in to update a package');
+    }
+
     const existingListing = await prisma.listing.findUnique({
       where: { id: validatedId },
+      include: {
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            isAdmin: true,
+            isAgent: true,
+          },
+        },
+      },
     });
 
     if (!existingListing) {
       throw new Error('Listing not found');
+    }
+
+    const currentUser = await getCurrentUserDetails();
+    if (!currentUser?.isAdmin && !currentUser?.isAgent) {
+      throw new Error('You do not have permission to edit this package');
     }
 
     let imageSrc: string = existingListing.imageSrc;
@@ -161,7 +366,7 @@ export async function updateListing(id: string, formData: FormData) {
     const removeImage = formData.get('removeImage') === 'true';
 
     if (removeImage) {
-      if (existingListing.imageSrc) {
+      if (existingListing.imageSrc && existingListing.imageSrc.startsWith('/uploads/')) {
         await deleteBlogImage(existingListing.imageSrc);
       }
       imageSrc = '';
@@ -174,7 +379,7 @@ export async function updateListing(id: string, formData: FormData) {
         throw new Error(uploadResult.error || 'Image upload failed');
       }
 
-      if (existingListing.imageSrc) {
+      if (existingListing.imageSrc && existingListing.imageSrc.startsWith('/uploads/')) {
         await deleteBlogImage(existingListing.imageSrc);
       }
 
@@ -210,7 +415,25 @@ export async function updateListing(id: string, formData: FormData) {
       data: {
         ...validatedData,
         imageSrc,
+        updatedAt: new Date(),
       },
+      include: {
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            isAdmin: true,
+            isAgent: true,
+          },
+        },
+      },
+    });
+
+    console.log('✅ Package updated successfully:', {
+      id: updatedListing.id,
+      title: updatedListing.title,
+      updatedBy: currentUser?.name || currentUser?.email,
     });
 
     revalidatePath('/admin/package/package-list');
@@ -222,6 +445,7 @@ export async function updateListing(id: string, formData: FormData) {
       listing: updatedListing,
     };
   } catch (error) {
+    console.error('❌ Update listing error:', error);
     if (error instanceof z.ZodError) {
       throw new Error('Invalid form data: ' + formatZodError(error));
     }
@@ -229,11 +453,19 @@ export async function updateListing(id: string, formData: FormData) {
   }
 }
 
-// Delete listing
-// This is already in your code - just confirming it's correct
+// ✅ Delete listing
 export async function deleteListing(id: string) {
   try {
     const validatedId = uuidSchema.parse(id);
+
+    const currentUser = await getCurrentUserDetails();
+    if (!currentUser) {
+      throw new Error('You must be logged in to delete a package');
+    }
+
+    if (!currentUser.isAdmin) {
+      throw new Error('Only administrators can delete packages');
+    }
 
     const listing = await prisma.listing.findUnique({
       where: { id: validatedId },
@@ -243,25 +475,72 @@ export async function deleteListing(id: string) {
       throw new Error('Listing not found');
     }
 
-    // Delete image from storage
-    if (listing.imageSrc) {
+    // Only delete uploaded images (not external URLs)
+    if (listing.imageSrc && listing.imageSrc.startsWith('/uploads/')) {
       await deleteBlogImage(listing.imageSrc);
     }
 
-    // Delete listing from database
     await prisma.listing.delete({
       where: { id: validatedId },
     });
+
+    console.log('✅ Package deleted by:', currentUser.name || currentUser.email);
 
     revalidatePath('/admin/package/package-list');
     revalidatePath('/packages');
 
     return { success: true };
   } catch (error) {
+    console.error('❌ Delete listing error:', error);
     if (error instanceof z.ZodError) {
       throw new Error('Invalid UUID format');
     }
     throw new Error(error instanceof Error ? error.message : 'Failed to delete listing');
+  }
+}
+
+// ✅ Bulk delete listings (admin only)
+export async function bulkDeleteListings(ids: string[]) {
+  try {
+    const currentUser = await getCurrentUserDetails();
+    if (!currentUser?.isAdmin) {
+      throw new Error('Only administrators can bulk delete packages');
+    }
+
+    // Validate all IDs
+    const validatedIds = ids.map((id) => uuidSchema.parse(id));
+
+    // Get all listings to delete their images
+    const listings = await prisma.listing.findMany({
+      where: { id: { in: validatedIds } },
+      select: { id: true, imageSrc: true },
+    });
+
+    // Delete images
+    for (const listing of listings) {
+      if (listing.imageSrc && listing.imageSrc.startsWith('/uploads/')) {
+        try {
+          await deleteBlogImage(listing.imageSrc);
+        } catch (error) {
+          console.warn('Failed to delete image:', listing.imageSrc);
+        }
+      }
+    }
+
+    // Delete all listings
+    const result = await prisma.listing.deleteMany({
+      where: { id: { in: validatedIds } },
+    });
+
+    console.log('✅ Bulk deleted', result.count, 'packages');
+
+    revalidatePath('/admin/package/package-list');
+    revalidatePath('/packages');
+
+    return { success: true, count: result.count };
+  } catch (error) {
+    console.error('❌ Bulk delete error:', error);
+    throw new Error(error instanceof Error ? error.message : 'Failed to bulk delete listings');
   }
 }
 
@@ -274,23 +553,61 @@ export async function getAllListings() {
       },
     });
   } catch (error) {
-    // console.log(error);
     throw new Error('Failed to fetch listings');
   }
 }
 
-// Get all listings for table (admin)
+// ✅ Get all listings with creator info for table
 export async function getAllListingsForTable() {
   try {
     const listings = await prisma.listing.findMany({
       orderBy: { createdAt: 'desc' },
+      include: {
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            isAdmin: true,
+            isAgent: true,
+          },
+        },
+      },
     });
-    return listings.map((listing) => ({
-      ...listing,
-      createdAt: listing.createdAt.toISOString(),
-    }));
+
+    const mappedListings = listings.map((listing) => {
+      const creatorInfo = listing.createdBy
+        ? {
+            id: listing.createdBy.id,
+            name: listing.createdBy.name,
+            email: listing.createdBy.email,
+            role: listing.createdBy.isAdmin ? 'Admin' : listing.createdBy.isAgent ? 'Agent' : 'User',
+          }
+        : null;
+
+      return {
+        id: listing.id,
+        title: listing.title,
+        description: listing.description,
+        imageSrc: listing.imageSrc,
+        category: listing.category,
+        price: listing.price,
+        location: listing.location,
+        days: listing.days,
+        nights: listing.nights,
+        rating: listing.rating,
+        discount: listing.discount,
+        itinary: listing.itinary,
+        createdAt: listing.createdAt.toISOString(),
+        updatedAt: listing.updatedAt ? listing.updatedAt.toISOString() : listing.createdAt.toISOString(),
+        createdById: listing.createdById,
+        creator: creatorInfo,
+      };
+    });
+
+    return mappedListings;
   } catch (error) {
-    // console.log(error);
+    console.error('❌ Error fetching listings for table:', error);
     throw new Error('Failed to fetch listings for table');
   }
 }
@@ -302,6 +619,17 @@ export async function getListingById(id: string) {
 
     return await prisma.listing.findUnique({
       where: { id: validatedId },
+      include: {
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            isAdmin: true,
+            isAgent: true,
+          },
+        },
+      },
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -323,12 +651,11 @@ export async function getPublicListings(category?: string) {
 
     return listings.map(toSafeListing);
   } catch (error) {
-    // console.log(error);
     throw new Error('Failed to fetch public listings');
   }
 }
 
-// Search listings by query (searches in title, description, location, category)
+// Search listings by query
 export async function searchListings(query: string) {
   try {
     const listings = await prisma.listing.findMany({
@@ -347,7 +674,6 @@ export async function searchListings(query: string) {
 
     return listings.map(toSafeListing);
   } catch (error) {
-    // console.log(error);
     throw new Error('Failed to search listings');
   }
 }
@@ -355,14 +681,12 @@ export async function searchListings(query: string) {
 // Get featured listings
 export async function getFeaturedListings() {
   try {
-    // Get total count
     const totalCount = await prisma.listing.count({
       where: {
         OR: [{ category: 'featured' }],
       },
     });
 
-    // Get listings
     const listings = await prisma.listing.findMany({
       where: {
         OR: [{ category: 'featured' }],
@@ -370,7 +694,7 @@ export async function getFeaturedListings() {
       orderBy: {
         rating: 'desc',
       },
-      take: 8, // Limit to 8 featured packages
+      take: 8,
     });
 
     return {
@@ -378,15 +702,13 @@ export async function getFeaturedListings() {
       totalCount,
     };
   } catch (error) {
-    // console.log(error);
     throw new Error('Failed to fetch featured listings');
   }
 }
 
-// Get weekend listings (category = 'weekend' and days <= 3)
+// Get weekend listings
 export async function getWeekendListings() {
   try {
-    // Get total count
     const totalCount = await prisma.listing.count({
       where: {
         OR: [
@@ -398,7 +720,6 @@ export async function getWeekendListings() {
       },
     });
 
-    // Get listings
     const listings = await prisma.listing.findMany({
       where: {
         OR: [
@@ -411,7 +732,7 @@ export async function getWeekendListings() {
       orderBy: {
         rating: 'desc',
       },
-      take: 8, // Limit to 8 weekend packages
+      take: 8,
     });
 
     return {
@@ -419,7 +740,6 @@ export async function getWeekendListings() {
       totalCount,
     };
   } catch (error) {
-    // console.log(error);
     throw new Error('Failed to fetch weekend listings');
   }
 }
@@ -441,7 +761,6 @@ export async function getDiscountedListings() {
 
     return listings.map(toSafeListing);
   } catch (error) {
-    // console.log(error);
     throw new Error('Failed to fetch discounted listings');
   }
 }
@@ -458,7 +777,50 @@ export async function getCategories() {
 
     return categories.map((cat) => cat.category);
   } catch (error) {
-    // console.log(error);
     throw new Error('Failed to fetch categories');
+  }
+}
+
+// ✅ Get listing statistics
+export async function getListingStats() {
+  try {
+    const currentUser = await getCurrentUserDetails();
+    if (!currentUser?.isAdmin && !currentUser?.isAgent) {
+      throw new Error('Unauthorized');
+    }
+
+    const [total, withDiscount, byCategory, byCreator] = await Promise.all([
+      prisma.listing.count(),
+      prisma.listing.count({ where: { discount: { gt: 0 } } }),
+      prisma.listing.groupBy({
+        by: ['category'],
+        _count: true,
+      }),
+      prisma.listing.groupBy({
+        by: ['createdById'],
+        _count: true,
+        where: { createdById: { not: null } },
+      }),
+    ]);
+
+    const avgRating = await prisma.listing.aggregate({
+      _avg: { rating: true },
+    });
+
+    return {
+      total,
+      withDiscount,
+      avgRating: avgRating._avg.rating || 0,
+      byCategory: byCategory.map((cat) => ({
+        category: cat.category,
+        count: cat._count,
+      })),
+      byCreator: byCreator.map((creator) => ({
+        createdById: creator.createdById,
+        count: creator._count,
+      })),
+    };
+  } catch (error) {
+    throw new Error('Failed to fetch listing statistics');
   }
 }

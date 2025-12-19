@@ -2,15 +2,17 @@
 
 import React from 'react';
 import LogoFull from './logo-full';
-import { SidebarTrigger, useSidebar } from './ui/sidebar';
+import { SidebarTrigger } from './ui/sidebar';
 import ThemeChange from './theme-change';
 
 const Navbar = () => {
-  const { open, isMobile } = useSidebar();
-  const showLogo = !open || isMobile;
+  const showLogo = true;
+
   return (
     <nav
-      className={`h-14 border-b bg-foreground w-full flex items-center px-3 ${showLogo ? 'justify-between' : 'justify-end'}`}
+      className={`fixed z-10 top-0 left-0 right-0 h-14 border-b bg-foreground flex items-center px-3 ${
+        showLogo ? 'justify-between' : 'justify-end'
+      }`}
     >
       {showLogo && (
         <div className="flex items-center">

@@ -1,5 +1,5 @@
 import PackageList from '@/components/package-list';
-import { getAllListings } from '@/lib/actions/listing-actions';
+import { getAllListingsForTable } from '@/lib/actions/listing-actions';
 
 import type { Metadata } from 'next';
 
@@ -10,20 +10,20 @@ export const metadata: Metadata = {
 };
 
 const page = async () => {
-  const listings = await getAllListings();
+  const listings = await getAllListingsForTable(); // ✅ Use this instead of getAllListings()
 
-  // Convert dates to strings for client component
-  const packagesData = listings.map((listing) => ({
-    ...listing,
-    createdAt: listing.createdAt.toISOString(),
-  }));
+  // ✅ getAllListingsForTable() already returns data with:
+  // - dates converted to strings
+  // - creator info with proper role mapping
+  // So we can directly pass it!
+
   return (
     <div className="container mx-auto p-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">All Packages</h1>
         <p className="text-gray-600 dark:text-gray-400 mt-1">Manage all packages</p>
       </div>
-      <PackageList packages={packagesData} />
+      <PackageList packages={listings} />
     </div>
   );
 };

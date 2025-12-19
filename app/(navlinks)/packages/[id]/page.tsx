@@ -31,7 +31,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
     initialLiked = user?.wishlistId.includes(listing.id) || false;
   }
 
-  // Convert to SafeListing format
+  // ✅ Convert to SafeListing format with all required fields
   const safeListing = {
     id: listing.id,
     title: listing.title,
@@ -46,6 +46,8 @@ export default async function PackageDetailPage({ params }: PageProps) {
     discount: listing.discount,
     itinary: listing.itinary,
     createdAt: listing.createdAt.toISOString(),
+    updatedAt: listing.updatedAt ? listing.updatedAt.toISOString() : listing.createdAt.toISOString(),
+    createdById: listing.createdById || null,
   };
 
   return <SinglePackage listing={safeListing} initialLiked={initialLiked} />;

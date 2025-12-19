@@ -4,11 +4,29 @@ import { useState, useRef, useEffect } from 'react';
 import { useForm, FieldValues } from 'react-hook-form';
 import { createListing, updateListing } from '@/lib/actions/listing-actions';
 import { categories } from '@/data/categories';
-import { Upload, Trash2, Minus, Image as ImageIcon, Save, X } from 'lucide-react';
+import {
+  Upload,
+  Trash2,
+  Minus,
+  Image as ImageIcon,
+  Save,
+  X,
+  FileSpreadsheet,
+  Download,
+  AlertCircle,
+} from 'lucide-react';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 
 interface ListingFormProps {
   initialData?: {
@@ -29,6 +47,12 @@ interface ListingFormProps {
   onCancel?: () => void;
 }
 
+interface BulkUploadResult {
+  success: number;
+  failed: number;
+  errors: string[];
+}
+
 const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCancel }) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -38,6 +62,13 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
   const [compressedImageFile, setCompressedImageFile] = useState<File | null>(null);
   const [hasExistingImage, setHasExistingImage] = useState(!!initialData?.imageSrc);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const excelInputRef = useRef<HTMLInputElement>(null);
+
+  // Bulk Upload States
+  const [showBulkDialog, setShowBulkDialog] = useState(false);
+  const [isBulkUploading, setIsBulkUploading] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState(0);
+  const [bulkResult, setBulkResult] = useState<BulkUploadResult | null>(null);
 
   const {
     register,
@@ -63,7 +94,6 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
 
   const watchedFields = watch();
 
-  // Set initial image preview from existing data
   useEffect(() => {
     if (initialData?.imageSrc && !compressedImageFile) {
       setImagePreview(initialData.imageSrc);
@@ -87,7 +117,226 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
     return undefined;
   };
 
-  // Client-side image compression function
+  // Download Excel Template
+  const downloadTemplate = async () => {
+    try {
+      const XLSX = await import('xlsx');
+
+      const templateData = [
+        {
+          'Package Title': 'Sample Package',
+          Description: 'This is a sample package description',
+          Category: 'adventure',
+          Location: 'Manali | Himachal Pradesh | sample',
+          'Price (₹)': 15000,
+          Days: 3,
+          Nights: 2,
+          'Rating (out of 5)': 4.5,
+          'Discount (%)': 10,
+          'Image URL': 'https://example.com/image.jpg',
+          'Day 1': 'Arrival and check-in at hotel',
+          'Day 2': 'Sightseeing and adventure activities',
+          'Day 3': 'Departure',
+          'Created By (Name)': 'John Doe',
+          'Created By (Role)': 'Agent',
+        },
+      ];
+
+      const worksheet = XLSX.utils.json_to_sheet(templateData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Template');
+
+      // Set column widths
+      const columnWidths = [
+        { wch: 35 }, // Package Title
+        { wch: 50 }, // Description
+        { wch: 15 }, // Category
+        { wch: 25 }, // Location
+        { wch: 12 }, // Price
+        { wch: 8 }, // Days
+        { wch: 8 }, // Nights
+        { wch: 15 }, // Rating
+        { wch: 12 }, // Discount
+        { wch: 40 }, // Image URL
+        { wch: 50 }, // Day 1
+        { wch: 50 }, // Day 2
+        { wch: 50 }, // Day 3
+        { wch: 20 }, // Created By Name
+        { wch: 15 }, // Created By Role
+      ];
+      worksheet['!cols'] = columnWidths;
+
+      XLSX.writeFile(workbook, 'package_upload_template.xlsx');
+      toast.success('Template downloaded successfully!');
+    } catch (error) {
+      toast.error('Failed to download template');
+      console.error('Template download error:', error);
+    }
+  };
+
+  // Handle Bulk Upload
+  const handleBulkUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
+      toast.error('Please upload a valid Excel file (.xlsx or .xls)');
+      return;
+    }
+
+    setShowBulkDialog(true);
+    setIsBulkUploading(true);
+    setBulkProgress(0);
+    setBulkResult(null);
+
+    try {
+      const XLSX = await import('xlsx');
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data);
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+      if (jsonData.length === 0) {
+        toast.error('Excel file is empty');
+        setIsBulkUploading(false);
+        return;
+      }
+
+      const results: BulkUploadResult = {
+        success: 0,
+        failed: 0,
+        errors: [],
+      };
+
+      // ✅ Helper function to safely parse numbers
+      const parseNumber = (value: any, defaultValue: number = 0): number => {
+        if (value === null || value === undefined || value === '') return defaultValue;
+        const num = Number(value);
+        return isNaN(num) ? defaultValue : num;
+      };
+
+      // Process each row
+      for (let i = 0; i < jsonData.length; i++) {
+        const row: any = jsonData[i];
+        setBulkProgress(Math.round(((i + 1) / jsonData.length) * 100));
+
+        try {
+          // ✅ Extract itinerary days dynamically
+          const itinary: string[] = [];
+          let dayIndex = 1;
+          while (row[`Day ${dayIndex}`]) {
+            const dayContent = String(row[`Day ${dayIndex}`]).trim();
+            if (dayContent) {
+              itinary.push(dayContent);
+            }
+            dayIndex++;
+          }
+
+          if (itinary.length === 0) {
+            throw new Error('No itinerary days found');
+          }
+
+          // ✅ Prepare package data with robust parsing
+          const packageData = {
+            title: String(row['Package Title'] || '').trim(),
+            description: String(row['Description'] || '').trim(),
+            category: String(row['Category'] || '')
+              .toLowerCase()
+              .trim(),
+            location: String(row['Location'] || '').trim(),
+            price: parseNumber(row['Price (₹)'], 1),
+            days: parseNumber(row['Days'], itinary.length),
+            nights: parseNumber(row['Nights'], Math.max(0, itinary.length - 1)),
+            rating: parseNumber(row['Rating (out of 5)'], 4.5),
+            discount: parseNumber(row['Discount (%)'], 0),
+            imageSrc: String(row['Image URL'] || '').trim(),
+            itinary: itinary,
+            creatorName: row['Created By (Name)'] ? String(row['Created By (Name)']).trim() : null,
+            creatorRole: row['Created By (Role)'] ? String(row['Created By (Role)']).trim() : null,
+          };
+
+          // ✅ Validate required fields
+          if (!packageData.title) {
+            throw new Error('Package title is required');
+          }
+          if (!packageData.description) {
+            throw new Error('Description is required');
+          }
+          if (!packageData.category) {
+            throw new Error('Category is required');
+          }
+          if (!packageData.location) {
+            throw new Error('Location is required');
+          }
+          if (packageData.price < 1) {
+            throw new Error('Price must be at least ₹1');
+          }
+          if (packageData.days < 1) {
+            throw new Error('Days must be at least 1');
+          }
+
+          console.log('📦 Processing package:', {
+            title: packageData.title,
+            price: packageData.price,
+            days: packageData.days,
+            nights: packageData.nights,
+            rating: packageData.rating,
+            itineraryDays: packageData.itinary.length,
+          });
+
+          // Create FormData
+          const formData = new FormData();
+          formData.append('title', packageData.title);
+          formData.append('description', packageData.description);
+          formData.append('category', packageData.category);
+          formData.append('location', packageData.location);
+          formData.append('price', packageData.price.toString());
+          formData.append('days', packageData.days.toString());
+          formData.append('nights', packageData.nights.toString());
+          formData.append('rating', packageData.rating.toString());
+          formData.append('discount', packageData.discount.toString());
+          formData.append('itinary', JSON.stringify(packageData.itinary));
+          formData.append('imageSrc', packageData.imageSrc);
+
+          // Add creator info for backend to match
+          if (packageData.creatorName && packageData.creatorRole) {
+            formData.append('creatorName', packageData.creatorName);
+            formData.append('creatorRole', packageData.creatorRole);
+          }
+
+          // Create listing
+          await createListing(formData);
+          results.success++;
+          console.log('✅ Package created:', packageData.title);
+        } catch (error) {
+          results.failed++;
+          const errorMsg = error instanceof Error ? error.message : 'Failed to create';
+          console.error('❌ Failed to create package:', errorMsg, row);
+          results.errors.push(`Row ${i + 1} (${row['Package Title'] || 'Unknown'}): ${errorMsg}`);
+        }
+      }
+
+      setBulkResult(results);
+
+      if (results.success > 0) {
+        toast.success(`${results.success} packages created successfully!`);
+        router.refresh();
+      }
+
+      if (results.failed > 0) {
+        toast.error(`${results.failed} packages failed to create`);
+      }
+    } catch (error) {
+      toast.error('Failed to process Excel file');
+      console.error('Bulk upload error:', error);
+    } finally {
+      setIsBulkUploading(false);
+      if (excelInputRef.current) {
+        excelInputRef.current.value = '';
+      }
+    }
+  };
+
   const compressImage = async (file: File): Promise<File> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -106,7 +355,6 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
             return;
           }
 
-          // Calculate new dimensions (max 1920x1080)
           let width = img.width;
           let height = img.height;
           const maxWidth = 1920;
@@ -120,11 +368,8 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
 
           canvas.width = width;
           canvas.height = height;
-
-          // Draw image on canvas
           ctx.drawImage(img, 0, 0, width, height);
 
-          // Start with high quality
           let quality = 0.85;
 
           const tryCompress = () => {
@@ -137,17 +382,13 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
 
                 const sizeInMB = blob.size / (1024 * 1024);
 
-                // If under 1MB, we're done
                 if (sizeInMB < 1 || quality <= 0.3) {
                   const compressedFile = new File([blob], file.name, {
                     type: 'image/jpeg',
                     lastModified: Date.now(),
                   });
-
-                  // console.log(`Original: ${(file.size / (1024 * 1024)).toFixed(2)}MB → Compressed: ${sizeInMB.toFixed(2)}MB`);
                   resolve(compressedFile);
                 } else {
-                  // Reduce quality and try again
                   quality -= 0.1;
                   tryCompress();
                 }
@@ -160,14 +401,10 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
           tryCompress();
         };
 
-        img.onerror = () => {
-          reject(new Error('Failed to load image'));
-        };
+        img.onerror = () => reject(new Error('Failed to load image'));
       };
 
-      reader.onerror = () => {
-        reject(new Error('Failed to read file'));
-      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
     });
   };
 
@@ -177,7 +414,6 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
     try {
       const formData = new FormData();
 
-      // Add all form fields
       formData.append('title', data.title);
       formData.append('description', data.description);
       formData.append('category', data.category);
@@ -189,12 +425,10 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
       formData.append('discount', data.discount.toString());
       formData.append('itinary', JSON.stringify(data.itinary));
 
-      // Add compressed image file if available (new image uploaded)
       if (compressedImageFile) {
         formData.append('image', compressedImageFile);
       }
 
-      // Add remove image flag
       if (removeImage) {
         formData.append('removeImage', 'true');
       }
@@ -232,7 +466,6 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
   const processFile = async (file: File | undefined) => {
     if (!file) return;
 
-    // Check file size (max 100MB)
     if (file.size > 100 * 1024 * 1024) {
       toast.error('Image must be less than 100MB');
       return;
@@ -244,12 +477,9 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
     }
 
     const originalSizeInMB = file.size / (1024 * 1024);
-
-    // Show loading toast for compression
     const loadingToastId = toast.loading(`Compressing image (${originalSizeInMB.toFixed(2)}MB)...`);
 
     try {
-      // Compress image on client-side
       const compressed = await compressImage(file);
       const compressedSizeInMB = compressed.size / (1024 * 1024);
 
@@ -258,11 +488,9 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
         duration: 3000,
       });
 
-      // Store compressed file
       setCompressedImageFile(compressed);
       setHasExistingImage(false);
 
-      // Create preview from compressed image
       const reader = new FileReader();
       reader.onload = (event) => {
         setImagePreview(event.target?.result as string);
@@ -321,13 +549,6 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
     setValue('itinary', newItinary);
   };
 
-  const addItineraryDay = () => {
-    const currentItinary = watchedFields.itinary || [];
-    setValue('itinary', [...currentItinary, '']);
-    setValue('days', currentItinary.length + 1);
-    setValue('nights', currentItinary.length);
-  };
-
   const removeItineraryDay = (index: number) => {
     const currentItinary = watchedFields.itinary || [];
     const newItinary = currentItinary.filter((_: string, i: number) => i !== index);
@@ -344,24 +565,59 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
   return (
     <div className="container mx-auto p-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          {initialData?.id ? 'Edit Package' : 'Create New Package'}
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-1">
-          {initialData?.id ? 'Make your package even better' : 'Easily create and manage packages with confidence'}
-        </p>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              {initialData?.id ? 'Edit Package' : 'Create New Package'}
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
+              {initialData?.id ? 'Make your package even better' : 'Easily create and manage packages with confidence'}
+            </p>
+          </div>
+
+          {/* Bulk Upload Button - Only show for new packages */}
+          {!initialData?.id && (
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                onClick={downloadTemplate}
+                variant="outline"
+                className="flex items-center gap-2 cursor-pointer rounded"
+              >
+                <Download className="h-4 w-4" />
+                Download Template
+              </Button>
+              <Button
+                type="button"
+                onClick={() => excelInputRef.current?.click()}
+                className="flex items-center gap-2 bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 cursor-pointer rounded"
+              >
+                <FileSpreadsheet className="h-4 w-4" />
+                Bulk Upload
+              </Button>
+              <input
+                ref={excelInputRef}
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={handleBulkUpload}
+                className="hidden"
+              />
+            </div>
+          )}
+        </div>
       </div>
+
       <div className="bg-foreground rounded shadow-lg p-4 sm:p-8">
-        <div className="flex items-center justify-between ">
-          {onCancel && (
+        {onCancel && (
+          <div className="flex items-center justify-between mb-4">
             <button
               onClick={onCancel}
               className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
             >
               <X className="h-5 w-5" />
             </button>
-          )}
-        </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 sm:space-y-8">
           {/* Category Selection */}
@@ -618,10 +874,22 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
 
           {/* Submit Button */}
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-end">
+            {onCancel && (
+              <Button
+                type="button"
+                onClick={onCancel}
+                disabled={isLoading}
+                variant="outline"
+                className="px-6 sm:px-8 py-3 cursor-pointer"
+              >
+                Cancel
+              </Button>
+            )}
+
             <Button
               type="submit"
               disabled={isLoading}
-              className="flex items-center justify-center px-6 sm:px-8 py-3 bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-sm transition-all duration-200 transform disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none cursor-pointer"
+              className="flex items-center justify-center px-6 sm:px-8 py-3 bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               <Save className="h-5 w-5 mr-2" />
               {isLoading
@@ -632,20 +900,83 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
                   ? 'Update Package'
                   : 'Create Package'}
             </Button>
-
-            {onCancel && (
-              <Button
-                type="button"
-                onClick={onCancel}
-                disabled={isLoading}
-                className="px-6 sm:px-8 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-semibold rounded-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
-              >
-                Cancel
-              </Button>
-            )}
           </div>
         </form>
       </div>
+
+      {/* Bulk Upload Dialog */}
+      <Dialog open={showBulkDialog} onOpenChange={setShowBulkDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileSpreadsheet className="h-5 w-5 text-green-600" />
+              Bulk Upload Progress
+            </DialogTitle>
+            <DialogDescription>{isBulkUploading ? 'Processing packages...' : 'Upload completed'}</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {isBulkUploading ? (
+              <div className="space-y-3">
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div
+                    className="bg-linear-to-r from-green-500 to-emerald-600 h-3 rounded-full transition-all duration-300"
+                    style={{ width: `${bulkProgress}%` }}
+                  />
+                </div>
+                <p className="text-center text-sm font-semibold">{bulkProgress}% Complete</p>
+              </div>
+            ) : bulkResult ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 rounded bg-foreground border border-green-200">
+                  <span className="text-sm font-medium">✓ Successful</span>
+                  <span className="text-lg font-bold text-green-600">{bulkResult.success}</span>
+                </div>
+
+                {bulkResult.failed > 0 && (
+                  <>
+                    <div className="flex items-center justify-between p-3 bg-foreground rounded border border-red-200">
+                      <span className="text-sm font-medium">✗ Failed</span>
+                      <span className="text-lg font-bold text-red-600">{bulkResult.failed}</span>
+                    </div>
+
+                    {bulkResult.errors.length > 0 && (
+                      <div className="max-h-40 overflow-y-auto p-3 bg-foreground rounded border border-gray-200">
+                        <p className="text-xs font-semibold mb-2 flex items-center gap-1">
+                          <AlertCircle className="h-3 w-3" />
+                          Error Details:
+                        </p>
+                        <ul className="text-xs space-y-1">
+                          {bulkResult.errors.map((error, idx) => (
+                            <li key={idx} className="text-red-600">
+                              • {error}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            ) : null}
+          </div>
+
+          {!isBulkUploading && (
+            <DialogFooter>
+              <Button
+                onClick={() => {
+                  setShowBulkDialog(false);
+                  setBulkResult(null);
+                  setBulkProgress(0);
+                }}
+                className="flex items-center justify-center px-6 sm:px-8 py-3 bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                Close
+              </Button>
+            </DialogFooter>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

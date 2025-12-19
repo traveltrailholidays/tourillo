@@ -1,7 +1,9 @@
 import { Listing, User } from '@prisma/client';
 
-export type SafeListing = Omit<Listing, 'createdAt'> & {
+// ✅ SafeListing type with string dates (for serialization)
+export type SafeListing = Omit<Listing, 'createdAt' | 'updatedAt'> & {
   createdAt: string;
+  updatedAt: string;
 };
 
 export type safeUser = Omit<User, 'createdAt' | 'updatedAt' | 'emailVerified'> & {

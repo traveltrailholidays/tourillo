@@ -123,9 +123,44 @@
   }
 }
 
-/* Scroll Bar */
+/* Default Scrollbar - Hidden */
 ::-webkit-scrollbar {
   width: 0px;
+}
+
+/* Custom Scrollbar for Table - Visible */
+.scrollbar-visible {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+}
+
+.scrollbar-visible::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+.scrollbar-visible::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 10px;
+}
+
+.scrollbar-visible::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.5);
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+.scrollbar-visible::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 0.7);
+}
+
+/* Dark mode scrollbar */
+.dark .scrollbar-visible::-webkit-scrollbar-thumb {
+  background: rgba(75, 85, 99, 0.5);
+}
+
+.dark .scrollbar-visible::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 0.7);
 }
 
 .heroTitle {

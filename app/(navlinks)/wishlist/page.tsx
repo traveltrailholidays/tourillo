@@ -38,9 +38,11 @@ export default async function WishlistPage() {
     },
   });
 
+  // ✅ Convert to SafeListing format with all required fields
   const safePackages = packages.map((pkg) => ({
     ...pkg,
     createdAt: pkg.createdAt.toISOString(),
+    updatedAt: pkg.updatedAt ? pkg.updatedAt.toISOString() : pkg.createdAt.toISOString(),
   }));
 
   return (

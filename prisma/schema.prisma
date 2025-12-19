@@ -24,6 +24,7 @@ model User {
 
   accounts Account[]
   sessions Session[]
+  createdPackages Listing[] @relation("PackageCreator")
 
   @@map("users")
 }
@@ -86,7 +87,12 @@ model Listing {
   rating      Float
   discount    Int
   itinary     String[]
+  updatedAt   DateTime? @updatedAt @map("updated_at")
 
+  createdById String? @map("created_by_id")
+  createdBy   User?   @relation("PackageCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([createdById])
   @@map("listings")
 }
 
