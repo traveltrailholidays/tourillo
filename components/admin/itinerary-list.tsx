@@ -9,12 +9,9 @@ import {
   Trash2,
   Copy,
   Search,
-  Calendar,
-  User,
   Package as PackageIcon,
   Edit,
   Building2,
-  Filter,
   Download,
   FileText,
   Sheet,
@@ -53,6 +50,7 @@ import toast from 'react-hot-toast';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/auth.store';
 
+// ✅ Complete Interface with all DB fields
 export interface Itinerary {
   id: string;
   travelId: string;
@@ -65,16 +63,24 @@ export interface Itinerary {
   packageTitle: string;
   numberOfDays: number;
   numberOfNights: number;
+  numberOfHotels: number;
+  cabs: string;
+  flights: string;
   quotePrice: number;
   pricePerPerson: number;
+  days: any; // JSON
+  hotels: any; // JSON
+  inclusions: any; // JSON
+  exclusions: any; // JSON
   createdAt: string;
+  updatedAt: string;
 }
 
 interface ItineraryListProps {
   itineraries: Itinerary[];
 }
 
-// 1. Helper to format full date objects to dd/mm/yyyy (for Table/Export)
+// Helper to format full date objects to dd/mm/yyyy
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
   const day = String(date.getDate()).padStart(2, '0');
@@ -83,14 +89,14 @@ const formatDate = (dateString: string): string => {
   return `${day}/${month}/${year}`;
 };
 
-// 2. Helper to format input string (YYYY-MM-DD) to Display (dd/mm/yyyy)
+// Helper to format input string (YYYY-MM-DD) to Display (dd/mm/yyyy)
 const formatDisplayDate = (dateStr: string): string => {
   if (!dateStr) return '';
   const [year, month, day] = dateStr.split('-');
   return `${day}/${month}/${year}`;
 };
 
-// Format date for input field attribute (Must remain YYYY-MM-DD for HTML inputs)
+// Format date for input field
 const formatDateForInput = (date: Date): string => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -224,7 +230,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
     });
   };
 
-  // Export to CSV
+  // ✅ Export to CSV - Complete Data with CORRECT DB Fields
   const exportToCSV = (data: Itinerary[]) => {
     const filteredData = getDateFilteredData(data);
     if (filteredData.length === 0) {
@@ -232,41 +238,116 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
       return;
     }
 
+    // Find max number of days for dynamic columns
+    const maxDays = Math.max(...filteredData.map((item) => (Array.isArray(item.days) ? item.days.length : 0)), 1);
+    const maxHotels = Math.max(...filteredData.map((item) => (Array.isArray(item.hotels) ? item.hotels.length : 0)), 1);
+
     const headers = [
-      'Company',
+      'S.No',
       'Itinerary ID',
+      'Company',
       'Client Name',
       'Client Phone',
       'Client Email',
-      'Agent Name',
-      'Agent Phone',
+      'Trip Advisor Name',
+      'Trip Advisor Phone',
       'Package Title',
-      'Days',
-      'Nights',
+      'Number of Days',
+      'Number of Nights',
+      'Number of Hotels',
+      'Cabs',
+      'Flights',
       'Quote Price (₹)',
       'Price Per Person (₹)',
+      ...Array.from({ length: maxDays }, (_, i) => `Day ${i + 1} Summary`),
+      ...Array.from({ length: maxDays }, (_, i) => `Day ${i + 1} Description`),
+      ...Array.from({ length: maxDays }, (_, i) => `Day ${i + 1} Image`),
+      ...Array.from({ length: maxHotels }, (_, i) => `Hotel ${i + 1} Name`),
+      ...Array.from({ length: maxHotels }, (_, i) => `Hotel ${i + 1} Place Name`),
+      ...Array.from({ length: maxHotels }, (_, i) => `Hotel ${i + 1} Room Type`),
+      ...Array.from({ length: maxHotels }, (_, i) => `Hotel ${i + 1} Description`),
+      ...Array.from({ length: maxHotels }, (_, i) => `Hotel ${i + 1} Place Description`),
+      'Inclusions',
+      'Exclusions',
       'Created Date',
+      'Updated Date',
     ];
 
     const csvContent = [
       headers.join(','),
-      ...filteredData.map((item) =>
-        [
-          item.company === 'TOURILLO' ? 'TRL' : 'TTH',
+      ...filteredData.map((item, index) => {
+        const daysArray = Array.isArray(item.days) ? item.days : [];
+        const hotelsArray = Array.isArray(item.hotels) ? item.hotels : [];
+        const inclusionsArray = Array.isArray(item.inclusions) ? item.inclusions : [];
+        const exclusionsArray = Array.isArray(item.exclusions) ? item.exclusions : [];
+
+        // ✅ Days data - Using SUMMARY field
+        const daysSummaries = Array.from({ length: maxDays }, (_, i) => {
+          const day = daysArray[i];
+          return day?.summary ? `"${day.summary.replace(/"/g, '""')}"` : '';
+        });
+        const daysDescriptions = Array.from({ length: maxDays }, (_, i) => {
+          const day = daysArray[i];
+          return day?.description ? `"${day.description.replace(/"/g, '""')}"` : '';
+        });
+        const daysImages = Array.from({ length: maxDays }, (_, i) => {
+          const day = daysArray[i];
+          return day?.imageSrc ? `"${day.imageSrc.replace(/"/g, '""')}"` : '';
+        });
+
+        // ✅ Hotels data - Using CORRECT DB Fields
+        const hotelsNames = Array.from({ length: maxHotels }, (_, i) => {
+          const hotel = hotelsArray[i];
+          return hotel?.hotelName ? `"${hotel.hotelName.replace(/"/g, '""')}"` : '';
+        });
+        const hotelsPlaceNames = Array.from({ length: maxHotels }, (_, i) => {
+          const hotel = hotelsArray[i];
+          return hotel?.placeName ? `"${hotel.placeName.replace(/"/g, '""')}"` : '';
+        });
+        const hotelsRoomTypes = Array.from({ length: maxHotels }, (_, i) => {
+          const hotel = hotelsArray[i];
+          return hotel?.roomType ? `"${hotel.roomType.replace(/"/g, '""')}"` : '';
+        });
+        const hotelsDescriptions = Array.from({ length: maxHotels }, (_, i) => {
+          const hotel = hotelsArray[i];
+          return hotel?.hotelDescription ? `"${hotel.hotelDescription.replace(/"/g, '""')}"` : '';
+        });
+        const hotelsPlaceDescriptions = Array.from({ length: maxHotels }, (_, i) => {
+          const hotel = hotelsArray[i];
+          return hotel?.placeDescription ? `"${hotel.placeDescription.replace(/"/g, '""')}"` : '';
+        });
+
+        return [
+          index + 1,
           item.travelId,
-          `"${item.clientName}"`,
+          item.company === 'TOURILLO' ? 'TRL' : 'TTH',
+          `"${item.clientName.replace(/"/g, '""')}"`,
           item.clientPhone,
           item.clientEmail || '',
-          `"${item.tripAdvisorName || ''}"`,
+          `"${(item.tripAdvisorName || '').replace(/"/g, '""')}"`,
           item.tripAdvisorNumber || '',
-          `"${item.packageTitle}"`,
+          `"${item.packageTitle.replace(/"/g, '""')}"`,
           item.numberOfDays,
           item.numberOfNights,
+          item.numberOfHotels,
+          `"${item.cabs.replace(/"/g, '""')}"`,
+          `"${item.flights.replace(/"/g, '""')}"`,
           item.quotePrice,
           item.pricePerPerson,
-          formatDate(item.createdAt), // dd/mm/yyyy
-        ].join(',')
-      ),
+          ...daysSummaries,
+          ...daysDescriptions,
+          ...daysImages,
+          ...hotelsNames,
+          ...hotelsPlaceNames,
+          ...hotelsRoomTypes,
+          ...hotelsDescriptions,
+          ...hotelsPlaceDescriptions,
+          `"${inclusionsArray.join('; ').replace(/"/g, '""')}"`,
+          `"${exclusionsArray.join('; ').replace(/"/g, '""')}"`,
+          formatDate(item.createdAt),
+          item.updatedAt ? formatDate(item.updatedAt) : formatDate(item.createdAt),
+        ].join(',');
+      }),
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -277,17 +358,17 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
     const dateLabel = startDate && endDate ? `_${startDate}_to_${endDate}` : '';
 
     link.setAttribute('href', url);
-    link.setAttribute('download', `itineraries_${filterLabel}${dateLabel}_${timestamp}.csv`);
+    link.setAttribute('download', `itineraries_complete_${filterLabel}${dateLabel}_${timestamp}.csv`);
     link.style.visibility = 'hidden';
 
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 
-    toast.success(`${filteredData.length} itineraries exported to CSV!`);
+    toast.success(`${filteredData.length} itineraries exported to CSV with complete data!`);
   };
 
-  // Export to Excel
+  // ✅ Export to Excel - Complete Data with CORRECT DB Fields
   const exportToExcel = async (data: Itinerary[]) => {
     const filteredData = getDateFilteredData(data);
     if (filteredData.length === 0) {
@@ -298,40 +379,93 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
     try {
       setIsExporting(true);
       const XLSX = await import('xlsx');
-      const excelData = filteredData.map((item) => ({
-        Company: item.company === 'TOURILLO' ? 'TRL' : 'TTH',
-        'Itinerary ID': item.travelId,
-        'Client Name': item.clientName,
-        'Client Phone': item.clientPhone,
-        'Client Email': item.clientEmail || '',
-        'Agent Name': item.tripAdvisorName || 'N/A',
-        'Agent Phone': item.tripAdvisorNumber || 'N/A',
-        'Package Title': item.packageTitle,
-        Days: item.numberOfDays,
-        Nights: item.numberOfNights,
-        'Quote Price (₹)': item.quotePrice,
-        'Price Per Person (₹)': item.pricePerPerson,
-        'Created Date': formatDate(item.createdAt), // dd/mm/yyyy
-      }));
+
+      // Find max days and hotels
+      const maxDays = Math.max(...filteredData.map((item) => (Array.isArray(item.days) ? item.days.length : 0)), 1);
+      const maxHotels = Math.max(
+        ...filteredData.map((item) => (Array.isArray(item.hotels) ? item.hotels.length : 0)),
+        1
+      );
+
+      const excelData = filteredData.map((item, index) => {
+        const daysArray = Array.isArray(item.days) ? item.days : [];
+        const hotelsArray = Array.isArray(item.hotels) ? item.hotels : [];
+        const inclusionsArray = Array.isArray(item.inclusions) ? item.inclusions : [];
+        const exclusionsArray = Array.isArray(item.exclusions) ? item.exclusions : [];
+
+        const row: any = {
+          'S.No': index + 1,
+          'Itinerary ID': item.travelId,
+          Company: item.company === 'TOURILLO' ? 'TRL' : 'TTH',
+          'Client Name': item.clientName,
+          'Client Phone': item.clientPhone,
+          'Client Email': item.clientEmail || '',
+          'Trip Advisor Name': item.tripAdvisorName || 'N/A',
+          'Trip Advisor Phone': item.tripAdvisorNumber || 'N/A',
+          'Package Title': item.packageTitle,
+          'Number of Days': item.numberOfDays,
+          'Number of Nights': item.numberOfNights,
+          'Number of Hotels': item.numberOfHotels,
+          Cabs: item.cabs,
+          Flights: item.flights,
+          'Quote Price (₹)': item.quotePrice,
+          'Price Per Person (₹)': item.pricePerPerson,
+        };
+
+        // ✅ Add days - Using SUMMARY field
+        for (let i = 0; i < maxDays; i++) {
+          const day = daysArray[i];
+          row[`Day ${i + 1} Summary`] = day?.summary || '';
+          row[`Day ${i + 1} Description`] = day?.description || '';
+          row[`Day ${i + 1} Image`] = day?.imageSrc || '';
+        }
+
+        // ✅ Add hotels - Using CORRECT DB Fields
+        for (let i = 0; i < maxHotels; i++) {
+          const hotel = hotelsArray[i];
+          row[`Hotel ${i + 1} Name`] = hotel?.hotelName || '';
+          row[`Hotel ${i + 1} Place Name`] = hotel?.placeName || '';
+          row[`Hotel ${i + 1} Room Type`] = hotel?.roomType || '';
+          row[`Hotel ${i + 1} Description`] = hotel?.hotelDescription || '';
+          row[`Hotel ${i + 1} Place Description`] = hotel?.placeDescription || '';
+        }
+
+        row['Inclusions'] = inclusionsArray.join('; ');
+        row['Exclusions'] = exclusionsArray.join('; ');
+        row['Created Date'] = formatDate(item.createdAt);
+        row['Updated Date'] = item.updatedAt ? formatDate(item.updatedAt) : formatDate(item.createdAt);
+
+        return row;
+      });
 
       const worksheet = XLSX.utils.json_to_sheet(excelData);
       const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Itineraries');
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Itineraries Complete');
 
+      // Dynamic column widths
       const columnWidths = [
-        { wch: 10 },
-        { wch: 20 },
-        { wch: 20 },
-        { wch: 15 },
-        { wch: 25 },
-        { wch: 20 },
-        { wch: 15 },
-        { wch: 30 },
-        { wch: 8 },
-        { wch: 8 },
-        { wch: 15 },
-        { wch: 18 },
-        { wch: 20 },
+        { wch: 6 }, // S.No
+        { wch: 20 }, // Itinerary ID
+        { wch: 10 }, // Company
+        { wch: 20 }, // Client Name
+        { wch: 15 }, // Client Phone
+        { wch: 25 }, // Client Email
+        { wch: 20 }, // Trip Advisor Name
+        { wch: 15 }, // Trip Advisor Phone
+        { wch: 30 }, // Package Title
+        { wch: 12 }, // Number of Days
+        { wch: 12 }, // Number of Nights
+        { wch: 12 }, // Number of Hotels
+        { wch: 20 }, // Cabs
+        { wch: 20 }, // Flights
+        { wch: 15 }, // Quote Price
+        { wch: 18 }, // Price Per Person
+        ...Array.from({ length: maxDays * 3 }, () => ({ wch: 50 })), // Days (summary, description, image)
+        ...Array.from({ length: maxHotels * 5 }, () => ({ wch: 30 })), // Hotels (name, place, room, desc, place desc)
+        { wch: 60 }, // Inclusions
+        { wch: 60 }, // Exclusions
+        { wch: 15 }, // Created Date
+        { wch: 15 }, // Updated Date
       ];
       worksheet['!cols'] = columnWidths;
 
@@ -339,8 +473,8 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
       const filterLabel = companyFilter === 'ALL' ? 'all' : companyFilter === 'TOURILLO' ? 'tourillo' : 'traveltrail';
       const dateLabel = startDate && endDate ? `_${startDate}_to_${endDate}` : '';
 
-      XLSX.writeFile(workbook, `itineraries_${filterLabel}${dateLabel}_${timestamp}.xlsx`);
-      toast.success(`${filteredData.length} itineraries exported to Excel!`);
+      XLSX.writeFile(workbook, `itineraries_complete_${filterLabel}${dateLabel}_${timestamp}.xlsx`);
+      toast.success(`${filteredData.length} itineraries exported to Excel with complete data!`);
     } catch (error) {
       toast.error('Failed to export to Excel');
       console.error('Excel export error:', error);
@@ -349,7 +483,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
     }
   };
 
-  // Export to PDF
+  // ✅ Export to PDF - Summary + Details with CORRECT DB Fields
   const exportToPDF = async (data: Itinerary[]) => {
     const filteredData = getDateFilteredData(data);
     if (filteredData.length === 0) {
@@ -371,41 +505,193 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
             ? 'Tourillo (TRL)'
             : 'Travel Trail Holidays (TTH)';
 
-      doc.setFontSize(16);
-      doc.text('Itinerary Report', 14, 15);
+      // Title page
+      doc.setFontSize(18);
+      doc.setTextColor(99, 102, 241);
+      doc.text('Complete Itinerary Report', 14, 15);
 
       doc.setFontSize(10);
-      let subtitle = `Filter: ${filterLabel} | Generated: ${timestamp}`;
+      doc.setTextColor(75, 85, 99);
+      let subtitle = `Filter: ${filterLabel} | Total: ${filteredData.length} | Generated: ${timestamp}`;
       if (startDate && endDate) {
-        subtitle += `\nDate Range: ${startDate} to ${endDate}`;
+        subtitle += `\nDate Range: ${formatDisplayDate(startDate)} to ${formatDisplayDate(endDate)}`;
       }
-      doc.text(subtitle, 14, 22);
+      doc.text(subtitle, 14, 24);
 
-      const tableData = filteredData.map((item) => [
+      // Summary Table
+      const summaryData = filteredData.map((item, index) => [
+        index + 1,
         item.company === 'TOURILLO' ? 'TRL' : 'TTH',
         item.travelId,
         item.clientName,
         item.tripAdvisorName || '-',
-        item.packageTitle,
+        item.packageTitle.substring(0, 25) + '...',
         `${item.numberOfNights}N/${item.numberOfDays}D`,
         formatPrice(item.quotePrice),
-        formatDate(item.createdAt), // dd/mm/yyyy
+        formatDate(item.createdAt),
       ]);
 
       autoTable(doc, {
-        head: [['Company', 'Itinerary ID', 'Client', 'Agent', 'Package', 'Duration', 'Price', 'Created']],
-        body: tableData,
-        startY: startDate && endDate ? 32 : 28,
+        head: [['#', 'Co.', 'ID', 'Client', 'Agent', 'Package', 'Duration', 'Price', 'Created']],
+        body: summaryData,
+        startY: startDate && endDate ? 34 : 30,
         theme: 'grid',
-        styles: { fontSize: 8, cellPadding: 3 },
+        styles: { fontSize: 7, cellPadding: 2 },
         headStyles: { fillColor: [99, 102, 241], textColor: 255, fontStyle: 'bold' },
         alternateRowStyles: { fillColor: [245, 245, 245] },
+        columnStyles: {
+          0: { halign: 'center', cellWidth: 8 },
+        },
       });
 
+      // Detailed pages
+      filteredData.forEach((item, index) => {
+        doc.addPage();
+
+        doc.setFontSize(14);
+        doc.setTextColor(99, 102, 241);
+        doc.text(`${index + 1}. ${item.travelId} - ${item.packageTitle}`, 14, 15);
+
+        let yPos = 25;
+        doc.setFontSize(9);
+        doc.setTextColor(0, 0, 0);
+
+        // Basic Details
+        const details = [
+          ['Company:', item.company === 'TOURILLO' ? 'Tourillo (TRL)' : 'Travel Trail Holidays (TTH)'],
+          ['Client Name:', item.clientName],
+          ['Client Phone:', item.clientPhone],
+          ['Client Email:', item.clientEmail || 'N/A'],
+          ['Trip Advisor:', `${item.tripAdvisorName || 'N/A'} (${item.tripAdvisorNumber || 'N/A'})`],
+          ['Duration:', `${item.numberOfDays} Days / ${item.numberOfNights} Nights`],
+          ['Hotels:', `${item.numberOfHotels} Hotels`],
+          ['Cabs:', item.cabs],
+          ['Flights:', item.flights],
+          ['Quote Price:', formatPrice(item.quotePrice)],
+          ['Price Per Person:', formatPrice(item.pricePerPerson)],
+          ['Created:', formatDate(item.createdAt)],
+          ['Updated:', item.updatedAt ? formatDate(item.updatedAt) : formatDate(item.createdAt)],
+        ];
+
+        details.forEach(([label, value]) => {
+          doc.setFont('helvetica', 'bold');
+          doc.text(label, 14, yPos);
+          doc.setFont('helvetica', 'normal');
+          const lines = doc.splitTextToSize(String(value), 230);
+          doc.text(lines, 60, yPos);
+          yPos += lines.length * 5;
+        });
+
+        // ✅ Itinerary Days - Using SUMMARY field
+        if (Array.isArray(item.days) && item.days.length > 0) {
+          yPos += 5;
+          doc.setFont('helvetica', 'bold');
+          doc.text('Itinerary:', 14, yPos);
+          yPos += 7;
+          doc.setFont('helvetica', 'normal');
+
+          item.days.forEach((day: any, dayIdx: number) => {
+            if (yPos > 180) {
+              doc.addPage();
+              yPos = 20;
+            }
+            doc.setFont('helvetica', 'bold');
+            doc.text(`Day ${dayIdx + 1}: ${day.summary || 'N/A'}`, 14, yPos);
+            yPos += 5;
+            doc.setFont('helvetica', 'normal');
+            const descLines = doc.splitTextToSize(day.description || 'No description', 260);
+            doc.text(descLines, 14, yPos);
+            yPos += descLines.length * 4 + 3;
+          });
+        }
+
+        // ✅ Hotels - Using CORRECT DB Fields
+        if (Array.isArray(item.hotels) && item.hotels.length > 0) {
+          if (yPos > 160) {
+            doc.addPage();
+            yPos = 20;
+          }
+          yPos += 5;
+          doc.setFont('helvetica', 'bold');
+          doc.text('Hotels:', 14, yPos);
+          yPos += 7;
+          doc.setFont('helvetica', 'normal');
+
+          item.hotels.forEach((hotel: any, hotelIdx: number) => {
+            if (yPos > 180) {
+              doc.addPage();
+              yPos = 20;
+            }
+            const hotelText = `${hotelIdx + 1}. ${hotel.hotelName || 'N/A'} - ${hotel.placeName || 'N/A'} (${hotel.roomType || 'N/A'})`;
+            const hotelLines = doc.splitTextToSize(hotelText, 260);
+            doc.text(hotelLines, 14, yPos);
+            yPos += hotelLines.length * 4;
+
+            if (hotel.hotelDescription) {
+              const descLines = doc.splitTextToSize(`Hotel: ${hotel.hotelDescription}`, 260);
+              doc.text(descLines, 18, yPos);
+              yPos += descLines.length * 4;
+            }
+
+            if (hotel.placeDescription) {
+              const placeLines = doc.splitTextToSize(`Place: ${hotel.placeDescription}`, 260);
+              doc.text(placeLines, 18, yPos);
+              yPos += placeLines.length * 4;
+            }
+
+            yPos += 2;
+          });
+        }
+
+        // Inclusions
+        if (Array.isArray(item.inclusions) && item.inclusions.length > 0) {
+          if (yPos > 160) {
+            doc.addPage();
+            yPos = 20;
+          }
+          yPos += 5;
+          doc.setFont('helvetica', 'bold');
+          doc.text('Inclusions:', 14, yPos);
+          yPos += 7;
+          doc.setFont('helvetica', 'normal');
+          item.inclusions.forEach((inc: string) => {
+            if (yPos > 185) {
+              doc.addPage();
+              yPos = 20;
+            }
+            doc.text(`• ${inc}`, 14, yPos);
+            yPos += 5;
+          });
+        }
+
+        // Exclusions
+        if (Array.isArray(item.exclusions) && item.exclusions.length > 0) {
+          if (yPos > 160) {
+            doc.addPage();
+            yPos = 20;
+          }
+          yPos += 5;
+          doc.setFont('helvetica', 'bold');
+          doc.text('Exclusions:', 14, yPos);
+          yPos += 7;
+          doc.setFont('helvetica', 'normal');
+          item.exclusions.forEach((exc: string) => {
+            if (yPos > 185) {
+              doc.addPage();
+              yPos = 20;
+            }
+            doc.text(`• ${exc}`, 14, yPos);
+            yPos += 5;
+          });
+        }
+      });
+
+      // Page numbers
       const pageCount = (doc as any).internal.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
         doc.setFontSize(9);
+        doc.setTextColor(156, 163, 175);
         doc.text(
           `Page ${i} of ${pageCount}`,
           doc.internal.pageSize.getWidth() / 2,
@@ -418,8 +704,8 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
       const dateStr = new Date().toISOString().split('T')[0];
       const dateLabel = startDate && endDate ? `_${startDate}_to_${endDate}` : '';
 
-      doc.save(`itineraries_${filterLabel2}${dateLabel}_${dateStr}.pdf`);
-      toast.success(`${filteredData.length} itineraries exported to PDF!`);
+      doc.save(`itineraries_complete_${filterLabel2}${dateLabel}_${dateStr}.pdf`);
+      toast.success(`${filteredData.length} itineraries exported to PDF with complete details!`);
     } catch (error) {
       toast.error('Failed to export to PDF');
       console.error('PDF export error:', error);
@@ -438,13 +724,13 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
     setTimeout(() => {
       switch (exportType) {
         case 'csv':
-          exportToCSV(filtered);
+          exportToCSV(itineraries);
           break;
         case 'excel':
-          exportToExcel(filtered);
+          exportToExcel(itineraries);
           break;
         case 'pdf':
-          exportToPDF(filtered);
+          exportToPDF(itineraries);
           break;
       }
       setStartDate('');
@@ -456,6 +742,16 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
     setStartDate('');
     setEndDate('');
     setApplyDateFilter(false);
+  };
+
+  const clearAllFilters = () => {
+    setSearch('');
+    setCompanyFilter('ALL');
+    setAgentFilter('ALL');
+    setStartDate('');
+    setEndDate('');
+    setApplyDateFilter(false);
+    setPage(1);
   };
 
   const handleDelete = async () => {
@@ -492,15 +788,19 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
     setShowDeleteDialog(true);
   };
 
+  const hasActiveFilters = companyFilter !== 'ALL' || agentFilter !== 'ALL' || search.trim() || applyDateFilter;
+
   return (
-    <div className="rounded-sm bg-foreground shadow-lg border border-gray-200 dark:border-gray-700 p-6">
-      {/* Search, Filter and Stats */}
+    <div className="rounded bg-foreground shadow-lg border border-gray-200 dark:border-gray-700 p-4 md:p-6">
+      {/* Search, Filters and Export */}
       <div className="mb-6 space-y-4">
-        <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+        {/* First Row: Search and Export */}
+        <div className="flex flex-col lg:flex-row gap-3 items-start lg:items-center justify-between">
+          {/* Search Bar */}
           <div className="relative flex-1 max-w-md w-full">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
             <input
-              className="w-full pl-10 pr-4 py-2.5 rounded-sm border-2 border-gray-300 dark:border-gray-600 bg-background focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
+              className="w-full pl-10 pr-4 py-2.5 rounded border-2 border-gray-300 dark:border-gray-600 bg-background focus:outline-none focus:ring-2 focus:ring-purple-500 transition cursor-text"
               placeholder="Search by ID, client, agent, or package..."
               value={search}
               onChange={(e) => {
@@ -510,116 +810,133 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
             />
           </div>
 
-          <div className="flex gap-2 items-center flex-wrap">
-            <Filter className="h-4 w-4 text-gray-400" />
-            <div className="flex gap-2">
+          {/* Export Button */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <Button
                 size="sm"
-                variant={companyFilter === 'ALL' ? 'default' : 'outline'}
-                onClick={() => {
-                  setCompanyFilter('ALL');
-                  setPage(1);
-                }}
-                className={`cursor-pointer ${companyFilter === 'ALL' ? 'bg-sky-500 hover:bg-sky-600' : ''}`}
+                variant="default"
+                disabled={filtered.length === 0 || isExporting}
+                className="bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 cursor-pointer h-10 shrink-0 rounded"
               >
-                All ({stats.total})
+                {isExporting ? (
+                  <>
+                    <LoadingSpinner />
+                    <span className="ml-2">Exporting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-4 w-4 mr-2" />
+                    Export ({filtered.length})
+                  </>
+                )}
               </Button>
-              <Button
-                size="sm"
-                variant={companyFilter === 'TOURILLO' ? 'default' : 'outline'}
-                onClick={() => {
-                  setCompanyFilter('TOURILLO');
-                  setPage(1);
-                }}
-                className={`cursor-pointer ${companyFilter === 'TOURILLO' ? 'bg-purple-500 hover:bg-purple-600' : ''}`}
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem
+                onClick={() => handleExportClick('csv')}
+                disabled={isExporting}
+                className="cursor-pointer"
               >
-                TRL ({stats.tourillo})
-              </Button>
-              <Button
-                size="sm"
-                variant={companyFilter === 'TRAVEL_TRAIL_HOLIDAYS' ? 'default' : 'outline'}
-                onClick={() => {
-                  setCompanyFilter('TRAVEL_TRAIL_HOLIDAYS');
-                  setPage(1);
-                }}
-                className={`cursor-pointer ${companyFilter === 'TRAVEL_TRAIL_HOLIDAYS' ? 'bg-blue-500 hover:bg-blue-600' : ''}`}
+                <Sheet className="h-4 w-4 mr-2 text-blue-600" />
+                <span>Export to CSV</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleExportClick('excel')}
+                disabled={isExporting}
+                className="cursor-pointer"
               >
-                TTH ({stats.travelTrail})
-              </Button>
-            </div>
+                <FileText className="h-4 w-4 mr-2 text-green-600" />
+                <span>Export to Excel</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => handleExportClick('pdf')}
+                disabled={isExporting}
+                className="cursor-pointer"
+              >
+                <File className="h-4 w-4 mr-2 text-red-600" />
+                <span>Export to PDF</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
 
-            {/* Agent Filter with Counts */}
+        {/* Second Row: Filters */}
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-wrap gap-2 items-center justify-start">
+            {/* Company Filter Buttons */}
+            <Button
+              size="sm"
+              variant={companyFilter === 'ALL' ? 'default' : 'outline'}
+              onClick={() => {
+                setCompanyFilter('ALL');
+                setPage(1);
+              }}
+              className={`cursor-pointer rounded h-9 ${companyFilter === 'ALL' ? 'bg-sky-500 hover:bg-sky-600' : ''}`}
+            >
+              All Packages <span className="ml-1 text-xs opacity-80">({stats.total})</span>
+            </Button>
+            <Button
+              size="sm"
+              variant={companyFilter === 'TOURILLO' ? 'default' : 'outline'}
+              onClick={() => {
+                setCompanyFilter('TOURILLO');
+                setPage(1);
+              }}
+              className={`cursor-pointer rounded h-9 ${companyFilter === 'TOURILLO' ? 'bg-purple-500 hover:bg-purple-600' : ''}`}
+            >
+              Tourillo <span className="ml-1 text-xs opacity-80">({stats.tourillo})</span>
+            </Button>
+            <Button
+              size="sm"
+              variant={companyFilter === 'TRAVEL_TRAIL_HOLIDAYS' ? 'default' : 'outline'}
+              onClick={() => {
+                setCompanyFilter('TRAVEL_TRAIL_HOLIDAYS');
+                setPage(1);
+              }}
+              className={`cursor-pointer rounded h-9 ${companyFilter === 'TRAVEL_TRAIL_HOLIDAYS' ? 'bg-blue-500 hover:bg-blue-600' : ''}`}
+            >
+              Travel Trail <span className="ml-1 text-xs opacity-80">({stats.travelTrail})</span>
+            </Button>
+
+            {/* Agent Filter Dropdown */}
             <select
-              className="h-9 px-3 rounded-md border border-gray-300 dark:border-gray-600 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="h-9 px-3 rounded border border-gray-300 dark:border-gray-600 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
               value={agentFilter}
               onChange={(e) => {
                 setAgentFilter(e.target.value);
                 setPage(1);
               }}
             >
-              <option value="ALL">All Agents</option>
+              <option value="ALL">All Agents ({stats.total})</option>
               {agentOptions.map((agent) => (
                 <option key={agent.name} value={agent.name}>
                   {agent.name} ({agent.count})
                 </option>
               ))}
             </select>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  size="sm"
-                  variant="default"
-                  disabled={filtered.length === 0 || isExporting}
-                  className="bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 cursor-pointer"
-                >
-                  {isExporting ? (
-                    <>
-                      <LoadingSpinner />
-                      <span className="ml-2">Exporting...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Download className="h-4 w-4 mr-2" />
-                      Export ({filtered.length})
-                    </>
-                  )}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem
-                  onClick={() => handleExportClick('csv')}
-                  disabled={isExporting}
-                  className="cursor-pointer"
-                >
-                  <Sheet className="h-4 w-4 mr-2 text-blue-600" />
-                  <span>Export to CSV</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => handleExportClick('excel')}
-                  disabled={isExporting}
-                  className="cursor-pointer"
-                >
-                  <FileText className="h-4 w-4 mr-2 text-green-600" />
-                  <span>Export to Excel</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => handleExportClick('pdf')}
-                  disabled={isExporting}
-                  className="cursor-pointer"
-                >
-                  <File className="h-4 w-4 mr-2 text-red-600" />
-                  <span>Export to PDF</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
+
+          {/* Clear Filters Button - New Line */}
+          {hasActiveFilters && (
+            <div className="flex justify-start">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={clearAllFilters}
+                className="cursor-pointer rounded text-red-600 hover:text-red-700 hover:border-red-600 h-9"
+              >
+                <X className="h-4 w-4 mr-1" />
+                Clear All Filters
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="px-4 py-3 bg-linear-to-r from-purple-100 to-purple-200 dark:from-purple-900/30 dark:to-purple-800/30 rounded-sm">
+          <div className="px-4 py-3 bg-linear-to-r from-purple-100 to-purple-200 dark:from-purple-900/30 dark:to-purple-800/30 rounded">
             <div className="flex items-center gap-2 mb-1">
               <Building2 className="h-4 w-4 text-purple-600" />
               <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Tourillo (TRL)</p>
@@ -627,7 +944,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
             <p className="text-2xl font-bold text-purple-600">{stats.tourillo}</p>
           </div>
 
-          <div className="px-4 py-3 bg-linear-to-r from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30 rounded-sm">
+          <div className="px-4 py-3 bg-linear-to-r from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30 rounded">
             <div className="flex items-center gap-2 mb-1">
               <Building2 className="h-4 w-4 text-blue-600" />
               <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Travel Trail (TTH)</p>
@@ -635,7 +952,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
             <p className="text-2xl font-bold text-blue-600">{stats.travelTrail}</p>
           </div>
 
-          <div className="px-4 py-3 bg-linear-to-r from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30 rounded-sm">
+          <div className="px-4 py-3 bg-linear-to-r from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30 rounded">
             <div className="flex items-center gap-2 mb-1">
               <PackageIcon className="h-4 w-4 text-green-600" />
               <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Total Itineraries</p>
@@ -645,7 +962,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
         </div>
 
         {/* Active Filter Indicator */}
-        {(companyFilter !== 'ALL' || agentFilter !== 'ALL' || search.trim() || applyDateFilter) && (
+        {hasActiveFilters && (
           <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 flex-wrap">
             <span>
               Showing {filtered.length} of {stats.total} itineraries
@@ -667,7 +984,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
                 {formatDisplayDate(startDate)} to {formatDisplayDate(endDate)}
                 <button
                   onClick={clearDateFilter}
-                  className="hover:bg-blue-200 dark:hover:bg-blue-800 rounded-full p-0.5"
+                  className="hover:bg-blue-200 dark:hover:bg-blue-800 rounded-full p-0.5 cursor-pointer"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -678,25 +995,28 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
       </div>
 
       {/* Table Section */}
-      <div className="overflow-x-auto rounded-sm border border-gray-200 dark:border-gray-700">
+      <div className="overflow-x-auto rounded border border-gray-200 dark:border-gray-700 scrollbar-visible">
         <Table>
           <TableHeader>
-            <TableRow className="bg-gray-50 dark:bg-gray-800">
-              <TableHead className="text-primary font-bold">Company</TableHead>
-              <TableHead className="text-primary font-bold">Itinerary ID</TableHead>
-              <TableHead className="text-primary font-bold">Client</TableHead>
-              <TableHead className="text-primary font-bold">Agent</TableHead>
-              <TableHead className="text-primary font-bold">Package</TableHead>
-              <TableHead className="text-primary font-bold">Duration</TableHead>
-              <TableHead className="text-primary font-bold">Pricing</TableHead>
-              <TableHead className="text-primary font-bold">Created</TableHead>
-              <TableHead className="text-primary font-bold text-right">Actions</TableHead>
+            <TableRow className="bg-gray-50 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800">
+              <TableHead className="font-bold text-gray-700 dark:text-gray-300 w-16 min-w-[60px]">S.No</TableHead>
+              <TableHead className="font-bold text-gray-700 dark:text-gray-300 min-w-[100px]">Company</TableHead>
+              <TableHead className="font-bold text-gray-700 dark:text-gray-300 min-w-[150px]">Itinerary ID</TableHead>
+              <TableHead className="font-bold text-gray-700 dark:text-gray-300 min-w-[140px]">Client</TableHead>
+              <TableHead className="font-bold text-gray-700 dark:text-gray-300 min-w-[140px]">Agent</TableHead>
+              <TableHead className="font-bold text-gray-700 dark:text-gray-300 min-w-[180px]">Package</TableHead>
+              <TableHead className="font-bold text-gray-700 dark:text-gray-300 min-w-[100px]">Duration</TableHead>
+              <TableHead className="font-bold text-gray-700 dark:text-gray-300 min-w-[120px]">Pricing</TableHead>
+              <TableHead className="font-bold text-gray-700 dark:text-gray-300 min-w-[100px]">Created</TableHead>
+              <TableHead className="font-bold text-gray-700 dark:text-gray-300 text-right min-w-[120px] sticky right-0 bg-gray-50 dark:bg-gray-800 z-10 shadow-[-2px_0_4px_rgba(0,0,0,0.05)]">
+                Actions
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {pageData.length === 0 && (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-12">
+                <TableCell colSpan={10} className="text-center py-12">
                   <div className="flex flex-col items-center gap-2">
                     <PackageIcon className="h-12 w-12 text-gray-300 dark:text-gray-600" />
                     <p className="text-gray-500 dark:text-gray-400">
@@ -708,11 +1028,14 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
                 </TableCell>
               </TableRow>
             )}
-            {pageData.map((itinerary) => (
+            {pageData.map((itinerary, idx) => (
               <TableRow key={itinerary.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition">
+                <TableCell className="font-medium text-gray-600 dark:text-gray-400">
+                  {(page - 1) * PAGE_SIZE + idx + 1}
+                </TableCell>
                 <TableCell>
                   <span
-                    className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold ${itinerary.company === 'TOURILLO' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}
+                    className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold ${itinerary.company === 'TOURILLO' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'}`}
                   >
                     <Building2 className="h-3 w-3" />
                     {itinerary.company === 'TOURILLO' ? 'TRL' : 'TTH'}
@@ -727,7 +1050,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
                       size="icon"
                       variant="ghost"
                       onClick={() => copyTravelId(itinerary.travelId)}
-                      className="h-7 w-7"
+                      className="h-7 w-7 cursor-pointer rounded"
                     >
                       <Copy className="h-3.5 w-3.5" />
                     </Button>
@@ -741,8 +1064,10 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
                 </TableCell>
                 <TableCell>
                   <div className="space-y-1">
-                    <p className="font-semibold text-sm text-indigo-600">{itinerary.tripAdvisorName || 'N/A'}</p>
-                    <p className="text-xs text-gray-500">{itinerary.tripAdvisorNumber}</p>
+                    <p className="font-semibold text-sm text-indigo-600 dark:text-indigo-400">
+                      {itinerary.tripAdvisorName || 'N/A'}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{itinerary.tripAdvisorNumber || '-'}</p>
                   </div>
                 </TableCell>
                 <TableCell className="max-w-xs">
@@ -755,22 +1080,26 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
                 </TableCell>
                 <TableCell>
                   <div className="space-y-1">
-                    <p className="font-bold text-green-600 text-sm">{formatPrice(itinerary.quotePrice)}</p>
-                    <p className="text-xs text-gray-500">{formatPrice(itinerary.pricePerPerson)}/p</p>
+                    <p className="font-bold text-green-600 dark:text-green-500 text-sm">
+                      {formatPrice(itinerary.quotePrice)}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {formatPrice(itinerary.pricePerPerson)}/p
+                    </p>
                   </div>
                 </TableCell>
                 <TableCell>
-                  <p className="text-xs text-gray-600">{formatDate(itinerary.createdAt)}</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">{formatDate(itinerary.createdAt)}</p>
                 </TableCell>
-                <TableCell>
+                <TableCell className="sticky right-0 bg-white dark:bg-gray-900 z-10 shadow-[-2px_0_4px_rgba(0,0,0,0.05)]">
                   <div className="flex gap-2 justify-end">
                     <Link href={`/admin/itinerary/edit-itinerary/${itinerary.travelId}`}>
-                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0 cursor-pointer rounded" title="Edit">
                         <Edit className="h-4 w-4 text-blue-600" />
                       </Button>
                     </Link>
                     <Link href={`/itinerary/view/${itinerary.travelId}`} target="_blank">
-                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0 cursor-pointer rounded" title="View">
                         <Eye className="h-4 w-4 text-green-600" />
                       </Button>
                     </Link>
@@ -779,7 +1108,8 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
                         size="sm"
                         variant="ghost"
                         onClick={() => openDeleteDialog(itinerary.id)}
-                        className="h-8 w-8 p-0"
+                        className="h-8 w-8 p-0 cursor-pointer rounded"
+                        title="Delete"
                       >
                         <Trash2 className="h-4 w-4 text-red-600" />
                       </Button>
@@ -792,13 +1122,19 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
         </Table>
       </div>
 
+      {/* Pagination */}
       <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4">
-        <span className="text-sm text-gray-600">
-          Showing {pageData.length > 0 ? (page - 1) * PAGE_SIZE + 1 : 0} to{' '}
-          {Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length} results
+        <span className="text-sm text-gray-600 dark:text-gray-400">
+          Page {totalPages > 0 ? page : 0} of {totalPages}
         </span>
         <div className="flex gap-2">
-          <Button disabled={page === 1} size="sm" onClick={() => setPage((p) => Math.max(p - 1, 1))} variant="outline">
+          <Button
+            disabled={page === 1}
+            size="sm"
+            onClick={() => setPage((p) => Math.max(p - 1, 1))}
+            variant="outline"
+            className="cursor-pointer rounded"
+          >
             Previous
           </Button>
           <Button
@@ -806,13 +1142,14 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
             size="sm"
             onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
             variant="outline"
+            className="cursor-pointer rounded"
           >
             Next
           </Button>
         </div>
       </div>
 
-      {/* Export Dialog with Fixed Preview */}
+      {/* Export Dialog */}
       <Dialog open={showDateRangeDialog} onOpenChange={setShowDateRangeDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -824,7 +1161,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            <div className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-sm hover:border-purple-500 transition">
+            <div className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded hover:border-purple-500 transition">
               <button
                 type="button"
                 onClick={() => {
@@ -832,7 +1169,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
                   setEndDate('');
                   executeExport();
                 }}
-                className="w-full flex items-center justify-between group"
+                className="w-full flex items-center justify-between group cursor-pointer"
               >
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-linear-to-r from-green-500 to-emerald-600 rounded-full">
@@ -843,7 +1180,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
                   </div>
                 </div>
                 <div className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
-                  {filtered.length}
+                  {stats.total}
                 </div>
               </button>
             </div>
@@ -858,7 +1195,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
             </div>
 
             <div className="space-y-3">
-              <p className="text-sm font-semibold text-gray-700">Select Custom Date Range</p>
+              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Select Custom Date Range</p>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">
@@ -869,7 +1206,7 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
                   max={formatDateForInput(new Date())}
-                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-purple-500 bg-background"
+                  className="w-full px-3 py-2 border-2 border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-purple-500 bg-background cursor-pointer"
                 />
               </div>
 
@@ -884,13 +1221,13 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
                   min={startDate}
                   max={formatDateForInput(new Date())}
                   disabled={!startDate}
-                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-purple-500 bg-background disabled:opacity-50"
+                  className="w-full px-3 py-2 border-2 border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-purple-500 bg-background disabled:opacity-50 cursor-pointer"
                 />
               </div>
 
               {startDate && endDate && (
-                <div className="p-3 bg-blue-50 rounded-sm border border-blue-200">
-                  <p className="text-sm text-blue-700 flex items-center gap-2">
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-800">
+                  <p className="text-sm text-blue-700 dark:text-blue-300 flex items-center gap-2">
                     <CalendarIcon className="h-4 w-4" />
                     <span>
                       <strong>{formatDisplayDate(startDate)}</strong> to <strong>{formatDisplayDate(endDate)}</strong>
@@ -909,13 +1246,14 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
                 setStartDate('');
                 setEndDate('');
               }}
+              className="rounded cursor-pointer"
             >
               Cancel
             </Button>
             <Button
               onClick={executeExport}
               disabled={!startDate || !endDate}
-              className="bg-linear-to-r from-purple-500 to-indigo-600 text-white hover:from-purple-600 hover:to-indigo-700"
+              className="bg-linear-to-r from-purple-500 to-indigo-600 text-white hover:from-purple-600 hover:to-indigo-700 rounded cursor-pointer"
             >
               Export Date Range
             </Button>
@@ -923,8 +1261,9 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
         </DialogContent>
       </Dialog>
 
+      {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Itinerary?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -932,9 +1271,15 @@ export const ItineraryList: React.FC<ItineraryListProps> = ({ itineraries }) => 
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDeleteId(null)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
-              Delete
+            <AlertDialogCancel onClick={() => setDeleteId(null)} className="rounded cursor-pointer">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700 rounded cursor-pointer"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

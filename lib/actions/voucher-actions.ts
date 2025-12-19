@@ -23,6 +23,14 @@ export interface VoucherData {
   totalNights: number;
   hotelStays: HotelStay[];
   cabDetails: string;
+  itinerary?: {
+    packageTitle: string;
+    clientPhone: string;
+    clientEmail: string | null;
+    numberOfHotels: number;
+    tripAdvisorName: string;
+    tripAdvisorNumber: string;
+  };
   createdAt: string;
   updatedAt: string;
 }
@@ -37,6 +45,8 @@ export interface VoucherConfirmationData {
     packageTitle: string;
     numberOfNights: number;
     numberOfHotels: number;
+    tripAdvisorName: string;
+    tripAdvisorNumber: string;
   };
   nextVoucherId: string;
 }
@@ -59,7 +69,7 @@ function generateVoucherId(itineraryTravelId: string, voucherCount: number): str
   return `${companyPrefix}C${remainingId}${voucherNumber}`;
 }
 
-// Check if vouchers exist and get confirmation data
+// ✅ Check if vouchers exist and get confirmation data
 export async function checkVoucherExists(travelId: string): Promise<VoucherConfirmationData | null> {
   try {
     const itinerary = await prisma.itinerary.findUnique({
@@ -72,6 +82,8 @@ export async function checkVoucherExists(travelId: string): Promise<VoucherConfi
         packageTitle: true,
         numberOfNights: true,
         numberOfHotels: true,
+        tripAdvisorName: true,
+        tripAdvisorNumber: true,
       },
     });
 
@@ -95,6 +107,7 @@ export async function checkVoucherExists(travelId: string): Promise<VoucherConfi
   }
 }
 
+// ✅ Create new voucher
 export async function createVoucher(data: z.infer<typeof voucherSchema>) {
   try {
     const validatedData = voucherSchema.parse(data);
@@ -137,6 +150,7 @@ export async function createVoucher(data: z.infer<typeof voucherSchema>) {
   }
 }
 
+// ✅ Get all vouchers with Trip Advisor info
 export async function getAllVouchers() {
   try {
     const vouchers = await prisma.voucher.findMany({
@@ -147,6 +161,8 @@ export async function getAllVouchers() {
             clientPhone: true,
             clientEmail: true,
             numberOfHotels: true,
+            tripAdvisorName: true,
+            tripAdvisorNumber: true,
           },
         },
       },
@@ -168,11 +184,23 @@ export async function getAllVouchers() {
   }
 }
 
-// ✅ Get voucher by database ID
+// ✅ Get voucher by database ID with Trip Advisor info
 export async function getVoucherById(id: string): Promise<VoucherData | null> {
   try {
     const voucher = await prisma.voucher.findUnique({
       where: { id },
+      include: {
+        itinerary: {
+          select: {
+            packageTitle: true,
+            clientPhone: true,
+            clientEmail: true,
+            numberOfHotels: true,
+            tripAdvisorName: true,
+            tripAdvisorNumber: true,
+          },
+        },
+      },
     });
 
     if (!voucher) {
@@ -190,6 +218,7 @@ export async function getVoucherById(id: string): Promise<VoucherData | null> {
       totalNights: voucher.totalNights,
       hotelStays: voucher.hotelStays as unknown as HotelStay[],
       cabDetails: voucher.cabDetails,
+      itinerary: voucher.itinerary,
       createdAt: voucher.createdAt.toISOString(),
       updatedAt: voucher.updatedAt.toISOString(),
     };
@@ -199,11 +228,23 @@ export async function getVoucherById(id: string): Promise<VoucherData | null> {
   }
 }
 
-// ✅ NEW: Get voucher by voucher ID (TRLC... or TTHC...)
+// ✅ Get voucher by voucher ID (TRLC... or TTHC...) with Trip Advisor info
 export async function getVoucherByVoucherId(voucherId: string): Promise<VoucherData | null> {
   try {
     const voucher = await prisma.voucher.findUnique({
       where: { voucherId },
+      include: {
+        itinerary: {
+          select: {
+            packageTitle: true,
+            clientPhone: true,
+            clientEmail: true,
+            numberOfHotels: true,
+            tripAdvisorName: true,
+            tripAdvisorNumber: true,
+          },
+        },
+      },
     });
 
     if (!voucher) {
@@ -221,6 +262,7 @@ export async function getVoucherByVoucherId(voucherId: string): Promise<VoucherD
       totalNights: voucher.totalNights,
       hotelStays: voucher.hotelStays as unknown as HotelStay[],
       cabDetails: voucher.cabDetails,
+      itinerary: voucher.itinerary,
       createdAt: voucher.createdAt.toISOString(),
       updatedAt: voucher.updatedAt.toISOString(),
     };
@@ -230,6 +272,7 @@ export async function getVoucherByVoucherId(voucherId: string): Promise<VoucherD
   }
 }
 
+// ✅ Update voucher
 export async function updateVoucher(id: string, data: z.infer<typeof voucherSchema>) {
   try {
     const validatedData = voucherSchema.parse(data);
@@ -258,6 +301,7 @@ export async function updateVoucher(id: string, data: z.infer<typeof voucherSche
   }
 }
 
+// ✅ Delete voucher
 export async function deleteVoucher(id: string) {
   try {
     await prisma.voucher.delete({
@@ -272,6 +316,7 @@ export async function deleteVoucher(id: string) {
   }
 }
 
+// ✅ Get all itineraries for dropdown with Trip Advisor info
 export async function getAllItinerariesForDropdown() {
   try {
     const itineraries = await prisma.itinerary.findMany({
@@ -282,6 +327,8 @@ export async function getAllItinerariesForDropdown() {
         clientPhone: true,
         clientEmail: true,
         numberOfHotels: true,
+        tripAdvisorName: true,
+        tripAdvisorNumber: true,
       },
       orderBy: {
         createdAt: 'desc',
@@ -295,6 +342,7 @@ export async function getAllItinerariesForDropdown() {
   }
 }
 
+// ✅ Get itinerary for voucher creation with Trip Advisor info
 export async function getItineraryForVoucher(travelId: string) {
   try {
     const itinerary = await prisma.itinerary.findUnique({
@@ -307,6 +355,8 @@ export async function getItineraryForVoucher(travelId: string) {
         packageTitle: true,
         numberOfNights: true,
         numberOfHotels: true,
+        tripAdvisorName: true,
+        tripAdvisorNumber: true,
         hotels: true,
         cabs: true,
       },
@@ -323,6 +373,7 @@ export async function getItineraryForVoucher(travelId: string) {
   }
 }
 
+// ✅ Get full itinerary by travel ID
 export async function getItineraryByTravelId(travelId: string) {
   try {
     const itinerary = await prisma.itinerary.findUnique({
