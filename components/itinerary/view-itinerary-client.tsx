@@ -197,7 +197,7 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
               <header className="bg-slate-800 text-white w-full flex p-4 justify-between items-center border-b-4 border-slate-600">
                 <CompanyLogo />
                 <div className="flex items-center gap-3">
-                  <div className="bg-slate-700 rounded-lg w-10 h-10 flex justify-center items-center text-white">
+                  <div className="bg-slate-700 rounded w-10 h-10 flex justify-center items-center text-white">
                     <FaPhoneAlt size={16} />
                   </div>
                   <div>
@@ -242,7 +242,7 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
                   </span>
 
                   {/* Client Contact Information */}
-                  <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200 print-avoid-break">
+                  <div className="mt-4 p-4 bg-gray-50 rounded border border-gray-200 print-avoid-break">
                     <h3 className="font-semibold text-base mb-3 text-slate-800 print-keep-with-next">
                       Client Information
                     </h3>
@@ -288,7 +288,7 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
                     </span>
                   </div>
 
-                  <div className="mt-4 p-4 bg-slate-50 rounded-lg border border-slate-200 print-avoid-break">
+                  <div className="mt-4 p-4 bg-slate-50 rounded border border-slate-200 print-avoid-break">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <span className="text-xs text-gray-500 uppercase tracking-wide">Total Package Price</span>
@@ -313,7 +313,7 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
                     {itinerary.hotels.map((hotel, index) => (
                       <div
                         key={index}
-                        className="border border-gray-300 rounded-lg p-4 hover:shadow-md transition print-avoid-break bg-white"
+                        className="border border-gray-300 rounded p-4 hover:shadow-md transition print-avoid-break bg-white"
                       >
                         <div className="flex items-center gap-2 mb-3">
                           <span className="text-base font-bold text-slate-800">{hotel.placeName}</span>
@@ -342,7 +342,7 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
               ) : (
                 <div className="px-5 py-4 print-compact print-allow-break-before border-b border-gray-200">
                   <h2 className="text-xl font-bold text-slate-800 print-keep-with-next mb-4">Accommodation</h2>
-                  <div className="p-4 bg-slate-50 rounded-lg border-2 border-slate-200">
+                  <div className="p-4 bg-slate-50 rounded border-2 border-slate-200">
                     <div className="flex items-start gap-3">
                       <div>
                         <h3 className="font-semibold text-slate-800 mb-1 flex items-center gap-2">
@@ -362,7 +362,7 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
               {/* Flights */}
               <div className="px-5 py-4 print-compact print-avoid-break border-b border-gray-200">
                 <h2 className="text-xl font-bold text-slate-800 print-keep-with-next mb-4">Flight Details</h2>
-                <div className="p-4 bg-gray-50 rounded-lg border border-gray-300">
+                <div className="p-4 bg-gray-50 rounded border border-gray-300">
                   <span className="text-sm text-gray-700 whitespace-pre-line">{itinerary.flights}</span>
                 </div>
               </div>
@@ -370,7 +370,7 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
               {/* Cabs */}
               <div className="px-5 py-4 print-compact print-avoid-break border-b border-gray-200">
                 <h2 className="text-xl font-bold text-slate-800 print-keep-with-next mb-4">Transportation</h2>
-                <div className="p-4 bg-gray-50 rounded-lg border border-gray-300">
+                <div className="p-4 bg-gray-50 rounded border border-gray-300">
                   <span className="text-sm text-gray-700 whitespace-pre-line">{itinerary.cabs}</span>
                 </div>
               </div>
@@ -382,7 +382,7 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
                   {itinerary.days.map((day, index) => (
                     <div
                       key={index}
-                      className="border border-gray-300 rounded-lg p-4 hover:shadow-md transition print-avoid-break bg-white"
+                      className="border border-gray-300 rounded p-4 hover:shadow-md transition print-avoid-break bg-white"
                     >
                       <div className="flex gap-3 items-start mb-3">
                         <div className="bg-slate-700 text-white font-bold text-sm px-4 py-1.5 rounded shrink-0">
@@ -391,7 +391,7 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
                         <span className="text-base font-semibold text-slate-800 mt-0.5">{day.summary}</span>
                       </div>
                       {day.imageSrc && (
-                        <div className="relative w-full h-48 mt-3 rounded-lg overflow-hidden border border-gray-300 print-avoid-break">
+                        <div className="relative w-full h-48 mt-3 rounded overflow-hidden border border-gray-300 print-avoid-break">
                           <Image
                             src={day.imageSrc}
                             alt={`Day ${day.dayNumber}`}
@@ -414,7 +414,7 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
               <div className="px-5 py-4 flex gap-8 print-compact print-allow-break-before print-smart-section border-b border-gray-200">
                 <div className="w-1/2">
                   <h2 className="text-lg font-bold text-slate-800 print-keep-with-next mb-4">What's Included</h2>
-                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-300">
+                  <div className="bg-gray-50 p-4 rounded border border-gray-300">
                     {itinerary.inclusions.map((inclusion, index) => (
                       <BulletPoints key={index} icon={FaCheck} size={12} color="#475569" text={inclusion} />
                     ))}
@@ -422,7 +422,7 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
                 </div>
                 <div className="w-1/2">
                   <h2 className="text-lg font-bold text-slate-800 print-keep-with-next mb-4">What's Excluded</h2>
-                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-300">
+                  <div className="bg-gray-50 p-4 rounded border border-gray-300">
                     {itinerary.exclusions.map((exclusion, index) => (
                       <BulletPoints key={index} icon={RxCrossCircled} size={12} color="#64748b" text={exclusion} />
                     ))}
@@ -435,7 +435,7 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
                 <h2 className="text-xl font-bold text-slate-800 print-keep-with-next mb-4">Payment Information</h2>
                 <div className="text-sm mb-4 font-medium text-gray-700">Available payment methods:</div>
                 <div className="w-full flex gap-6 justify-between print-compact-gap">
-                  <div className="w-1/2 bg-gray-50 p-4 rounded-lg border border-gray-300 print-avoid-break">
+                  <div className="w-1/2 bg-gray-50 p-4 rounded border border-gray-300 print-avoid-break">
                     <span className="text-base font-bold text-slate-800">1. Bank Transfer</span>
                     <div className="ml-4 flex flex-col gap-1.5 mt-3 text-xs text-gray-700">
                       <div>
@@ -455,7 +455,7 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
                       </div>
                     </div>
                   </div>
-                  <div className="w-1/2 bg-gray-50 p-4 rounded-lg border border-gray-300 print-avoid-break">
+                  <div className="w-1/2 bg-gray-50 p-4 rounded border border-gray-300 print-avoid-break">
                     <span className="text-base font-bold text-slate-800">2. UPI Payment</span>
                     <div className="ml-4 flex flex-col gap-1.5 mt-3 text-xs text-gray-700">
                       <div>
@@ -477,7 +477,7 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
 
               {/* Contact Information */}
               <div className="px-5 py-4 print-compact print-avoid-break border-b border-gray-200">
-                <div className="px-4 py-4 bg-gray-50 rounded-lg border border-gray-300">
+                <div className="px-4 py-4 bg-gray-50 rounded border border-gray-300">
                   <div className="flex flex-col gap-3 font-medium text-xs text-gray-700">
                     <div className="flex items-center gap-3">
                       <div className="bg-slate-700 text-white p-1.5 rounded mt-0.5 shrink-0">
@@ -496,7 +496,7 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
 
               {/* Policies Section */}
               <div className="px-5 py-4 print-compact print-force-break-before">
-                <div className="px-4 py-5 bg-gray-50 print-small-text rounded-lg border border-gray-300">
+                <div className="px-4 py-5 bg-gray-50 print-small-text rounded border border-gray-300">
                   {/* Payment Policy */}
                   <div className="print-avoid-break">
                     <h3 className="text-base font-bold text-slate-800 print-keep-with-next">Payment Policy</h3>
@@ -680,13 +680,13 @@ export default function ViewItineraryClient({ itinerary }: ViewItineraryClientPr
             <div className="my-20 flex gap-4 justify-center print-hide">
               <button
                 onClick={handlePrint}
-                className="py-3 px-8 bg-slate-800 rounded-lg font-semibold text-white hover:bg-slate-700 transition-colors shadow-lg"
+                className="py-3 px-8 bg-slate-800 rounded font-semibold text-white hover:bg-slate-700 transition-colors shadow-lg"
               >
                 Print / Save as PDF
               </button>
 
               <Link href={`/admin/itinerary/edit-itinerary/${itinerary.travelId}`}>
-                <button className="py-3 px-8 bg-slate-600 rounded-lg font-semibold text-white hover:bg-slate-500 transition-colors shadow-lg">
+                <button className="py-3 px-8 bg-slate-600 rounded font-semibold text-white hover:bg-slate-500 transition-colors shadow-lg">
                   Edit Itinerary
                 </button>
               </Link>

@@ -241,7 +241,7 @@ export default function CreateVoucherForm({ itineraries }: CreateVoucherFormProp
   };
 
   const inputClassName =
-    'w-full p-3 border-2 border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200 bg-foreground';
+    'w-full p-3 border-2 border-gray-300 dark:border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200 bg-foreground';
   const labelClassName = 'block text-sm font-semibold mb-2';
   const errorClassName = 'text-red-500 text-sm mt-1';
 
@@ -252,7 +252,7 @@ export default function CreateVoucherForm({ itineraries }: CreateVoucherFormProp
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Create Voucher</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">Easily generate vouchers for your travelers.</p>
         </div>
-        <div className="bg-foreground rounded-lg shadow-lg p-6">
+        <div className="bg-foreground rounded shadow-lg p-6">
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
             {/* Itinerary ID Search Section */}
             <div>
@@ -287,7 +287,7 @@ export default function CreateVoucherForm({ itineraries }: CreateVoucherFormProp
 
                 {/* Dropdown */}
                 {showDropdown && !travelId && (
-                  <div className="absolute z-50 w-full mt-2 bg-foreground border-2 border-purple-200 dark:border-purple-700 rounded-lg shadow-2xl max-h-96 overflow-y-auto">
+                  <div className="absolute z-50 w-full mt-2 bg-foreground border-2 border-purple-200 dark:border-purple-700 rounded shadow-2xl max-h-96 overflow-y-auto">
                     {filteredItineraries.length === 0 ? (
                       <div className="p-6 text-center">
                         <p className="text-gray-500 dark:text-gray-400">No itineraries found</p>
@@ -345,7 +345,7 @@ export default function CreateVoucherForm({ itineraries }: CreateVoucherFormProp
 
             {/* Selected Itinerary Details */}
             {selectedItinerary && (
-              <div className="p-6 bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border-2 border-blue-200 dark:border-blue-700">
+              <div className="p-6 bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded border-2 border-blue-200 dark:border-blue-700">
                 <h3 className="font-semibold text-lg mb-4 text-blue-700 dark:text-blue-300 flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
                   Selected Itinerary Details
@@ -471,7 +471,7 @@ export default function CreateVoucherForm({ itineraries }: CreateVoucherFormProp
                 {fields.map((field, index) => (
                   <div
                     key={field.id}
-                    className="mb-6 p-6 border-2 border-purple-200 dark:border-purple-800 rounded-lg bg-gray-50 dark:bg-gray-900"
+                    className="mb-6 p-6 border-2 border-purple-200 dark:border-purple-800 rounded bg-gray-50 dark:bg-gray-900"
                   >
                     <h4 className="font-semibold text-lg mb-4 text-purple-600">Hotel {index + 1}</h4>
                     <div className="space-y-4">
@@ -562,7 +562,7 @@ export default function CreateVoucherForm({ itineraries }: CreateVoucherFormProp
             ) : (
               selectedItinerary && (
                 <div className="border-t-2 border-purple-200 dark:border-purple-800 pt-6">
-                  <div className="p-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-2 border-blue-200 dark:border-blue-700">
+                  <div className="p-6 bg-blue-50 dark:bg-blue-900/20 rounded border-2 border-blue-200 dark:border-blue-700">
                     <div className="flex items-start gap-3">
                       <Info className="h-6 w-6 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
                       <div>
@@ -609,14 +609,14 @@ export default function CreateVoucherForm({ itineraries }: CreateVoucherFormProp
                 type="button"
                 onClick={() => router.back()}
                 disabled={isSubmitting}
-                className="py-3 px-8 bg-gray-500 rounded-lg font-semibold text-white hover:bg-gray-600 transition-colors disabled:opacity-50"
+                className="py-3 px-8 bg-gray-500 rounded font-semibold text-white hover:bg-gray-600 transition-colors disabled:opacity-50"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="py-3 px-8 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-lg font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                className="py-3 px-8 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 rounded font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
               >
                 {isSubmitting ? 'Creating Voucher...' : 'Create Voucher'}
               </Button>
@@ -628,7 +628,7 @@ export default function CreateVoucherForm({ itineraries }: CreateVoucherFormProp
       {/* Confirmation Modal */}
       {showConfirmationModal && confirmationData && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-foreground rounded-xl shadow-2xl p-8 max-w-2xl w-full border-2 border-orange-300 dark:border-orange-700">
+          <div className="bg-foreground rounded shadow-2xl p-8 max-w-2xl w-full border-2 border-orange-300 dark:border-orange-700">
             {/* Header */}
             <div className="flex items-start gap-4 mb-6">
               <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-full">
@@ -645,7 +645,7 @@ export default function CreateVoucherForm({ itineraries }: CreateVoucherFormProp
             </div>
 
             {/* Itinerary Details */}
-            <div className="bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-6 mb-6 border border-blue-200 dark:border-blue-700">
+            <div className="bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded p-6 mb-6 border border-blue-200 dark:border-blue-700">
               <h4 className="font-semibold text-lg mb-4 text-blue-700 dark:text-blue-300 flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
                 Itinerary Details
@@ -691,7 +691,7 @@ export default function CreateVoucherForm({ itineraries }: CreateVoucherFormProp
             </div>
 
             {/* Voucher Info */}
-            <div className="bg-linear-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg p-6 mb-6 border border-green-200 dark:border-green-700">
+            <div className="bg-linear-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded p-6 mb-6 border border-green-200 dark:border-green-700">
               <div className="flex items-start gap-3">
                 <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400 mt-0.5" />
                 <div className="flex-1">
@@ -716,13 +716,13 @@ export default function CreateVoucherForm({ itineraries }: CreateVoucherFormProp
             <div className="flex gap-4">
               <button
                 onClick={handleConfirmationCancel}
-                className="flex-1 px-6 py-3 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-bold rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                className="flex-1 px-6 py-3 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-bold rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmationProceed}
-                className="flex-1 px-6 py-3 bg-linear-to-r from-green-600 to-emerald-600 text-white font-bold rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all shadow-lg"
+                className="flex-1 px-6 py-3 bg-linear-to-r from-green-600 to-emerald-600 text-white font-bold rounded hover:from-green-700 hover:to-emerald-700 transition-all shadow-lg"
               >
                 Yes, Create New Voucher
               </button>

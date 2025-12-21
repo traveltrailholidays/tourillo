@@ -71,7 +71,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({ user }) => {
 
   return (
     <div className="mx-auto w-full p-6">
-      <div className="bg-foreground rounded-sm shadow-lg p-8">
+      <div className="bg-foreground rounded shadow-lg p-8">
         <div className="flex items-center gap-4 mb-8">
           {user.image ? (
             <Image src={user.image} alt={user.name || 'User'} width={80} height={80} className="rounded-full" />
@@ -103,7 +103,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({ user }) => {
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-3 mt-1 border border-gray-300 dark:border-gray-600 rounded-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-3 mt-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   placeholder="Enter full name"
                 />
               </div>
@@ -117,7 +117,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({ user }) => {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-4 py-3 mt-1 border border-gray-300 dark:border-gray-600 rounded-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-3 mt-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   placeholder="Enter email address"
                 />
               </div>
@@ -134,7 +134,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({ user }) => {
                   type="text"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-4 py-3 mt-1 border border-gray-300 dark:border-gray-600 rounded-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-3 mt-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   placeholder="Enter phone number"
                 />
               </div>
@@ -144,7 +144,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({ user }) => {
                   type="text"
                   value={user.id}
                   disabled
-                  className="w-full px-4 py-3 mt-1 border border-gray-300 dark:border-gray-600 rounded-sm bg-gray-100 dark:bg-gray-800 cursor-not-allowed text-gray-600 dark:text-gray-400"
+                  className="w-full px-4 py-3 mt-1 border border-gray-300 dark:border-gray-600 rounded bg-gray-100 dark:bg-gray-800 cursor-not-allowed text-gray-600 dark:text-gray-400"
                 />
               </div>
             </div>
@@ -152,7 +152,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({ user }) => {
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <Label className="text-gray-900 dark:text-gray-200">User Type</Label>
-                <div className="flex items-center h-[52px] px-4 mt-1 border border-gray-300 dark:border-gray-600 rounded-sm bg-gray-100 dark:bg-gray-800">
+                <div className="flex items-center h-[52px] px-4 mt-1 border border-gray-300 dark:border-gray-600 rounded bg-gray-100 dark:bg-gray-800">
                   <span className="font-semibold text-purple-600 dark:text-purple-400">{getUserType()}</span>
                 </div>
               </div>
@@ -166,7 +166,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({ user }) => {
             </h2>
 
             <div className="grid gap-4">
-              <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-sm bg-gray-50 dark:bg-gray-800/50">
+              <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-800/50">
                 <div>
                   <Label
                     htmlFor="isActive"
@@ -186,7 +186,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({ user }) => {
                 />
               </div>
 
-              <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-sm bg-gray-50 dark:bg-gray-800/50">
+              <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-800/50">
                 <div>
                   <Label
                     htmlFor="isAgent"
@@ -210,7 +210,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({ user }) => {
                 />
               </div>
 
-              <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-sm bg-gray-50 dark:bg-gray-800/50">
+              <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-800/50">
                 <div>
                   <Label
                     htmlFor="isAdmin"
@@ -243,7 +243,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({ user }) => {
             </h2>
 
             <div className="grid md:grid-cols-2 gap-4">
-              <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-sm border border-gray-200 dark:border-gray-700">
+              <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
                 <p className="text-sm text-gray-600 dark:text-gray-400">Last Login</p>
                 <p className="text-lg font-semibold text-gray-900 dark:text-white mt-1">
                   {user.lastLoginAt
@@ -258,7 +258,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({ user }) => {
                 </p>
               </div>
 
-              <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-sm border border-gray-200 dark:border-gray-700">
+              <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
                 <p className="text-sm text-gray-600 dark:text-gray-400">Member Since</p>
                 <p className="text-lg font-semibold text-gray-900 dark:text-white mt-1">
                   {new Date(user.createdAt).toLocaleDateString('en-US', {
@@ -285,7 +285,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({ user }) => {
             <Button
               type="submit"
               disabled={isLoading}
-              className="flex items-center px-8 py-3 bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="flex items-center px-8 py-3 bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               <Save className="h-5 w-5 mr-2" />
               {isLoading ? 'Saving...' : 'Save Changes'}

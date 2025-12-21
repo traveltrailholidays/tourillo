@@ -15,7 +15,7 @@ import { useDarkMode } from '@/hooks/useDarkMode'; // Import the hook
 // Dynamically import RichTextEditor to avoid SSR issues
 const RichTextEditor = dynamic(() => import('@/components/admin/rich-text-editor'), {
   ssr: false,
-  loading: () => <div className="h-[400px] bg-gray-100 dark:bg-gray-800 animate-pulse rounded-sm" />,
+  loading: () => <div className="h-[400px] bg-gray-100 dark:bg-gray-800 animate-pulse rounded" />,
 });
 
 interface BlogFormProps {
@@ -324,12 +324,12 @@ const BlogForm: React.FC<BlogFormProps> = ({ initialData, onCancel }) => {
           {isEditMode ? 'Easily edit and update your blog posts.' : 'Easily create and publish new blog posts'}
         </p>
       </div>
-      <div className="bg-foreground rounded-sm shadow-lg p-4 sm:p-6">
+      <div className="bg-foreground rounded shadow-lg p-4 sm:p-6">
         <div className="flex items-center justify-between">
           {onCancel && (
             <button
               onClick={onCancel}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-sm transition-colors"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
             >
               <X className="h-5 w-5" />
             </button>
@@ -338,7 +338,7 @@ const BlogForm: React.FC<BlogFormProps> = ({ initialData, onCancel }) => {
 
         {/* Success Message */}
         {state.success && (
-          <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-sm text-green-700 dark:text-green-400 flex items-center">
+          <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded text-green-700 dark:text-green-400 flex items-center">
             <CheckCircle className="h-5 w-5 mr-2" />
             {isEditMode ? 'Blog post updated successfully!' : 'Blog post created successfully!'}
           </div>
@@ -365,7 +365,7 @@ const BlogForm: React.FC<BlogFormProps> = ({ initialData, onCancel }) => {
                 defaultValue={initialData?.title}
                 required
                 disabled={isPending}
-                className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border rounded-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-background disabled:opacity-50 ${
+                className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-background disabled:opacity-50 ${
                   getFieldError('title') ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-700'
                 }`}
                 placeholder="Enter blog title..."
@@ -387,7 +387,7 @@ const BlogForm: React.FC<BlogFormProps> = ({ initialData, onCancel }) => {
                 defaultValue={initialData?.excerpt}
                 required
                 disabled={isPending}
-                className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border rounded-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-background resize-none disabled:opacity-50 ${
+                className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-background resize-none disabled:opacity-50 ${
                   getFieldError('excerpt')
                     ? 'border-red-500 dark:border-red-500'
                     : 'border-gray-300 dark:border-gray-700'
@@ -552,7 +552,7 @@ const BlogForm: React.FC<BlogFormProps> = ({ initialData, onCancel }) => {
                 defaultValue={initialData?.author}
                 required
                 disabled={isPending}
-                className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border rounded-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-background disabled:opacity-50 ${
+                className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-background disabled:opacity-50 ${
                   getFieldError('author')
                     ? 'border-red-500 dark:border-red-500'
                     : 'border-gray-300 dark:border-gray-700'
@@ -576,7 +576,7 @@ const BlogForm: React.FC<BlogFormProps> = ({ initialData, onCancel }) => {
                 defaultValue={initialData?.readTime}
                 required
                 disabled={isPending}
-                className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border rounded-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-background disabled:opacity-50 ${
+                className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-background disabled:opacity-50 ${
                   getFieldError('readTime')
                     ? 'border-red-500 dark:border-red-500'
                     : 'border-gray-300 dark:border-gray-700'
@@ -603,10 +603,10 @@ const BlogForm: React.FC<BlogFormProps> = ({ initialData, onCancel }) => {
                   alt="Preview"
                   width={400}
                   height={250}
-                  className="rounded-sm object-cover border-2 border-gray-200 dark:border-gray-700 w-full max-w-md h-48 sm:h-64"
+                  className="rounded object-cover border-2 border-gray-200 dark:border-gray-700 w-full max-w-md h-48 sm:h-64"
                   unoptimized={!hasExistingImage}
                 />
-                <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-sm flex items-center justify-center max-w-md">
+                <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded flex items-center justify-center max-w-md">
                   <div className="flex gap-2">
                     <button
                       type="button"
@@ -636,7 +636,7 @@ const BlogForm: React.FC<BlogFormProps> = ({ initialData, onCancel }) => {
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
                 onDrop={handleDrop}
-                className={`border-2 border-dashed rounded-sm p-6 sm:p-8 text-center transition-all duration-200 ${
+                className={`border-2 border-dashed rounded p-6 sm:p-8 text-center transition-all duration-200 ${
                   isPending ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                 } ${
                   dragActive
@@ -719,7 +719,7 @@ const BlogForm: React.FC<BlogFormProps> = ({ initialData, onCancel }) => {
             <Button
               type="submit"
               disabled={isPending}
-              className="flex items-center justify-center px-6 py-3 bg-linear-to-r from-indigo-500 hover:from-indigo-600 via-purple-500 hover:via-purple-600 to-pink-500 hover:to-pink-600 text-white font-medium rounded-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg cursor-pointer"
+              className="flex items-center justify-center px-6 py-3 bg-linear-to-r from-indigo-500 hover:from-indigo-600 via-purple-500 hover:via-purple-600 to-pink-500 hover:to-pink-600 text-white font-medium rounded transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg cursor-pointer"
             >
               <Save className="h-4 w-4 mr-2" />
               {isPending ? (isEditMode ? 'Updating...' : 'Creating...') : isEditMode ? 'Update Post' : 'Create Post'}
@@ -730,7 +730,7 @@ const BlogForm: React.FC<BlogFormProps> = ({ initialData, onCancel }) => {
                 type="button"
                 onClick={onCancel}
                 disabled={isPending}
-                className="px-6 py-3 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50 cursor-pointer"
+                className="px-6 py-3 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50 cursor-pointer"
               >
                 Cancel
               </Button>

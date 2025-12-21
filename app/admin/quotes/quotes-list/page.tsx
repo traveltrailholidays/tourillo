@@ -20,7 +20,7 @@ const page = async () => {
           <h1 className="text-3xl font-bold mb-2">Quote Requests</h1>
           <p className="text-gray-600 dark:text-gray-400">Manage customer quote requests and inquiries</p>
         </div>
-        <div className="flex items-center gap-2 bg-purple-100 dark:bg-purple-900/20 px-4 py-2 rounded-sm">
+        <div className="flex items-center gap-2 bg-purple-100 dark:bg-purple-900/20 px-4 py-2 rounded">
           <BadgePercent className="h-5 w-5 text-purple-600 dark:text-purple-400" />
           <span className="font-semibold text-purple-600 dark:text-purple-400">{unreadCount} Unread</span>
         </div>

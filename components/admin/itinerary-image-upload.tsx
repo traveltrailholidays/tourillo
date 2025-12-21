@@ -79,7 +79,7 @@ export function ItineraryImageUpload({ value, onChange, disabled }: ImageUploadP
   return (
     <div className="w-full">
       {value ? (
-        <div className="relative w-full h-48 rounded-lg overflow-hidden border-2 border-gray-300 dark:border-gray-700">
+        <div className="relative w-full h-48 rounded overflow-hidden border-2 border-gray-300 dark:border-gray-700">
           <Image src={value} alt="Uploaded" fill className="object-cover" />
           <button
             type="button"
@@ -92,7 +92,7 @@ export function ItineraryImageUpload({ value, onChange, disabled }: ImageUploadP
         </div>
       ) : (
         <label
-          className={`flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer transition ${
+          className={`flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded cursor-pointer transition ${
             disabled
               ? 'border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 cursor-not-allowed'
               : 'border-gray-300 dark:border-gray-700 hover:border-purple-500 dark:hover:border-purple-500 bg-gray-50 dark:bg-gray-900'

@@ -29,7 +29,7 @@ export function SessionStatus() {
 
   if (status === 'authenticated' && session?.error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-md p-4 m-4">
+      <div className="bg-red-50 border border-red-200 rounded p-4 m-4">
         <div className="flex">
           <div className="ml-3">
             <h3 className="text-sm font-medium text-red-800">Session Error</h3>

@@ -180,7 +180,7 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
   const StatCard = ({ icon: Icon, label, value, sublabel, color, link }: StatCardProps) => (
     <Link href={link} className="group block">
       <div
-        className={`relative bg-foreground rounded-lg shadow-sm hover:shadow-md transition-all duration-300 p-5 border-l-4 overflow-hidden ${color} h-full`}
+        className={`relative bg-foreground rounded shadow-sm hover:shadow-md transition-all duration-300 p-5 border-l-4 overflow-hidden ${color} h-full`}
       >
         <div className="absolute inset-0 opacity-5">
           <div className="absolute inset-0 bg-linear-to-br from-transparent via-white to-transparent" />
@@ -190,7 +190,7 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
           {/* Header with icon and arrow */}
           <div className="flex items-start justify-between mb-4">
             <div
-              className={`p-3 rounded-xl ${color.replace('border-l-', 'bg-').replace('-500', '-100')} dark:${color.replace('border-l-', 'bg-').replace('-500', '-900/30')} group-hover:scale-105 transition-transform duration-300`}
+              className={`p-3 rounded ${color.replace('border-l-', 'bg-').replace('-500', '-100')} dark:${color.replace('border-l-', 'bg-').replace('-500', '-900/30')} group-hover:scale-105 transition-transform duration-300`}
             >
               <Icon className={`h-6 w-6 ${color.replace('border-l-', 'text-')}`} />
             </div>
@@ -218,11 +218,9 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
     <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
       <div className="max-w-[2000px] mx-auto space-y-6">
         {/* Header */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-2">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-bold bg-linear-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
-              Dashboard
-            </h1>
+            <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
             <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
               <Calendar className="h-4 w-4" />
               {dateRangeText}
@@ -231,13 +229,13 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
 
           {/* Date Range Filter */}
           <div className="flex flex-col gap-2 w-full lg:w-auto">
-            <div className="flex gap-2 bg-foreground rounded-lg p-1.5 border border-gray-200 dark:border-gray-700 shadow-sm flex-wrap">
+            <div className="flex gap-2 bg-foreground rounded p-1.5 border border-gray-200 dark:border-gray-700 shadow-sm flex-wrap">
               {(['today', '7d', '30d', '90d', 'all', 'custom'] as const).map((range) => (
                 <button
                   key={range}
                   onClick={() => handleDateRangeChange(range)}
                   disabled={isPending}
-                  className={`px-3 py-2 rounded-md text-xs font-bold transition-all duration-200 disabled:opacity-50 whitespace-nowrap ${
+                  className={`px-3 py-2 rounded text-xs font-bold transition-all duration-200 disabled:opacity-50 whitespace-nowrap cursor-pointer ${
                     dateRange === range
                       ? 'bg-linear-to-r from-purple-600 to-pink-600 text-white shadow-sm'
                       : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
@@ -255,7 +253,7 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
 
             {dateRange === 'custom' && customStartDate && customEndDate && (
               <div className="flex justify-end">
-                <div className="flex items-center gap-2 bg-purple-50 dark:bg-purple-900/20 px-3 py-1.5 rounded-lg text-xs font-semibold text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                <div className="flex items-center gap-2 bg-purple-50 dark:bg-purple-900/20 px-3 py-1.5 rounded text-xs font-semibold text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
                   <Calendar className="h-3 w-3" />
                   <span>
                     {format(new Date(customStartDate), 'MMM dd')} - {format(new Date(customEndDate), 'MMM dd, yyyy')}
@@ -275,12 +273,12 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
         {/* Custom Date Picker Modal */}
         {showCustomDatePicker && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-foreground rounded-xl shadow-2xl p-6 max-w-md w-full border border-gray-200 dark:border-gray-700">
+            <div className="bg-foreground rounded shadow-2xl p-6 max-w-md w-full border border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white">Select Date Range</h3>
                 <button
                   onClick={() => setShowCustomDatePicker(false)}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -296,7 +294,7 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
                     value={customStartDate}
                     onChange={(e) => setCustomStartDate(e.target.value)}
                     max={new Date().toISOString().split('T')[0]}
-                    className="w-full px-4 py-2.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-background"
+                    className="w-full px-4 py-2.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-background"
                   />
                 </div>
 
@@ -309,21 +307,21 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
                     value={customEndDate}
                     onChange={(e) => setCustomEndDate(e.target.value)}
                     max={new Date().toISOString().split('T')[0]}
-                    className="w-full px-4 py-2.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-background"
+                    className="w-full px-4 py-2.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-background"
                   />
                 </div>
 
                 <div className="flex gap-3 pt-4">
                   <button
                     onClick={() => setShowCustomDatePicker(false)}
-                    className="flex-1 px-4 py-2.5 text-sm border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-bold rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    className="flex-1 px-4 py-2.5 text-sm border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-bold rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleCustomDateApply}
                     disabled={isPending}
-                    className="flex-1 px-4 py-2.5 text-sm bg-linear-to-r from-purple-600 to-pink-600 text-white font-bold rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all disabled:opacity-50 shadow-md"
+                    className="flex-1 px-4 py-2.5 text-sm bg-linear-to-r from-purple-600 to-pink-600 text-white font-bold rounded hover:from-purple-700 hover:to-pink-700 transition-all disabled:opacity-50 shadow-md"
                   >
                     Apply
                   </button>
@@ -403,9 +401,9 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
 
         {/* ✅ NEW: Business Metrics Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          <div className="bg-linear-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg p-5 border border-purple-200 dark:border-purple-700 shadow-sm">
+          <div className="bg-linear-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded p-5 border border-purple-200 dark:border-purple-700 shadow-sm">
             <div className="flex items-center gap-3 mb-3">
-              <div className="p-2.5 bg-purple-200 dark:bg-purple-800 rounded-lg">
+              <div className="p-2.5 bg-purple-200 dark:bg-purple-800 rounded">
                 <DollarSign className="h-5 w-5 text-purple-700 dark:text-purple-300" />
               </div>
               <div>
@@ -420,9 +418,9 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
             </p>
           </div>
 
-          <div className="bg-linear-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg p-5 border border-blue-200 dark:border-blue-700 shadow-sm">
+          <div className="bg-linear-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded p-5 border border-blue-200 dark:border-blue-700 shadow-sm">
             <div className="flex items-center gap-3 mb-3">
-              <div className="p-2.5 bg-blue-200 dark:bg-blue-800 rounded-lg">
+              <div className="p-2.5 bg-blue-200 dark:bg-blue-800 rounded">
                 <Target className="h-5 w-5 text-blue-700 dark:text-blue-300" />
               </div>
               <div>
@@ -435,9 +433,9 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
             <p className="text-xs text-blue-700 dark:text-blue-300 font-medium">Average per itinerary</p>
           </div>
 
-          <div className="bg-linear-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg p-5 border border-green-200 dark:border-green-700 shadow-sm">
+          <div className="bg-linear-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded p-5 border border-green-200 dark:border-green-700 shadow-sm">
             <div className="flex items-center gap-3 mb-3">
-              <div className="p-2.5 bg-green-200 dark:bg-green-800 rounded-lg">
+              <div className="p-2.5 bg-green-200 dark:bg-green-800 rounded">
                 <TrendingUp className="h-5 w-5 text-green-700 dark:text-green-300" />
               </div>
               <div>
@@ -450,9 +448,9 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
             <p className="text-xs text-green-700 dark:text-green-300 font-medium">Itineraries with vouchers</p>
           </div>
 
-          <div className="bg-linear-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 rounded-lg p-5 border border-amber-200 dark:border-amber-700 shadow-sm">
+          <div className="bg-linear-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 rounded p-5 border border-amber-200 dark:border-amber-700 shadow-sm">
             <div className="flex items-center gap-3 mb-3">
-              <div className="p-2.5 bg-amber-200 dark:bg-amber-800 rounded-lg">
+              <div className="p-2.5 bg-amber-200 dark:bg-amber-800 rounded">
                 <BarChart3 className="h-5 w-5 text-amber-700 dark:text-amber-300" />
               </div>
               <div>
@@ -467,9 +465,9 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
         </div>
 
         {/* ✅ Monthly Trends Chart - Updated with Vouchers */}
-        <div className="bg-foreground rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+        <div className="bg-foreground rounded p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
           <div className="flex items-center gap-3 mb-5">
-            <div className="p-2.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+            <div className="p-2.5 bg-purple-100 dark:bg-purple-900/30 rounded">
               <TrendingUp className="h-5 w-5 text-purple-600 dark:text-purple-400" />
             </div>
             <div>
@@ -564,9 +562,9 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
             {/* Distribution Charts Row */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
               {/* Itineraries by Company */}
-              <div className="bg-foreground rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+              <div className="bg-foreground rounded p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
                 <div className="flex items-center gap-3 mb-5">
-                  <div className="p-2.5 bg-pink-100 dark:bg-pink-900/30 rounded-lg">
+                  <div className="p-2.5 bg-pink-100 dark:bg-pink-900/30 rounded">
                     <Building2 className="h-5 w-5 text-pink-600 dark:text-pink-400" />
                   </div>
                   <div>
@@ -617,9 +615,9 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
               </div>
 
               {/* Packages by Category */}
-              <div className="bg-foreground rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+              <div className="bg-foreground rounded p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
                 <div className="flex items-center gap-3 mb-5">
-                  <div className="p-2.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                  <div className="p-2.5 bg-purple-100 dark:bg-purple-900/30 rounded">
                     <Package className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                   </div>
                   <div>
@@ -671,9 +669,9 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
               </div>
 
               {/* Blogs by Category */}
-              <div className="bg-foreground rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+              <div className="bg-foreground rounded p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
                 <div className="flex items-center gap-3 mb-5">
-                  <div className="p-2.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                  <div className="p-2.5 bg-blue-100 dark:bg-blue-900/30 rounded">
                     <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div>
@@ -722,9 +720,9 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
             </div>
 
             {/* Itineraries by Trip Advisor */}
-            <div className="bg-foreground rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+            <div className="bg-foreground rounded p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
               <div className="flex items-center gap-3 mb-5">
-                <div className="p-2.5 bg-pink-100 dark:bg-pink-900/30 rounded-lg">
+                <div className="p-2.5 bg-pink-100 dark:bg-pink-900/30 rounded">
                   <Users className="h-5 w-5 text-pink-600 dark:text-pink-400" />
                 </div>
                 <div>
@@ -778,9 +776,9 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
           <TabsContent value="vouchers" className="space-y-5 mt-5">
             {/* Vouchers by Company */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-              <div className="bg-foreground rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+              <div className="bg-foreground rounded p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
                 <div className="flex items-center gap-3 mb-5">
-                  <div className="p-2.5 bg-cyan-100 dark:bg-cyan-900/30 rounded-lg">
+                  <div className="p-2.5 bg-cyan-100 dark:bg-cyan-900/30 rounded">
                     <Receipt className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
                   </div>
                   <div>
@@ -831,9 +829,9 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
               </div>
 
               {/* Revenue Split */}
-              <div className="bg-foreground rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+              <div className="bg-foreground rounded p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
                 <div className="flex items-center gap-3 mb-5">
-                  <div className="p-2.5 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                  <div className="p-2.5 bg-green-100 dark:bg-green-900/30 rounded">
                     <DollarSign className="h-5 w-5 text-green-600 dark:text-green-400" />
                   </div>
                   <div>
@@ -842,7 +840,7 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
                   </div>
                 </div>
                 <div className="space-y-4">
-                  <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                  <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-bold text-purple-900 dark:text-purple-100">Tourillo (TRL)</span>
                       <span className="text-xs text-purple-700 dark:text-purple-300 font-semibold">
@@ -866,7 +864,7 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
                     </div>
                   </div>
 
-                  <div className="p-4 bg-cyan-50 dark:bg-cyan-900/20 rounded-lg">
+                  <div className="p-4 bg-cyan-50 dark:bg-cyan-900/20 rounded">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-bold text-cyan-900 dark:text-cyan-100">
                         Travel Trail Holidays (TTH)
@@ -896,9 +894,9 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
             </div>
 
             {/* Top Itineraries by Vouchers */}
-            <div className="bg-foreground rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+            <div className="bg-foreground rounded p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
               <div className="flex items-center gap-3 mb-5">
-                <div className="p-2.5 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
+                <div className="p-2.5 bg-yellow-100 dark:bg-yellow-900/30 rounded">
                   <Award className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
                 </div>
                 <div>
@@ -957,10 +955,10 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
             </div>
 
             {/* Recent Vouchers */}
-            <div className="bg-foreground rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+            <div className="bg-foreground rounded p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
               <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-cyan-100 dark:bg-cyan-900/30 rounded-lg">
+                  <div className="p-2.5 bg-cyan-100 dark:bg-cyan-900/30 rounded">
                     <Receipt className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
                   </div>
                   <h3 className="text-base font-bold text-gray-900 dark:text-white">Recent Vouchers</h3>
@@ -978,7 +976,7 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
                   stats.recentVouchers.map((voucher) => (
                     <div
                       key={voucher.id}
-                      className="p-3.5 bg-gray-50 dark:bg-gray-800/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border border-gray-200 dark:border-gray-700"
+                      className="p-3.5 bg-gray-50 dark:bg-gray-800/50 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border border-gray-200 dark:border-gray-700"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
@@ -1024,9 +1022,9 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
             </div>
 
             {/* Itinerary-Voucher Relationship */}
-            <div className="bg-foreground rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+            <div className="bg-foreground rounded p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
               <div className="flex items-center gap-3 mb-5">
-                <div className="p-2.5 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
+                <div className="p-2.5 bg-indigo-100 dark:bg-indigo-900/30 rounded">
                   <BarChart3 className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                 </div>
                 <div>
@@ -1115,9 +1113,9 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
 
           {/* ✅ NEW: Advisors Tab */}
           <TabsContent value="advisors" className="space-y-5 mt-5">
-            <div className="bg-foreground rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+            <div className="bg-foreground rounded p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
               <div className="flex items-center gap-3 mb-5">
-                <div className="p-2.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                <div className="p-2.5 bg-purple-100 dark:bg-purple-900/30 rounded">
                   <Award className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                 </div>
                 <div>
@@ -1191,10 +1189,10 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
         {/* Recent Activity Tables - Existing */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           {/* Recent Itineraries */}
-          <div className="bg-foreground rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+          <div className="bg-foreground rounded p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-pink-100 dark:bg-pink-900/30 rounded-lg">
+                <div className="p-2.5 bg-pink-100 dark:bg-pink-900/30 rounded">
                   <MapPin className="h-5 w-5 text-pink-600 dark:text-pink-400" />
                 </div>
                 <h3 className="text-base font-bold text-gray-900 dark:text-white">Recent Itineraries</h3>
@@ -1212,7 +1210,7 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
                 stats.recentItineraries.map((itinerary) => (
                   <div
                     key={itinerary.id}
-                    className="p-3.5 bg-gray-50 dark:bg-gray-800/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border border-gray-200 dark:border-gray-700"
+                    className="p-3.5 bg-gray-50 dark:bg-gray-800/50 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border border-gray-200 dark:border-gray-700"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
@@ -1261,10 +1259,10 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
           </div>
 
           {/* Recent Packages */}
-          <div className="bg-foreground rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+          <div className="bg-foreground rounded p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                <div className="p-2.5 bg-purple-100 dark:bg-purple-900/30 rounded">
                   <Package className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                 </div>
                 <h3 className="text-base font-bold text-gray-900 dark:text-white">Recent Packages</h3>
@@ -1282,7 +1280,7 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
                 stats.recentPackages.map((pkg) => (
                   <div
                     key={pkg.id}
-                    className="p-3.5 bg-gray-50 dark:bg-gray-800/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border border-gray-200 dark:border-gray-700"
+                    className="p-3.5 bg-gray-50 dark:bg-gray-800/50 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border border-gray-200 dark:border-gray-700"
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex-1 min-w-0">
@@ -1312,10 +1310,10 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
           </div>
 
           {/* Recent Blogs */}
-          <div className="bg-foreground rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+          <div className="bg-foreground rounded p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                <div className="p-2.5 bg-blue-100 dark:bg-blue-900/30 rounded">
                   <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 </div>
                 <h3 className="text-base font-bold text-gray-900 dark:text-white">Recent Blogs</h3>
@@ -1333,7 +1331,7 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
                 stats.recentBlogs.map((blog) => (
                   <div
                     key={blog.id}
-                    className="p-3.5 bg-gray-50 dark:bg-gray-800/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border border-gray-200 dark:border-gray-700"
+                    className="p-3.5 bg-gray-50 dark:bg-gray-800/50 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border border-gray-200 dark:border-gray-700"
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex-1 min-w-0">
@@ -1365,10 +1363,10 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
           </div>
 
           {/* Recent Contacts */}
-          <div className="bg-foreground rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+          <div className="bg-foreground rounded p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                <div className="p-2.5 bg-green-100 dark:bg-green-900/30 rounded">
                   <Mail className="h-5 w-5 text-green-600 dark:text-green-400" />
                 </div>
                 <h3 className="text-base font-bold text-gray-900 dark:text-white">Recent Contacts</h3>
@@ -1386,7 +1384,7 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
                 stats.recentContacts.map((contact) => (
                   <div
                     key={contact.id}
-                    className="p-3.5 bg-gray-50 dark:bg-gray-800/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border border-gray-200 dark:border-gray-700"
+                    className="p-3.5 bg-gray-50 dark:bg-gray-800/50 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border border-gray-200 dark:border-gray-700"
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex-1 min-w-0">
@@ -1417,10 +1415,10 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
         </div>
 
         {/* Recent Quote Requests - Full Width */}
-        <div className="bg-foreground rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+        <div className="bg-foreground rounded p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+              <div className="p-2.5 bg-orange-100 dark:bg-orange-900/30 rounded">
                 <MessageSquare className="h-5 w-5 text-orange-600 dark:text-orange-400" />
               </div>
               <h3 className="text-base font-bold text-gray-900 dark:text-white">Recent Quote Requests</h3>
@@ -1438,7 +1436,7 @@ const Dashboard = ({ initialStats }: DashboardProps) => {
               stats.recentQuotes.map((quote) => (
                 <div
                   key={quote.id}
-                  className="p-3.5 bg-gray-50 dark:bg-gray-800/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border border-gray-200 dark:border-gray-700"
+                  className="p-3.5 bg-gray-50 dark:bg-gray-800/50 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border border-gray-200 dark:border-gray-700"
                 >
                   <div className="flex items-center justify-between gap-3 mb-2">
                     <p className="font-bold truncate text-gray-900 dark:text-white text-sm flex-1">{quote.name}</p>

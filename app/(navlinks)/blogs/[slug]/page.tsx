@@ -126,7 +126,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
                 prose-ol:list-decimal prose-ol:ml-6 prose-ol:my-4
                 prose-li:mb-2 prose-li:text-gray-700 dark:prose-li:text-gray-300
                 prose-blockquote:border-l-4 prose-blockquote:border-purple-500 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-gray-700 dark:prose-blockquote:text-gray-300
-                prose-img:rounded-lg prose-img:shadow-lg prose-img:my-8"
+                prose-img:rounded prose-img:shadow-lg prose-img:my-8"
               dangerouslySetInnerHTML={{ __html: blog.content }}
             />
           </article>
@@ -138,7 +138,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
                 {filteredRelatedPosts.map((post: Blog) => (
                   <Link key={post.id} href={`/blogs/${post.slug}`} className="group block">
                     {post.image && (
-                      <div className="relative h-48 rounded-lg overflow-hidden mb-4">
+                      <div className="relative h-48 rounded overflow-hidden mb-4">
                         <Image
                           src={post.image}
                           alt={post.title}

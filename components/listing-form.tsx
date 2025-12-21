@@ -629,7 +629,7 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
                   key={item.label}
                   type="button"
                   onClick={() => setValue('category', item.label.toLowerCase())}
-                  className={`p-3 sm:p-4 border-2 rounded-sm transition-all duration-200 cursor-pointer hover:bg-border ${
+                  className={`p-3 sm:p-4 border-2 rounded transition-all duration-200 cursor-pointer hover:bg-border ${
                     isCategorySelected(item.label)
                       ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
                       : 'border-gray-300 dark:border-gray-600 hover:border-purple-300'
@@ -651,7 +651,7 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
               <label className="block text-sm font-medium mb-2">Title *</label>
               <input
                 {...register('title', { required: 'Title is required' })}
-                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700"
                 placeholder="Package title"
               />
               {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title.message as string}</p>}
@@ -661,7 +661,7 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
               <label className="block text-sm font-medium mb-2">Location *</label>
               <input
                 {...register('location', { required: 'Location is required' })}
-                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700"
                 placeholder="Destination location"
               />
               {errors.location && <p className="mt-1 text-sm text-red-600">{errors.location.message as string}</p>}
@@ -674,7 +674,7 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
             <textarea
               {...register('description', { required: 'Description is required' })}
               rows={4}
-              className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700"
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700"
               placeholder="Package description"
             />
             {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description.message as string}</p>}
@@ -694,10 +694,10 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
                   alt="Preview"
                   width={400}
                   height={250}
-                  className="rounded-sm object-cover border-2 border-gray-200 dark:border-gray-700 w-full max-w-md h-48 sm:h-64"
+                  className="rounded object-cover border-2 border-gray-200 dark:border-gray-700 w-full max-w-md h-48 sm:h-64"
                   unoptimized={!hasExistingImage}
                 />
-                <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-sm flex items-center justify-center max-w-md">
+                <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded flex items-center justify-center max-w-md">
                   <div className="flex gap-2">
                     <button
                       type="button"
@@ -727,7 +727,7 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
                 onDrop={handleDrop}
-                className={`border-2 border-dashed rounded-sm p-6 sm:p-8 text-center transition-all duration-200 ${
+                className={`border-2 border-dashed rounded p-6 sm:p-8 text-center transition-all duration-200 ${
                   isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                 } ${
                   dragActive
@@ -768,7 +768,7 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
                   required: 'Price is required',
                   min: { value: 1, message: 'Price must be at least ₹1' },
                 })}
-                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700"
                 placeholder="0"
               />
               {errors.price && <p className="mt-1 text-sm text-red-600">{errors.price.message as string}</p>}
@@ -783,7 +783,7 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
                   min: { value: 1, message: 'Must be at least 1 day' },
                 })}
                 onChange={handleDaysChange}
-                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700"
                 placeholder="1"
               />
               {errors.days && <p className="mt-1 text-sm text-red-600">{errors.days.message as string}</p>}
@@ -796,7 +796,7 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
                 {...register('nights')}
                 value={watchedFields.nights}
                 readOnly
-                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-sm bg-gray-100 dark:bg-gray-600"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded bg-gray-100 dark:bg-gray-600"
               />
             </div>
 
@@ -811,7 +811,7 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
                   min: { value: 0, message: 'Rating cannot be negative' },
                   max: { value: 5, message: 'Rating cannot exceed 5' },
                 })}
-                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700"
                 placeholder="5.0"
               />
               {errors.rating && <p className="mt-1 text-sm text-red-600">{errors.rating.message as string}</p>}
@@ -828,7 +828,7 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
                 min: { value: 0, message: 'Discount cannot be negative' },
                 max: { value: 100, message: 'Discount cannot exceed 100%' },
               })}
-              className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700"
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700"
               placeholder="0"
             />
             {errors.discount && <p className="mt-1 text-sm text-red-600">{errors.discount.message as string}</p>}
@@ -850,7 +850,7 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
                         required: `Day ${index + 1} description is required`,
                       })}
                       rows={3}
-                      className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700"
+                      className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700"
                       placeholder={`Activities for day ${index + 1}`}
                     />
                     {getItineraryError(index) && (
@@ -862,7 +862,7 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
                     <button
                       type="button"
                       onClick={() => removeItineraryDay(index)}
-                      className="self-start mt-8 p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-sm transition-colors"
+                      className="self-start mt-8 p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
                     >
                       <Minus className="h-4 w-4" />
                     </button>
@@ -889,7 +889,7 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
             <Button
               type="submit"
               disabled={isLoading}
-              className="flex items-center justify-center px-6 sm:px-8 py-3 bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="flex items-center justify-center px-6 sm:px-8 py-3 bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               <Save className="h-5 w-5 mr-2" />
               {isLoading
@@ -969,7 +969,7 @@ const ListingForm: React.FC<ListingFormProps> = ({ initialData, onSuccess, onCan
                   setBulkResult(null);
                   setBulkProgress(0);
                 }}
-                className="flex items-center justify-center px-6 sm:px-8 py-3 bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="flex items-center justify-center px-6 sm:px-8 py-3 bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 Close
               </Button>

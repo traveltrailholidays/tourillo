@@ -194,7 +194,7 @@ export default function ViewVoucherClient({ voucher, company, itinerary }: ViewV
               <header className="bg-slate-800 text-white w-full flex p-4 justify-between items-center border-b-4 border-slate-600">
                 <CompanyLogo />
                 <div className="flex items-center gap-3">
-                  <div className="bg-slate-700 rounded-lg w-10 h-10 flex justify-center items-center text-white">
+                  <div className="bg-slate-700 rounded w-10 h-10 flex justify-center items-center text-white">
                     <FaPhoneAlt size={16} />
                   </div>
                   <div>
@@ -239,7 +239,7 @@ export default function ViewVoucherClient({ voucher, company, itinerary }: ViewV
                   </span>
 
                   {/* Client Contact Information */}
-                  <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200 print-avoid-break">
+                  <div className="mt-4 p-4 bg-gray-50 rounded border border-gray-200 print-avoid-break">
                     <h3 className="font-semibold text-base mb-3 text-slate-800 print-keep-with-next">
                       Client Information
                     </h3>
@@ -322,7 +322,7 @@ export default function ViewVoucherClient({ voucher, company, itinerary }: ViewV
                     {voucher.hotelStays.map((hotel, index) => (
                       <div
                         key={index}
-                        className="border border-gray-300 rounded-lg p-4 hover:shadow-md transition print-avoid-break bg-white"
+                        className="border border-gray-300 rounded p-4 hover:shadow-md transition print-avoid-break bg-white"
                       >
                         <div className="flex gap-4 items-start">
                           <div className="shrink-0">
@@ -363,7 +363,7 @@ export default function ViewVoucherClient({ voucher, company, itinerary }: ViewV
               ) : (
                 <div className="px-5 py-4 print-compact print-allow-break-before border-b border-gray-200">
                   <h2 className="text-xl font-bold text-slate-800 print-keep-with-next mb-4">Accommodation</h2>
-                  <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                  <div className="p-4 bg-blue-50 rounded border-2 border-blue-200">
                     <div className="flex items-start gap-3">
                       <Info className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
                       <div>
@@ -387,7 +387,7 @@ export default function ViewVoucherClient({ voucher, company, itinerary }: ViewV
                   <FaCar className="text-slate-600" />
                   Transportation Details
                 </h2>
-                <div className="p-4 bg-gray-50 rounded-lg border border-gray-300">
+                <div className="p-4 bg-gray-50 rounded border border-gray-300">
                   <span className="text-sm text-gray-700 whitespace-pre-line">{voucher.cabDetails}</span>
                 </div>
               </div>
@@ -395,7 +395,7 @@ export default function ViewVoucherClient({ voucher, company, itinerary }: ViewV
               {/* Important Instructions */}
               <div className="px-5 py-4 print-compact print-avoid-break border-b border-gray-200">
                 <h2 className="text-xl font-bold text-slate-800 print-keep-with-next mb-4">Important Instructions</h2>
-                <div className="p-4 bg-gray-50 rounded-lg border border-gray-300">
+                <div className="p-4 bg-gray-50 rounded border border-gray-300">
                   <div className="print-small-text space-y-2">
                     <BulletPoints
                       icon={FaRegArrowAltCircleRight}
@@ -443,7 +443,7 @@ export default function ViewVoucherClient({ voucher, company, itinerary }: ViewV
 
               {/* Contact Information */}
               <div className="px-5 py-4 print-compact print-avoid-break border-b border-gray-200">
-                <div className="px-4 py-4 bg-gray-50 rounded-lg border border-gray-300">
+                <div className="px-4 py-4 bg-gray-50 rounded border border-gray-300">
                   <div className="flex flex-col gap-3 font-medium text-xs text-gray-700">
                     {itinerary?.tripAdvisorName && itinerary?.tripAdvisorNumber && (
                       <div className="flex items-center gap-3">
@@ -463,7 +463,7 @@ export default function ViewVoucherClient({ voucher, company, itinerary }: ViewV
 
               {/* Terms & Conditions */}
               <div className="px-5 py-4 print-compact print-force-break-before">
-                <div className="px-4 py-5 bg-gray-50 print-small-text rounded-lg border border-gray-300">
+                <div className="px-4 py-5 bg-gray-50 print-small-text rounded border border-gray-300">
                   {/* Voucher Terms */}
                   <div className="print-avoid-break">
                     <h3 className="text-base font-bold text-slate-800 print-keep-with-next">Voucher Terms</h3>
@@ -583,13 +583,13 @@ export default function ViewVoucherClient({ voucher, company, itinerary }: ViewV
             <div className="my-20 flex gap-4 justify-center print-hide">
               <button
                 onClick={handlePrint}
-                className="py-3 px-8 bg-slate-800 rounded-lg font-semibold text-white hover:bg-slate-700 transition-colors shadow-lg"
+                className="py-3 px-8 bg-slate-800 rounded font-semibold text-white hover:bg-slate-700 transition-colors shadow-lg"
               >
                 Print / Save as PDF
               </button>
 
               <Link href={`/admin/voucher/edit-voucher/${voucher.id}`}>
-                <button className="py-3 px-8 bg-slate-600 rounded-lg font-semibold text-white hover:bg-slate-500 transition-colors shadow-lg">
+                <button className="py-3 px-8 bg-slate-600 rounded font-semibold text-white hover:bg-slate-500 transition-colors shadow-lg">
                   Edit Voucher
                 </button>
               </Link>

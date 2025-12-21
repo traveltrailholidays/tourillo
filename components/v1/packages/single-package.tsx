@@ -90,7 +90,7 @@ const SinglePackage: React.FC<SinglePackageProps> = ({ listing, initialLiked = f
                   listing.itinary.map((item, index) => (
                     <div
                       key={index}
-                      className="p-4 bg-foreground rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
+                      className="p-4 bg-foreground rounded border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
                     >
                       <div className="flex items-start gap-4">
                         <div className="shrink-0 w-10 h-10 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold">

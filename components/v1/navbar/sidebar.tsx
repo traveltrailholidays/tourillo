@@ -12,6 +12,7 @@ import { MdOutlineContactMail, MdDashboard } from 'react-icons/md';
 import ThemeSwitch from '../theme-switch';
 import { useSession, signOut } from 'next-auth/react';
 import { Heart } from 'lucide-react';
+import LoadingSpinner from '@/components/loading-spinner';
 
 interface SideBarProps {
   onClose: () => void;
@@ -56,7 +57,7 @@ const NavLink = React.memo<NavLinkProps>(({ href, text, icon: Icon, target, path
         {...(target && { target })}
         onClick={onClose}
         className={`
-          group flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 mb-2
+          group flex items-center gap-3 py-3 px-4 rounded transition-all duration-200 mb-2
           ${
             isActive
               ? 'bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400'
@@ -67,7 +68,7 @@ const NavLink = React.memo<NavLinkProps>(({ href, text, icon: Icon, target, path
       >
         <div
           className={`
-            p-2 rounded-lg transition-colors
+            p-2 rounded transition-colors
             ${
               isActive
                 ? 'bg-violet-200 dark:bg-violet-800/30 text-violet-600 dark:text-violet-400'
@@ -93,11 +94,11 @@ const ActionButton = React.memo<{
   type?: 'link' | 'button';
 }>(({ icon: Icon, text, href, onClick, type = 'link' }) => {
   const commonClasses =
-    'w-full flex items-center gap-3 p-3 bg-background text-theme-text rounded-xl transition-all duration-200 hover:scale-[0.98] group cursor-pointer hover:bg-violet-100 dark:hover:bg-violet-900/20';
+    'w-full flex items-center gap-3 p-3 bg-background text-theme-text rounded transition-all duration-200 hover:scale-[0.98] group cursor-pointer hover:bg-violet-100 dark:hover:bg-violet-900/20';
 
   const content = (
     <>
-      <div className="p-2 bg-foreground rounded-lg group-hover:bg-violet-100 dark:group-hover:bg-violet-900/20 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
+      <div className="p-2 bg-foreground rounded group-hover:bg-violet-100 dark:group-hover:bg-violet-900/20 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
         <Icon size={20} />
       </div>
       <span className="font-medium">{text}</span>
@@ -120,19 +121,6 @@ const ActionButton = React.memo<{
 });
 
 ActionButton.displayName = 'ActionButton';
-
-const LoadingSpinner = React.memo(() => (
-  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-    <path
-      className="opacity-75"
-      fill="currentColor"
-      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-    />
-  </svg>
-));
-
-LoadingSpinner.displayName = 'LoadingSpinner';
 
 // Modal component for logout confirmation
 const LogoutModal = React.memo<{
@@ -369,7 +357,7 @@ const SideBar: React.FC<SideBarProps> = ({ onClose, isOpen }) => {
 
                 {/* Show different buttons based on auth status */}
                 {status === 'loading' ? (
-                  <div className="w-full flex items-center justify-center p-3 bg-background rounded-xl">
+                  <div className="w-full flex items-center justify-center p-3 bg-background rounded">
                     <LoadingSpinner />
                   </div>
                 ) : isAuthenticated ? (

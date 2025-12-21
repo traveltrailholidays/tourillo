@@ -32,10 +32,10 @@ const RelatedPosts: React.FC<RelatedPostsProps> = ({ posts }) => {
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {posts.map((post) => (
-          <article key={post.id} className="bg-foreground rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+          <article key={post.id} className="bg-foreground rounded overflow-hidden hover:shadow-lg transition-shadow">
             <Link href={`/blogs/${post.slug}`} className="block">
-              <div className="relative aspect-[16/10]">
-                <Image src={post.image || '/images/hero/hero01.jpg'} alt={post.title} fill className="object-cover" />
+              <div className="relative aspect-16/10">
+                <Image src={post.image || '/images/hero/hero1.jpg'} alt={post.title} fill className="object-cover" />
                 <span className="absolute top-2 left-2 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 text-white text-xs font-semibold px-2 py-1 rounded">
                   {post.category}
                 </span>

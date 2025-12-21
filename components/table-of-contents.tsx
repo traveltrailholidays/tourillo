@@ -48,7 +48,7 @@ const TableOfContents: React.FC<TableOfContentsProps> = ({ headings }) => {
   };
 
   return (
-    <div className="bg-foreground rounded-lg p-6">
+    <div className="bg-foreground rounded p-6">
       {/* Mobile Toggle */}
       <button
         onClick={() => setIsOpen(!isOpen)}

@@ -43,7 +43,7 @@ const PackageCard: React.FC<PackageCardProps> = ({ data, initialLiked = false, b
         {!imageLoaded && <div className="absolute inset-0 bg-gray-300 dark:bg-gray-700 animate-pulse" />}
 
         <Image
-          src={data.imageSrc || '/images/hero/hero01.jpg'}
+          src={data.imageSrc || '/images/hero/hero1.jpg'}
           alt={data.title}
           width={400}
           height={250}

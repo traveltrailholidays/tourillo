@@ -663,7 +663,7 @@ const CreateItinerary = ({ itinerariesForClone = [] }: CreateItineraryProps) => 
   };
 
   const inputClassName =
-    'w-full p-3 border-2 border-gray-300 dark:border-gray-700 rounded-sm focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200 bg-foreground';
+    'w-full p-3 border-2 border-gray-300 dark:border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200 bg-foreground';
   const labelClassName = 'block text-sm font-semibold mb-2';
 
   return (
@@ -672,10 +672,10 @@ const CreateItinerary = ({ itinerariesForClone = [] }: CreateItineraryProps) => 
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Create Itinerary</h1>
         <p className="text-gray-600 dark:text-gray-400 mt-1">Design detailed travel itineraries in minutes</p>
       </div>
-      <div className="bg-foreground rounded-sm p-6">
+      <div className="bg-foreground rounded p-6">
         <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col gap-6">
           {/* Company Selection Section */}
-          <div className="p-6 bg-linear-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-sm border-2 border-purple-200 dark:border-purple-700">
+          <div className="p-6 bg-linear-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded border-2 border-purple-200 dark:border-purple-700">
             <label className={labelClassName}>
               <div className="flex items-center gap-2 mb-3">
                 <Building2 className="h-5 w-5 text-purple-600" />
@@ -693,7 +693,7 @@ const CreateItinerary = ({ itinerariesForClone = [] }: CreateItineraryProps) => 
                 type="button"
                 onClick={() => handleCompanyChange('TOURILLO')}
                 disabled={isSubmitting}
-                className={`p-4 rounded-sm border-2 transition-all duration-200 ${
+                className={`p-4 rounded border-2 transition-all duration-200 ${
                   selectedCompany === 'TOURILLO'
                     ? 'border-purple-500 bg-purple-100 dark:bg-purple-900/30 shadow-md'
                     : 'border-gray-300 dark:border-gray-600 hover:border-purple-300 dark:hover:border-purple-600'
@@ -720,7 +720,7 @@ const CreateItinerary = ({ itinerariesForClone = [] }: CreateItineraryProps) => 
                 type="button"
                 onClick={() => handleCompanyChange('TRAVEL_TRAIL_HOLIDAYS')}
                 disabled={isSubmitting}
-                className={`p-4 rounded-sm border-2 transition-all duration-200 ${
+                className={`p-4 rounded border-2 transition-all duration-200 ${
                   selectedCompany === 'TRAVEL_TRAIL_HOLIDAYS'
                     ? 'border-blue-500 bg-blue-100 dark:bg-blue-900/30 shadow-md'
                     : 'border-gray-300 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600'
@@ -750,7 +750,7 @@ const CreateItinerary = ({ itinerariesForClone = [] }: CreateItineraryProps) => 
           {/* Clone from Existing Section */}
           {itinerariesForClone.length > 0 && (
             <>
-              <div className="p-6 bg-linear-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-sm border-2 border-green-200 dark:border-green-700">
+              <div className="p-6 bg-linear-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded border-2 border-green-200 dark:border-green-700">
                 <label className={labelClassName}>
                   <div className="flex items-center gap-2 mb-2">
                     <FileCode className="h-4 w-4" />
@@ -790,7 +790,7 @@ const CreateItinerary = ({ itinerariesForClone = [] }: CreateItineraryProps) => 
 
                   {/* Clone Dropdown */}
                   {showCloneDropdown && !selectedCloneId && (
-                    <div className="absolute z-50 w-full mt-2 bg-foreground border-2 border-green-200 dark:border-green-700 rounded-sm shadow-2xl max-h-80 overflow-y-auto">
+                    <div className="absolute z-50 w-full mt-2 bg-foreground border-2 border-green-200 dark:border-green-700 rounded shadow-2xl max-h-80 overflow-y-auto">
                       {filteredItineraries.length === 0 ? (
                         <div className="p-6 text-center">
                           <p className="text-gray-500 dark:text-gray-400">No itineraries found</p>
@@ -849,7 +849,7 @@ const CreateItinerary = ({ itinerariesForClone = [] }: CreateItineraryProps) => 
 
               {/* Show message if cloned */}
               {selectedCloneId && (
-                <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-sm border border-green-200 dark:border-green-700">
+                <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-700">
                   <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
                     <FileCode className="h-5 w-5" />
                     <p className="font-medium">
@@ -941,7 +941,7 @@ const CreateItinerary = ({ itinerariesForClone = [] }: CreateItineraryProps) => 
                   </p>
                 )}
                 {phoneExists && existingItinerary && (
-                  <div className="mt-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-sm">
+                  <div className="mt-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded">
                     <p className="text-xs text-red-700 dark:text-red-300 font-semibold flex items-center gap-2">
                       <AlertCircle className="h-4 w-4" />
                       Phone number already exists!
@@ -1211,7 +1211,7 @@ const CreateItinerary = ({ itinerariesForClone = [] }: CreateItineraryProps) => 
             {dayFields.map((field, index) => (
               <div
                 key={index}
-                className="mb-6 p-6 border-2 border-gray-300 dark:border-gray-700 rounded-sm bg-gray-50 dark:bg-gray-900"
+                className="mb-6 p-6 border-2 border-gray-300 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-900"
               >
                 <h4 className="font-semibold text-lg mb-4 text-purple-600">Day {index + 1}</h4>
 
@@ -1245,10 +1245,10 @@ const CreateItinerary = ({ itinerariesForClone = [] }: CreateItineraryProps) => 
                           alt={`Day ${index + 1}`}
                           width={400}
                           height={250}
-                          className="rounded-sm object-cover border-2 border-gray-200 dark:border-gray-700 w-full max-w-md h-48 sm:h-64"
+                          className="rounded object-cover border-2 border-gray-200 dark:border-gray-700 w-full max-w-md h-48 sm:h-64"
                           unoptimized={!hasExistingImages[index]}
                         />
-                        <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-sm flex items-center justify-center max-w-md">
+                        <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded flex items-center justify-center max-w-md">
                           <div className="flex gap-2">
                             <button
                               type="button"
@@ -1278,7 +1278,7 @@ const CreateItinerary = ({ itinerariesForClone = [] }: CreateItineraryProps) => 
                         onDragLeave={(e) => handleDrag(e, index)}
                         onDragOver={(e) => handleDrag(e, index)}
                         onDrop={(e) => handleDrop(e, index)}
-                        className={`border-2 border-dashed rounded-sm p-6 sm:p-8 text-center transition-all duration-200 ${
+                        className={`border-2 border-dashed rounded p-6 sm:p-8 text-center transition-all duration-200 ${
                           isSubmitting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                         } ${
                           dragActiveStates[index]
@@ -1344,7 +1344,7 @@ const CreateItinerary = ({ itinerariesForClone = [] }: CreateItineraryProps) => 
               {hotelFields.map((field, index) => (
                 <div
                   key={index}
-                  className="mb-6 p-6 border-2 border-gray-300 dark:border-gray-700 rounded-sm bg-gray-50 dark:bg-gray-900"
+                  className="mb-6 p-6 border-2 border-gray-300 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-900"
                 >
                   <h4 className="font-semibold text-lg mb-4 text-purple-600">Hotel {index + 1}</h4>
 
@@ -1483,7 +1483,7 @@ const CreateItinerary = ({ itinerariesForClone = [] }: CreateItineraryProps) => 
           {/* ✅ Added message when no hotels */}
           {numberOfHotels === 0 && (
             <div className="border-t-2 border-gray-200 dark:border-gray-700 pt-6">
-              <div className="p-6 bg-blue-50 dark:bg-blue-900/20 rounded-sm border-2 border-blue-200 dark:border-blue-700">
+              <div className="p-6 bg-blue-50 dark:bg-blue-900/20 rounded border-2 border-blue-200 dark:border-blue-700">
                 <div className="flex items-center gap-3">
                   <Hotel className="h-6 w-6 text-blue-600" />
                   <div>
@@ -1502,7 +1502,7 @@ const CreateItinerary = ({ itinerariesForClone = [] }: CreateItineraryProps) => 
           <div className="border-t-2 border-gray-200 dark:border-gray-700 pt-6">
             <h3 className="text-2xl font-bold mb-4 text-purple-600">Inclusions</h3>
 
-            <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-sm border-2 border-blue-200 dark:border-blue-800">
+            <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded border-2 border-blue-200 dark:border-blue-800">
               <div className="flex items-center gap-2 mb-3">
                 <Clipboard className="h-5 w-5 text-blue-600" />
                 <label className="font-semibold text-blue-700 dark:text-blue-300">
@@ -1563,7 +1563,7 @@ const CreateItinerary = ({ itinerariesForClone = [] }: CreateItineraryProps) => 
           <div className="border-t-2 border-gray-200 dark:border-gray-700 pt-6">
             <h3 className="text-2xl font-bold mb-4 text-purple-600">Exclusions</h3>
 
-            <div className="mb-6 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-sm border-2 border-orange-200 dark:border-orange-800">
+            <div className="mb-6 p-4 bg-orange-50 dark:bg-orange-900/20 rounded border-2 border-orange-200 dark:border-orange-800">
               <div className="flex items-center gap-2 mb-3">
                 <Clipboard className="h-5 w-5 text-orange-600" />
                 <label className="font-semibold text-orange-700 dark:text-orange-300">

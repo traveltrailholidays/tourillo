@@ -120,7 +120,7 @@ export default function EditVoucherForm({ voucher, itineraries }: EditVoucherFor
   };
 
   const inputClassName =
-    'w-full p-3 border-2 border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200 bg-foreground';
+    'w-full p-3 border-2 border-gray-300 dark:border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200 bg-foreground';
   const labelClassName = 'block text-sm font-semibold mb-2';
   const errorClassName = 'text-red-500 text-sm mt-1';
 
@@ -130,10 +130,10 @@ export default function EditVoucherForm({ voucher, itineraries }: EditVoucherFor
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Edit Voucher</h1>
         <p className="text-gray-600 dark:text-gray-400 mt-1">Update voucher details for {voucher.voucherId}</p>
       </div>
-      <div className="bg-foreground rounded-lg shadow-lg p-6">
+      <div className="bg-foreground rounded shadow-lg p-6">
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
           {/* Voucher & Itinerary Information */}
-          <div className="p-6 bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border-2 border-blue-200 dark:border-blue-700">
+          <div className="p-6 bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded border-2 border-blue-200 dark:border-blue-700">
             <h3 className="font-semibold text-lg mb-4 text-blue-700 dark:text-blue-300 flex items-center gap-2">
               <Calendar className="h-5 w-5" />
               Voucher & Itinerary Information
@@ -244,7 +244,7 @@ export default function EditVoucherForm({ voucher, itineraries }: EditVoucherFor
               {fields.map((field, index) => (
                 <div
                   key={field.id}
-                  className="mb-6 p-6 border-2 border-purple-200 dark:border-purple-800 rounded-lg bg-gray-50 dark:bg-gray-900"
+                  className="mb-6 p-6 border-2 border-purple-200 dark:border-purple-800 rounded bg-gray-50 dark:bg-gray-900"
                 >
                   <h4 className="font-semibold text-lg mb-4 text-purple-600">Hotel {index + 1}</h4>
                   <div className="space-y-4">
@@ -334,7 +334,7 @@ export default function EditVoucherForm({ voucher, itineraries }: EditVoucherFor
             </div>
           ) : (
             <div className="border-t-2 border-purple-200 dark:border-purple-800 pt-6">
-              <div className="p-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-2 border-blue-200 dark:border-blue-700">
+              <div className="p-6 bg-blue-50 dark:bg-blue-900/20 rounded border-2 border-blue-200 dark:border-blue-700">
                 <div className="flex items-start gap-3">
                   <Info className="h-6 w-6 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
                   <div>
@@ -379,14 +379,14 @@ export default function EditVoucherForm({ voucher, itineraries }: EditVoucherFor
               type="button"
               onClick={() => router.push('/admin/voucher/voucher-list')}
               disabled={isSubmitting}
-              className="py-3 px-8 bg-gray-500 rounded-lg font-semibold text-white hover:bg-gray-600 transition-colors disabled:opacity-50 cursor-pointer"
+              className="py-3 px-8 bg-gray-500 rounded font-semibold text-white hover:bg-gray-600 transition-colors disabled:opacity-50 cursor-pointer"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="py-3 px-8 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-lg font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-lg cursor-pointer"
+              className="py-3 px-8 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 rounded font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-lg cursor-pointer"
             >
               {isSubmitting ? 'Updating Voucher...' : 'Update Voucher'}
             </Button>

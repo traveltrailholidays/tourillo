@@ -42,7 +42,7 @@ const CategoryBox: React.FC<CategoryBoxProps> = ({ icon: Icon, label, selected }
         group relative overflow-hidden
         flex flex-col items-center justify-center gap-3 
         py-4 px-6 sm:py-6 sm:px-8 md:px-10 
-        rounded-sm cursor-pointer 
+        rounded cursor-pointer 
         min-h-[120px] sm:min-h-[140px] w-full
         transition-all duration-300 ease-in-out
         transform hover:scale-105
@@ -57,7 +57,7 @@ const CategoryBox: React.FC<CategoryBoxProps> = ({ icon: Icon, label, selected }
       <div
         className={`
         absolute inset-0 bg-linear-to-br from-indigo-500/0 via-purple-500/0 to-pink-500/0 
-        transition-all duration-300 ease-in-out rounded-sm
+        transition-all duration-300 ease-in-out rounded
         ${!selected ? 'group-hover:from-indigo-500/5 group-hover:via-purple-500/5 group-hover:to-pink-500/5' : ''}
       `}
       />

@@ -504,7 +504,7 @@ export default function EditItineraryForm({ itinerary }: EditItineraryFormProps)
   };
 
   const inputClassName =
-    'w-full p-3 border-2 border-gray-300 dark:border-gray-700 rounded-sm focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200 bg-foreground';
+    'w-full p-3 border-2 border-gray-300 dark:border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200 bg-foreground';
   const labelClassName = 'block text-sm font-semibold mb-2';
 
   return (
@@ -513,7 +513,7 @@ export default function EditItineraryForm({ itinerary }: EditItineraryFormProps)
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Edit Itinerary</h1>
         <p className="text-gray-600 dark:text-gray-400 mt-1">Update and optimize your itinerary details</p>
       </div>
-      <div className="bg-foreground rounded-sm p-6">
+      <div className="bg-foreground rounded p-6">
         <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col gap-6">
           {/* Itinerary ID - Read Only */}
           <div>
@@ -697,7 +697,7 @@ export default function EditItineraryForm({ itinerary }: EditItineraryFormProps)
                   Agent Name <span className="text-red-500">*</span>
                 </label>
                 {!agentsLoaded ? (
-                  <div className="flex items-center gap-2 p-3 border-2 border-gray-300 dark:border-gray-700 rounded-sm">
+                  <div className="flex items-center gap-2 p-3 border-2 border-gray-300 dark:border-gray-700 rounded">
                     <RefreshCw className="h-4 w-4 animate-spin" />
                     <span className="text-sm text-gray-500">Loading agents...</span>
                   </div>
@@ -817,7 +817,7 @@ export default function EditItineraryForm({ itinerary }: EditItineraryFormProps)
             {dayFields.map((field, index) => (
               <div
                 key={index}
-                className="mb-6 p-6 border-2 border-gray-300 dark:border-gray-700 rounded-sm bg-gray-50 dark:bg-gray-900"
+                className="mb-6 p-6 border-2 border-gray-300 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-900"
               >
                 <h4 className="font-semibold text-lg mb-4 text-purple-600">Day {index + 1}</h4>
 
@@ -851,10 +851,10 @@ export default function EditItineraryForm({ itinerary }: EditItineraryFormProps)
                           alt={`Day ${index + 1}`}
                           width={400}
                           height={250}
-                          className="rounded-sm object-cover border-2 border-gray-200 dark:border-gray-700 w-full max-w-md h-48 sm:h-64"
+                          className="rounded object-cover border-2 border-gray-200 dark:border-gray-700 w-full max-w-md h-48 sm:h-64"
                           unoptimized={!hasExistingImages[index]}
                         />
-                        <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-sm flex items-center justify-center max-w-md">
+                        <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded flex items-center justify-center max-w-md">
                           <div className="flex gap-2">
                             <button
                               type="button"
@@ -884,7 +884,7 @@ export default function EditItineraryForm({ itinerary }: EditItineraryFormProps)
                         onDragLeave={(e) => handleDrag(e, index)}
                         onDragOver={(e) => handleDrag(e, index)}
                         onDrop={(e) => handleDrop(e, index)}
-                        className={`border-2 border-dashed rounded-sm p-6 sm:p-8 text-center transition-all duration-200 ${
+                        className={`border-2 border-dashed rounded p-6 sm:p-8 text-center transition-all duration-200 ${
                           isSubmitting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                         } ${
                           dragActiveStates[index]
@@ -952,7 +952,7 @@ export default function EditItineraryForm({ itinerary }: EditItineraryFormProps)
               {hotelFields.map((field, index) => (
                 <div
                   key={index}
-                  className="mb-6 p-6 border-2 border-gray-300 dark:border-gray-700 rounded-sm bg-gray-50 dark:bg-gray-900"
+                  className="mb-6 p-6 border-2 border-gray-300 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-900"
                 >
                   <h4 className="font-semibold text-lg mb-4 text-purple-600">Hotel {index + 1}</h4>
 
@@ -1067,7 +1067,7 @@ export default function EditItineraryForm({ itinerary }: EditItineraryFormProps)
           {/* ✅ Added message when no hotels */}
           {numberOfHotels === 0 && (
             <div className="border-t-2 border-gray-200 dark:border-gray-700 pt-6">
-              <div className="p-6 bg-blue-50 dark:bg-blue-900/20 rounded-sm border-2 border-blue-200 dark:border-blue-700">
+              <div className="p-6 bg-blue-50 dark:bg-blue-900/20 rounded border-2 border-blue-200 dark:border-blue-700">
                 <div className="flex items-center gap-3">
                   <Hotel className="h-6 w-6 text-blue-600" />
                   <div>
@@ -1086,7 +1086,7 @@ export default function EditItineraryForm({ itinerary }: EditItineraryFormProps)
           <div className="border-t-2 border-gray-200 dark:border-gray-700 pt-6">
             <h3 className="text-2xl font-bold mb-4 text-purple-600">Inclusions</h3>
 
-            <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-sm border-2 border-blue-200 dark:border-blue-800">
+            <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded border-2 border-blue-200 dark:border-blue-800">
               <div className="flex items-center gap-2 mb-3">
                 <Clipboard className="h-5 w-5 text-blue-600" />
                 <label className="font-semibold text-blue-700 dark:text-blue-300">
@@ -1147,7 +1147,7 @@ export default function EditItineraryForm({ itinerary }: EditItineraryFormProps)
           <div className="border-t-2 border-gray-200 dark:border-gray-700 pt-6">
             <h3 className="text-2xl font-bold mb-4 text-purple-600">Exclusions</h3>
 
-            <div className="mb-6 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-sm border-2 border-orange-200 dark:border-orange-800">
+            <div className="mb-6 p-4 bg-orange-50 dark:bg-orange-900/20 rounded border-2 border-orange-200 dark:border-orange-800">
               <div className="flex items-center gap-2 mb-3">
                 <Clipboard className="h-5 w-5 text-orange-600" />
                 <label className="font-semibold text-orange-700 dark:text-orange-300">

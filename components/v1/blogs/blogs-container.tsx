@@ -110,7 +110,7 @@ const BlogCard: React.FC<BlogCardProps> = ({ post, formatDate, cardVariants }) =
         {!imageLoaded && <div className="absolute inset-0 bg-gray-300 dark:bg-gray-700 animate-pulse" />}
 
         <Image
-          src={post.image || '/images/hero/hero01.jpg'}
+          src={post.image || '/images/hero/hero1.jpg'}
           alt={post.title || 'Blog Post Image'}
           width={400}
           height={250}

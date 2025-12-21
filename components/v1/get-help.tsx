@@ -4,7 +4,7 @@ import { FaPhoneAlt } from 'react-icons/fa';
 
 const GetHelp = () => {
   return (
-    <div className={`rounded-md bg-foreground py-5 px-6 max-w-[450px] w-full`}>
+    <div className={`rounded bg-foreground py-5 px-6 max-w-[450px] w-full`}>
       <div>
         <div className={`text-custom-clp font-semibold text-xl`}>
           <span>Get Help</span>
