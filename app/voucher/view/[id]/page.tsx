@@ -23,8 +23,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       };
     }
 
+    let brand = '';
+    if (voucher.travelId.startsWith('TRL')) {
+      brand = 'Tourillo';
+    } else if (voucher.travelId.startsWith('TTH')) {
+      brand = 'Travel Trail Holidays';
+    }
+
     return {
-      title: `${voucher.clientName} - ${voucher.voucherId}`,
+      title: {
+        absolute: `${voucher.clientName} - ${voucher.travelId} - ${brand}`,
+      },
       description: `Travel voucher for ${voucher.clientName}`,
     };
   } catch (error) {

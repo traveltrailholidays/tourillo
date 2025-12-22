@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useForm, useFieldArray, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
@@ -14,6 +14,7 @@ import {
 import toast from 'react-hot-toast';
 import { Search, X, Calendar, Users, Hotel, Car, AlertCircle, CheckCircle2, Info } from 'lucide-react';
 import { Button } from '../ui/button';
+import { useAuthStore } from '@/store/auth.store';
 
 // ✅ FIXED: Removed .default([]) to make hotelStays always an array (never undefined)
 const VoucherSchema = z.object({
@@ -56,6 +57,9 @@ export default function CreateVoucherForm({ itineraries }: CreateVoucherFormProp
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [confirmationData, setConfirmationData] = useState<VoucherConfirmationData | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const { user } = useAuthStore();
+  const role = user?.isAdmin && 'ADMIN';
 
   const {
     register,
@@ -128,19 +132,33 @@ export default function CreateVoucherForm({ itineraries }: CreateVoucherFormProp
         // Check if vouchers already exist
         const confirmData = await checkVoucherExists(selectedTravelId);
 
-        if (confirmData && confirmData.existingVouchersCount > 0) {
-          // Show confirmation modal
-          setConfirmationData(confirmData);
-          setShowConfirmationModal(true);
+        if (role === 'ADMIN') {
+          if (confirmData && confirmData.existingVouchersCount > 0) {
+            // Show confirmation modal
+            setConfirmationData(confirmData);
+            setShowConfirmationModal(true);
+          } else {
+            // No existing vouchers, proceed normally
+            await loadItineraryData(selectedTravelId);
+          }
         } else {
-          // No existing vouchers, proceed normally
+          if (confirmData && confirmData.existingVouchersCount > 0) {
+            // agent ko second time create karne se rok do
+            toast.error('Voucher already exists');
+            // selection revert kar de
+            handleClearSelection();
+            return;
+          }
+
+          // first voucher → agent allowed, directly load itinerary data
           await loadItineraryData(selectedTravelId);
+          return;
         }
       } catch (error) {
         toast.error(error instanceof Error ? error.message : 'Failed to check voucher existence');
       }
     },
-    [itineraries, setValue]
+    [itineraries, setValue, role]
   );
 
   // Load itinerary data

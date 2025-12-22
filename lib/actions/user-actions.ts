@@ -357,6 +357,26 @@ export async function deleteUserPermanently(id: string) {
       throw new Error('Cannot delete your own account');
     }
 
+    const adminToDelete = await prisma.user.findUnique({
+      where: { id },
+      select: { isAdmin: true },
+    });
+
+    if (adminToDelete?.isAdmin) {
+      // Count total active admins (including the one being deleted)
+      const totalAdmins = await prisma.user.count({
+        where: {
+          isAdmin: true,
+          isActive: true,
+        },
+      });
+
+      // If only 1 admin exists, prevent deletion
+      if (totalAdmins === 1) {
+        throw new Error('Cannot delete the last admin. At least one active admin must remain.');
+      }
+    }
+
     await prisma.user.delete({
       where: { id },
     });

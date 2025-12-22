@@ -24,6 +24,8 @@ import {
   User,
   Calendar,
   FileText,
+  CheckIcon,
+  ClipboardIcon,
 } from 'lucide-react';
 import { deleteReview, toggleReviewDisplay, toggleReviewRead } from '@/lib/actions/review-actions';
 import {
@@ -246,6 +248,19 @@ export const ReviewList: React.FC<ReviewListProps> = ({ reviews }) => {
 
   const hasActiveFilters = statusFilter !== 'ALL' || displayFilter !== 'ALL' || search.trim();
 
+  const url = 'https://tourillo.com/review';
+  const [copied, setCopied] = useState(false);
+  const handleCopy = () => {
+    navigator.clipboard
+      .writeText(url)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch((err) => console.error('Failed to copy:', err));
+    toast.success('copied!');
+  };
+
   return (
     <div className="rounded bg-foreground shadow-lg border border-gray-200 dark:border-gray-700 p-4 md:p-6">
       {/* Search and Filters */}
@@ -262,6 +277,24 @@ export const ReviewList: React.FC<ReviewListProps> = ({ reviews }) => {
                 setSearch(e.target.value);
               }}
             />
+          </div>
+          {/* Copyable URL */}
+          <div className="flex w-full max-w-md">
+            <input
+              className="flex-1 px-3 py-2 rounded-l border-2 border-gray-300 dark:border-gray-600 bg-background focus:outline-none focus:ring-2 focus:ring-purple-500"
+              value={url}
+              readOnly
+            />
+            <button
+              onClick={handleCopy}
+              className="flex items-center justify-center px-3 py-2 rounded-r border-2 border-l-0 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition cursor-pointer"
+            >
+              {copied ? (
+                <CheckIcon className="h-6 w-6 text-green-500" />
+              ) : (
+                <ClipboardIcon className="h-6 w-6 text-gray-500" />
+              )}
+            </button>
           </div>
         </div>
 

@@ -22,8 +22,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       };
     }
 
+    let brand = '';
+    if (itinerary.travelId.startsWith('TRL')) {
+      brand = 'Tourillo';
+    } else if (itinerary.travelId.startsWith('TTH')) {
+      brand = 'Travel Trail Holidays';
+    }
+
     return {
-      title: `${itinerary.clientName} - ${itinerary.travelId}`,
+      title: {
+        absolute: `${itinerary.clientName} - ${itinerary.travelId} - ${brand}`,
+      },
       description: `Travel itinerary for ${itinerary.clientName}`,
     };
   } catch (error) {
